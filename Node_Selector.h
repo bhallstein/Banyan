@@ -19,10 +19,9 @@ namespace Banyan {
 		bool stopAfterFirstSuccess;  // Return success after a child succeeds
 		bool randomizeOrder;         // Call children in random order?
 		
-		SETTABLE(stopAfterFirstSuccess);
-		SETTABLE(randomizeOrder);
+		SETTABLES(stopAfterFirstSuccess, randomizeOrder);
 
-		Selector() : i(0), n_children(-1) {  }
+		Selector() : i(0), n_children(-1), stopAfterFirstSuccess(true), randomizeOrder(false) {  }
 		~Selector() {  }
 		
 		NodeReturnStatus call(int identifier, int _n_children) {

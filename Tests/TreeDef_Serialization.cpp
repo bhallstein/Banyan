@@ -12,17 +12,17 @@ Test TreeDefinition serialization & deserialization.
 #include <fstream>
 #include <streambuf>
 
-#define p_assert(x) do {             \
+#define p_assert(x) do {           \
 		printf("TEST: %35s", #x);    \
 		assert(x);                   \
 		printf(" - PASS :)\n");      \
 	} while (false)
-#define p_header(s) do {                                  \
-		for (int i=0; s[i] != '\0'; ++i) printf("*");     \
-		printf("********\n");                             \
-		printf("**  %s  **\n", s);                        \
-		for (int i=0; s[i] != '\0'; ++i) printf("*");     \
-		printf("********\n");                             \
+#define p_header(s) do {                               \
+		for (int i=0; s[i] != '\0'; ++i) printf("*");    \
+		printf("********\n");                            \
+		printf("**  %s  **\n", s);                       \
+		for (int i=0; s[i] != '\0'; ++i) printf("*");    \
+		printf("********\n");                            \
 	} while (false)
 
 

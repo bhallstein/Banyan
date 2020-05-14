@@ -15,9 +15,10 @@ namespace Banyan {
 		ChildLimits childLimits()  { return { 1, -1 }; }
 		
 		bool ignoreFailure;
-		SETTABLE(ignoreFailure);
 		
-		Sequence() : i(0), n_children(-1) {  }
+		SETTABLES(ignoreFailure);
+		
+		Sequence() : i(0), n_children(-1), ignoreFailure(false) {  }
 		~Sequence() {  }
 		
 		NodeReturnStatus call(int identifier, int _n_children) {

@@ -125,9 +125,7 @@ namespace Banyan {
 			
 			_assert(d_nodes.isTable());
 			
-			for (auto &entry : d_nodes.descendants()) {
-				Diatom &dn = entry.second;
-				
+			d_nodes.each_descendant([&](std::string &key, Diatom &dn) {
 				std::string identifier = dn["type"].str_value();
 				
 				// Find existing NodeDef with the right identifier
@@ -146,9 +144,8 @@ namespace Banyan {
 				antidiatomize(n->_getSD(), dn);
 				
 				treedef_nodes.push_back(n);
-			}
+			});
 		}
-		
 	};
 	
 }

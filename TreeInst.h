@@ -5,9 +5,9 @@
  *  - accessed from user code, provides callbacks to manage the flow
  *    between nodes
  *  - a node may be created as a NodeConcrete created by a NodeDef in the BT_Def
- *  - or it may simply be a function
+ *    or it may simply be a function
  *
- * A node ‘runs’ when it is called on to make a decision about tree flow. The possible
+ * A node 'runs' when it is called on to make a decision about tree flow. The possible
  * decisions are:
  *  - return to parent (with SUCCESS or FAILURE)
  *  - cede to a child
@@ -31,8 +31,7 @@
 
 #include <cstdint>
 #define __PSA_PSIZE_TYPE uint8_t	// It is highly unlikely our nodes will exceed 256 bytes
-#include "PoppableStackAllocator.h"
-#include <cassert>
+#include "StackAllocator_PoppableAndStretchy.h"
 
 namespace Banyan {
 
@@ -53,7 +52,6 @@ namespace Banyan {
 		
 		void begin() {
 			currentNode_gtInd = bt->indexOfTopNode();
-			assert(currentNode_gtInd >= 0);
 			
 			pushNode(currentNode_gtInd);
 			update();
@@ -98,7 +96,7 @@ namespace Banyan {
 		int identifier;
 		int currentNode_gtInd;	// The index of the node within the GenericTree
 		
-		StretchyPoppableStackAllocator allocator;
+		StackAllocator_PoppableAndStretchy allocator;
 		std::vector<NodeBase*> stack;
 			// Nodes are pushed/popped as we descend/ascend the tree
 		
@@ -120,8 +118,8 @@ namespace Banyan {
 		void popNode() {
 			NodeBase *n = stack.back();
 			
-			n->~NodeBase();		// Manually call destructor (as placement new used in clone().)
-			stack.pop_back();	//  -- i.e. clean up if the node makes any allocations
+			n->~NodeBase();    // Manually call destructor (as placement new used in clone().)
+			stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
 			allocator.pop();
 			
 			currentNode_gtInd = bt->parentOfNode(currentNode_gtInd);

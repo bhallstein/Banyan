@@ -7,8 +7,6 @@ int MockLeaf::n_times_created;
 int MockLeaf::n_times_called;
 int MockLeaf::n_times_resumed;
 
-
-// Register function node for testing
 int _fn_node_calls = 0;
 Banyan::NodeReturnStatus someNodeFunction(int identifier) {
 	_fn_node_calls++;

@@ -17,10 +17,9 @@ namespace Banyan {
 		int N;               // Set N to 0 to repeat infinitely
 		bool ignoreFailure;  // Should failures cease the repeater?
 		
-		SETTABLE(N);
-		SETTABLE(ignoreFailure);
+		SETTABLES(N, ignoreFailure);
 		
-		Repeater() : i(0) {  }
+		Repeater() : i(0), N(1), ignoreFailure(false) {  }
 		~Repeater() {  }
 		
 		NodeReturnStatus call(int identifier, int nChildren) {

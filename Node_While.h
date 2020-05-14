@@ -26,9 +26,10 @@ namespace Banyan {
 		
 		bool breakOnFailuresIn2ndChild;  // Should failures in the action child
 		                                 // cease the sequence?
-		SETTABLE(breakOnFailuresIn2ndChild);
 		
-		While() : i(0) {  }
+		SETTABLES(breakOnFailuresIn2ndChild);
+		
+		While() : i(0), breakOnFailuresIn2ndChild(false) {  }
 		~While() {  }
 		
 		NodeReturnStatus call(int identifier, int _n_children) {
