@@ -1,0 +1,20 @@
+treeDef:
+  nodes:
+    n0:
+      N: 4
+      ignoreFailure: false
+      type: "Repeater"
+    n1:
+      type: "FunctionTest"
+  tree:
+    free_list:
+    tree:
+      n0:
+        child_gt_inds:
+          n0: 1
+        node_orig_ind: 0
+        parent_gt_ind: -1
+      n1:
+        child_gt_inds:
+        node_orig_ind: 1
+        parent_gt_ind: 0

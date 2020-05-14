@@ -1,0 +1,52 @@
+treeDef:
+  nodes:
+    n0:
+      ignoreFailure: false
+      type: "Sequence"
+    n1:
+      succeeds: true
+      type: "MockLeaf"
+    n2:
+      succeeds: true
+      type: "MockLeaf"
+    n3:
+      succeeds: true
+      type: "MockLeaf"
+    n4:
+      succeeds: true
+      type: "MockLeaf"
+    n5:
+      succeeds: true
+      type: "MockLeaf"
+  tree:
+    free_list:
+    tree:
+      n0:
+        child_gt_inds:
+          n0: 1
+          n1: 2
+          n2: 3
+          n3: 4
+          n4: 5
+        node_orig_ind: 0
+        parent_gt_ind: -1
+      n1:
+        child_gt_inds:
+        node_orig_ind: 1
+        parent_gt_ind: 0
+      n2:
+        child_gt_inds:
+        node_orig_ind: 2
+        parent_gt_ind: 0
+      n3:
+        child_gt_inds:
+        node_orig_ind: 3
+        parent_gt_ind: 0
+      n4:
+        child_gt_inds:
+        node_orig_ind: 4
+        parent_gt_ind: 0
+      n5:
+        child_gt_inds:
+        node_orig_ind: 5
+        parent_gt_ind: 0

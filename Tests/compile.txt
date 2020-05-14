@@ -2,31 +2,24 @@ clang++ -std=c++11 \
     TreeDef_Serialization.cpp        \
 	_Register_Test_Nodes.cpp         \
 	../../Diatom/Diatom.cpp      \
-	../../Diatom/Diatom-Lua.cpp  \
+	../../Diatom/Diatom-Storage.cpp \
     -I .. \
     -I ../../GenericTree  \
     -I ../../Diatom       \
     -I ../../Diatomize    \
 	-I ../../PoppableStackAllocator     \
-    -I ../../L-Serialize/lua-5.2.1/src  \
-	-L ../../L-Serialize/lua-5.2.1      \
-	-lLua-x86_64-O3  \
 	-o ser #-O3 #-g
-
 
 clang++ -std=c++11 \
 	TreeInst.cpp                     \
 	_Register_Test_Nodes.cpp         \
 	../../Diatom/Diatom.cpp      \
-	../../Diatom/Diatom-Lua.cpp  \
+	../../Diatom/Diatom-Storage.cpp \
     -I .. \
     -I ../../GenericTree  \
 	-I ../../Diatom       \
     -I ../../Diatomize    \
 	-I ../../PoppableStackAllocator     \
-    -I ../../L-Serialize/lua-5.2.1/src  \
-	-L ../../L-Serialize/lua-5.2.1      \
-	-lLua-x86_64-O3  \
 	-o inst #-O3 #-g
 
 

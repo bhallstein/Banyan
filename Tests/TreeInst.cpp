@@ -6,7 +6,7 @@ Test TreeInstance -- pushing & popping etc.
 
 #include "Banyan.h"
 #include "_Register_Test_Nodes.h"
-#include "Diatom-Lua.h"
+#include "Diatom-Storage.h"
 
 #define p_assert(x) do {             \
 		printf("TEST: %35s", #x);    \
@@ -33,7 +33,7 @@ int main() {
 void loadTreeDef(const std::string &fn, Banyan::TreeDefinition &bt) {
 	bt.reset();
 	
-	Diatom d = luaToDiatom(fn, "treeDef");
+	Diatom d = diatomFromFile(fn);
 	bt.fromDiatom(d);
 }
 
@@ -47,7 +47,7 @@ void testTreeInst() {
 	/**********************/
 	
 	p_header("Testing Repeaters");
-	loadTreeDef("trees/repeater_test.lua", bt);
+	loadTreeDef("trees/repeater_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -60,13 +60,12 @@ void testTreeInst() {
 		printf("\n");
 	}
 	
-	
 	/**********************/
 	/*** Test Inverters ***/
 	/**********************/
 	
 	p_header("Testing Inverters");
-	loadTreeDef("trees/inverter_test.lua", bt);
+	loadTreeDef("trees/inverter_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -85,7 +84,7 @@ void testTreeInst() {
 	/***********************/
 
 	p_header("Testing Succeeders");
-	loadTreeDef("trees/succeeder_test.lua", bt);
+	loadTreeDef("trees/succeeder_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -103,7 +102,7 @@ void testTreeInst() {
 	/**********************/
 
 	p_header("Testing Sequences");
-	loadTreeDef("trees/sequence_test.lua", bt);
+	loadTreeDef("trees/sequence_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -122,7 +121,7 @@ void testTreeInst() {
 	/**********************/
 
 	p_header("Testing Selectors");
-	loadTreeDef("trees/selector_test.lua", bt);
+	loadTreeDef("trees/selector_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 
@@ -143,7 +142,7 @@ void testTreeInst() {
 	/**********************/
 
 	p_header("Testing Functions");
-	loadTreeDef("trees/function_test.lua", bt);
+	loadTreeDef("trees/function_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		_fn_node_calls = 0;
@@ -161,7 +160,7 @@ void testTreeInst() {
 	/*******************/
 
 	p_header("Testing Whiles");
-	loadTreeDef("trees/while_test.lua", bt);
+	loadTreeDef("trees/while_test.diatom", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -175,5 +174,4 @@ void testTreeInst() {
 		printf("\n");
 	}
 }
-
 

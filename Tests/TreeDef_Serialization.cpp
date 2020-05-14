@@ -4,7 +4,8 @@ Test TreeDefinition serialization & deserialization.
 
 */
 
-#include "Diatom-Lua.h"
+// #include "Diatom-Lua.h"
+#include "Diatom-Storage.h"
 #include "Banyan.h"
 #include "_Register_Test_Nodes.h"
 
@@ -35,16 +36,19 @@ int main() {
 
 
 void testTreeDef() {
-	const char *filename = "trees/serialization_test.lua";
+	const char *filename = "trees/serialization_test.diatom";
 	
 	p_header("Testing TreeDef Serialization");
-	Diatom d = luaToDiatom(filename, "treeDef");
+	Diatom d = diatomFromFile(filename);
+		// Lua-backed version:
+		//    Diatom d;
+		//    d["treeDef"] = luaToDiatom(filename, "treeDef");
 	
 	Banyan::TreeDefinition bt;
 	bt.fromDiatom(d);
 	
 	d = bt.toDiatom();
-	std::string ser = std::string("treeDef = ") + diatomToLua(d);
+	std::string ser = diatomToString(d, "treeDef");
 	// printf("%s\n", ser.c_str());
 	
 	std::ifstream file_stream(filename);

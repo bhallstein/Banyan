@@ -78,11 +78,13 @@ namespace Banyan {
 			return d;
 		}
 		
-		void fromDiatom(Diatom &d_tree) {
+		void fromDiatom(Diatom &d) {
 			using Str = std::string;
 			
-			_assert(d_tree.isTable());
 			reset();
+			
+			Diatom d_tree  = d["treeDef"];
+			_assert(d_tree.isTable());
 			
 			Diatom d_nodes = d_tree["nodes"];
 			Diatom d_gt    = d_tree["tree"];
