@@ -28,6 +28,10 @@
 #include "TreeDef.h"
 #include "NodeBase.h"
 #include "NodeRegistry.h"
+
+#include <cstdint>
+#define __PSA_PSIZE_TYPE uint8_t	// It is highly unlikely our nodes will exceed 256 bytes
+#include "PoppableStackAllocator.h"
 #include <cassert>
 
 namespace Banyan {
@@ -37,7 +41,8 @@ namespace Banyan {
 		TreeInstance(TreeDefinition *_bt, int _ident) :
 			bt(_bt),
 			identifier(_ident),
-			currentNode_gtInd(-1)
+			currentNode_gtInd(-1),
+			allocator(128)
 		{
 			
 		}
@@ -89,6 +94,7 @@ namespace Banyan {
 		int identifier;
 		int currentNode_gtInd;	// The index of the node within the GenericTree
 		
+		StretchyPoppableStackAllocator allocator;
 		std::vector<NodeBase*> stack;
 			// Nodes are pushed/popped as we descend/ascend the tree
 		
@@ -100,17 +106,19 @@ namespace Banyan {
 		void pushNode(int index) {
 			currentNode_gtInd = index;
 			
-			NodeRegistry::Wrapper *nw = bt->get(index);
-			NodeBase *n = (NodeBase*) malloc(nw->node->size());
-			nw->node->clone(n);
+			NodeBase *source_node = bt->get(index)->node;
+			NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
+			source_node->clone(n);
 			
 			stack.push_back(n);
 		}
 		
 		void popNode() {
 			NodeBase *n = stack.back();
-			stack.pop_back();
-			delete n;
+			
+			n->~NodeBase();		// Manually call destructor (as placement new used in clone().)
+			stack.pop_back();	//  -- i.e. clean up if the node makes any allocations
+			allocator.pop();
 			
 			currentNode_gtInd = bt->parentOfNode(currentNode_gtInd);
 			// NB - may be NOT_FOUND -- caller should check & decide what to do

@@ -10,6 +10,7 @@
 #include <new>
 
 #include "Diatomize.h"
+#include <stdexcept>
 
 namespace Banyan {
 	
