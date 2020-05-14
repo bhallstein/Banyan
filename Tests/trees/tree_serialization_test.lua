@@ -1,13 +1,13 @@
 treeDef = {
     nodes = {
         n0 = {
-            succeeds = true,
-            type = "MockLeaf"
-        },
-        n1 = {
             N = 2,
             ignoreFailure = false,
             type = "Repeater"
+        },
+        n1 = {
+            succeeds = true,
+            type = "MockLeaf"
         },
         n2 = {
             N = 3,

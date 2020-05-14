@@ -79,6 +79,8 @@ namespace Banyan {
 		}
 		
 		void fromDiatom(Diatom &d_tree) {
+			using Str = std::string;
+			
 			_assert(d_tree.isTable());
 			reset();
 			
@@ -91,25 +93,19 @@ namespace Banyan {
 			nodesFromDiatom(d_nodes);
 			super::fromDiatom(d_gt, treedef_nodes);
 			
-			/*
-			Check child limits?
-			super::walk([&filename](NodeRegistry::Wrapper *ndw, int i) {
-				if (ndw->type == NodeType::Function)
-					return;
-
+			super::walk([&](NodeBase *n, int i) {
 				int n_children = nChildren(i);
-				ChildLimits limits = ndw->nodeDef->childLimits();
+				ChildLimits limits = n->childLimits();
 
-				if ((limits.min != -1 && n_children < limits.min) ||
-					(limits.max != -1 && n_children > limits.max))
-					_bnyn_throw(
-						(std::string("Node of type ") + ndw->identifier +
-						 std::string(" in file '") + std::string(filename) + std::string("'") +
-						 std::string(" has invalid # of children")
-						).c_str()
+				if ((limits.min != -1 && n_children < limits.min) || (limits.max != -1 && n_children > limits.max))
+					throw std::runtime_error(
+						Str("Node of type ") + *n->type +
+						 Str(" has invalid # of children (") +
+						 std::to_string(n_children) + Str(" for ") +
+						 std::to_string(limits.min) + Str("-") + std::to_string(limits.max) +
+						 Str(")")
 					);
 			});
-			*/
 		}
 		
 	private:		
