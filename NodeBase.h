@@ -43,6 +43,13 @@ namespace Banyan {
 		Diatomize::Descriptor _getSD() {
 			Diatomize::Descriptor sd = getSD();
 			sd.descriptor.push_back(diatomPart("type", &type));
+			
+			Diatomize::Descriptor temp;
+			for (auto i : s0().descriptor) {  sd.descriptor.push_back(i->clone());  }
+			for (auto i : s1().descriptor) {  sd.descriptor.push_back(i->clone());  }
+			for (auto i : s2().descriptor) {  sd.descriptor.push_back(i->clone());  }
+			for (auto i : s3().descriptor) {  sd.descriptor.push_back(i->clone());  }
+			
 			return sd;
 		}
 		
@@ -52,10 +59,15 @@ namespace Banyan {
 		virtual NodeBase* clone(void *into = NULL) = 0;
 		virtual int size() = 0;
 		
+		virtual Diatomize::Descriptor s0() { return {{ }}; }  // The user can override these
+		virtual Diatomize::Descriptor s1() { return {{ }}; }  // automatically using SETTABLE()
+		virtual Diatomize::Descriptor s2() { return {{ }}; }  // 
+		virtual Diatomize::Descriptor s3() { return {{ }}; }  // 
+		
 		std::string *type;
 		
 	protected:
-		virtual Diatomize::Descriptor getSD() = 0;
+		virtual Diatomize::Descriptor getSD() { return { }; }
 	};
 	
 	template<class Derived>
@@ -95,5 +107,14 @@ namespace Banyan {
 	};
 
 }
+
+#define ConcatL2(a, b) a##b
+#define ConcatL1(a, b) ConcatL2(a, b)
+#define UniqueVarName(prefix) ConcatL1(prefix, __COUNTER__)
+
+#define SETTABLE(prop_name) \
+	Diatomize::Descriptor UniqueVarName(s)() {           \
+		return {{ diatomPart(#prop_name, &prop_name) }};  \
+	}
 
 #endif

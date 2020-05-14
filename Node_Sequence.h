@@ -13,13 +13,9 @@ namespace Banyan {
 	class Sequence : public NodeBase_CRTP<Sequence> {
 	public:
 		ChildLimits childLimits()  { return { 1, -1 }; }
-		Diatomize::Descriptor getSD() {
-			return {{
-				diatomPart("ignoreFailure", &ignoreFailure)
-			}};
-		}
 		
 		bool ignoreFailure;
+		SETTABLE(ignoreFailure);
 		
 		Sequence() : i(0), n_children(-1) {  }
 		~Sequence() {  }

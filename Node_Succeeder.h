@@ -13,9 +13,6 @@ namespace Banyan {
 	class Succeeder : public NodeBase_CRTP<Succeeder> {
 	public:
 		ChildLimits childLimits()  { return { 1, 1 }; }
-		Diatomize::Descriptor getSD() {
-			return Diatomize::Descriptor();
-		}
 		
 		Succeeder() {  }
 		~Succeeder() {  }

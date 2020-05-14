@@ -17,7 +17,6 @@
 
 #define _GT_ENABLE_SERIALIZATION
 #include "GenericTree.h"
-#include "UnpoppableStackAllocator.h"
 
 #include "Node_Repeater.h"
 #include "Node_Inverter.h"
@@ -84,6 +83,8 @@ namespace Banyan {
 			
 			reset();
 			
+			_assert(d.isTable());
+			
 			Diatom d_tree  = d["treeDef"];
 			_assert(d_tree.isTable());
 			
@@ -113,7 +114,6 @@ namespace Banyan {
 		
 	private:		
 		std::vector<NodeBase*> treedef_nodes;
-		StretchyUnpoppableStackAllocator allocator;
 		
 		static Diatom nodeToDiatom(NodeBase *n) {
 			return diatomize(n->_getSD());

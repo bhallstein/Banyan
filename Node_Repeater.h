@@ -13,15 +13,12 @@ namespace Banyan {
 	class Repeater : public NodeBase_CRTP<Repeater> {
 	public:
 		ChildLimits childLimits() { return { 1, 1 }; }
-		Diatomize::Descriptor getSD() {
-			return {{
-				diatomPart("N", &N),
-				diatomPart("ignoreFailure", &ignoreFailure)
-			}};
-		}
 		
 		int N;               // Set N to 0 to repeat infinitely
 		bool ignoreFailure;  // Should failures cease the repeater?
+		
+		SETTABLE(N);
+		SETTABLE(ignoreFailure);
 		
 		Repeater() : i(0) {  }
 		~Repeater() {  }

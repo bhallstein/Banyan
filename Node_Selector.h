@@ -15,16 +15,13 @@ namespace Banyan {
 	class Selector : public NodeBase_CRTP<Selector> {
 	public:
 		ChildLimits childLimits() { return { 1, -1 }; }
-		Diatomize::Descriptor getSD() {
-			return {{
-				diatomPart("stopAfterFirstSuccess", &stopAfterFirstSuccess),
-				diatomPart("randomizeOrder", &randomizeOrder)
-			}};
-		}
 		
 		bool stopAfterFirstSuccess;  // Return success after a child succeeds
 		bool randomizeOrder;         // Call children in random order?
 		
+		SETTABLE(stopAfterFirstSuccess);
+		SETTABLE(randomizeOrder);
+
 		Selector() : i(0), n_children(-1) {  }
 		~Selector() {  }
 		

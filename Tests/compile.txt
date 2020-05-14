@@ -4,10 +4,10 @@ clang++ -std=c++11 \
 	../../Diatom/Diatom.cpp             \
 	../../Diatom/Diatom-Storage.cpp     \
 	../../Diatomize/Diatomize.cpp \
-    -I .. \
-    -I ../../GenericTree  \
-    -I ../../Diatom       \
-    -I ../../Diatomize    \
+  -I .. \
+  -I ../../C++\ Containers/GenericTree \
+  -I ../../Diatom       \
+  -I ../../Diatomize    \
 	-I ../../C\+\+\ Containers/PoppableStackAllocator     \
 	-o ser #-O3 #-g
 
@@ -17,10 +17,11 @@ clang++ -std=c++11 \
 	../../Diatom/Diatom.cpp             \
 	../../Diatom/Diatom-Storage.cpp     \
 	../../Diatomize/Diatomize.cpp \
-    -I .. \
-    -I ../../GenericTree  \
-	-I ../../Diatom       \
-    -I ../../Diatomize    \
+  -I .. \
+  -I ../../C++\ Containers/GenericTree \
+  -I ../../GenericTree  \
+  -I ../../Diatom       \
+  -I ../../Diatomize    \
 	-I ../../C\+\+\ Containers/PoppableStackAllocator     \
 	-o inst #-O3 #-g
 

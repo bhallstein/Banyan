@@ -23,14 +23,10 @@ namespace Banyan {
 	class While : public NodeBase_CRTP<While> {
 	public:
 		ChildLimits childLimits()  { return { 2, 2 }; }
-		Diatomize::Descriptor getSD() {
-			return {{
-				diatomPart("breakOnFailuresIn2ndChild", &breakOnFailuresIn2ndChild)
-			}};
-		}
 		
 		bool breakOnFailuresIn2ndChild;  // Should failures in the action child
 		                                 // cease the sequence?
+		SETTABLE(breakOnFailuresIn2ndChild);
 		
 		While() : i(0) {  }
 		~While() {  }

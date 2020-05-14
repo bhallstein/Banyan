@@ -83,7 +83,7 @@ namespace Banyan {
 		}
 		
 		void end_running_state(NodeReturnStatus s) {
-			popNode();
+//			popNode();
 			update(s);
 		}
 		

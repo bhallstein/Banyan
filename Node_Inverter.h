@@ -13,9 +13,6 @@ namespace Banyan {
 	class Inverter : public NodeBase_CRTP<Inverter> {
 	public:
 		ChildLimits childLimits() { return { 1, 1 }; }
-		Diatomize::Descriptor getSD() {
-			return Diatomize::Descriptor();
-		}
 		
 		Inverter() {  }
 		~Inverter() {  }
