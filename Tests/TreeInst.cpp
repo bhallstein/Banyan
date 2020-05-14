@@ -47,7 +47,7 @@ void testTreeInst() {
 	/**********************/
 	
 	p_header("Testing Repeaters");
-	loadTreeDef("trees/tree_repeater_test.lua", bt);
+	loadTreeDef("trees/repeater_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -66,7 +66,7 @@ void testTreeInst() {
 	/**********************/
 	
 	p_header("Testing Inverters");
-	loadTreeDef("trees/tree_inverter_test.lua", bt);
+	loadTreeDef("trees/inverter_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -85,7 +85,7 @@ void testTreeInst() {
 	/***********************/
 
 	p_header("Testing Succeeders");
-	loadTreeDef("trees/tree_succeeder_test.lua", bt);
+	loadTreeDef("trees/succeeder_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -103,7 +103,7 @@ void testTreeInst() {
 	/**********************/
 
 	p_header("Testing Sequences");
-	loadTreeDef("trees/tree_sequence_test.lua", bt);
+	loadTreeDef("trees/sequence_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();
@@ -122,7 +122,7 @@ void testTreeInst() {
 	/**********************/
 
 	p_header("Testing Selectors");
-	loadTreeDef("trees/tree_selector_test.lua", bt);
+	loadTreeDef("trees/selector_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 
@@ -143,7 +143,7 @@ void testTreeInst() {
 	/**********************/
 
 	p_header("Testing Functions");
-	loadTreeDef("trees/tree_function_test.lua", bt);
+	loadTreeDef("trees/function_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		_fn_node_calls = 0;
@@ -161,7 +161,7 @@ void testTreeInst() {
 	/*******************/
 
 	p_header("Testing Whiles");
-	loadTreeDef("trees/tree_while_test.lua", bt);
+	loadTreeDef("trees/while_test.lua", bt);
 	{
 		Banyan::TreeInstance bt_inst(&bt, 1);
 		MockLeaf::reset();

@@ -35,7 +35,7 @@ int main() {
 
 
 void testTreeDef() {
-	const char *filename = "trees/tree_serialization_test.lua";
+	const char *filename = "trees/serialization_test.lua";
 	
 	p_header("Testing TreeDef Serialization");
 	Diatom d = luaToDiatom(filename, "treeDef");
