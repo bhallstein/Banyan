@@ -14,10 +14,9 @@ public:
 	bool succeeds;	// Returns success or failure?
 	
 	Diatomize::Descriptor getSD() {
-		static Diatomize::Descriptor sd = {
+		return {{
 			diatomPart("succeeds", &MockLeaf::succeeds)
-		};
-		return sd;
+		}};
 	}
 	
 	MockLeaf()  { n_times_created += 1; }

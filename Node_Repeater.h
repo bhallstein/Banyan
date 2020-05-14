@@ -14,11 +14,10 @@ namespace Banyan {
 	public:
 		ChildLimits childLimits() { return { 1, 1 }; }
 		Diatomize::Descriptor getSD() {
-			static Diatomize::Descriptor sd = {
+			return {{
 				diatomPart("N", &Repeater::N),
 				diatomPart("ignoreFailure", &Repeater::ignoreFailure)
-			};
-			return sd;
+			}};
 		}
 		
 		int N;               // Set N to 0 to repeat infinitely

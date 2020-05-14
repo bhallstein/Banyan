@@ -24,10 +24,9 @@ namespace Banyan {
 	public:
 		ChildLimits childLimits()  { return { 2, 2 }; }
 		Diatomize::Descriptor getSD() {
-			static Diatomize::Descriptor sd = {
+			return {{
 				diatomPart("breakOnFailuresIn2ndChild", &While::breakOnFailuresIn2ndChild)
-			};
-			return sd;
+			}};
 		}
 		
 		bool breakOnFailuresIn2ndChild;  // Should failures in the action child cease the sequence?

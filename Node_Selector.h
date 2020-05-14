@@ -16,11 +16,10 @@ namespace Banyan {
 	public:
 		ChildLimits childLimits()  { return { 1, -1 }; }
 		Diatomize::Descriptor getSD() {
-			static Diatomize::Descriptor sd = {
+			return {{
 				diatomPart("stopAfterFirstSuccess", &Selector::stopAfterFirstSuccess),
 				diatomPart("randomizeOrder", &Selector::randomizeOrder)
-			};
-			return sd;
+			}};
 		}
 		
 		bool stopAfterFirstSuccess;  // Should a  cease the selector?

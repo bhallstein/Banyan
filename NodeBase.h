@@ -40,15 +40,22 @@ namespace Banyan {
 		virtual ~NodeBase() {  }
 		
 		virtual ChildLimits childLimits() = 0;
-		virtual Diatomize::Descriptor getSD() = 0;
+		Diatomize::Descriptor _getSD() {
+			Diatomize::Descriptor sd = getSD();
+			sd.descriptor.push_back(diatomPart("type", &NodeBase::type));
+			return sd;
+		}
 		
 		virtual NodeReturnStatus call(int identifier, int nChildren) = 0;
 		virtual NodeReturnStatus resume(int identifier, NodeReturnStatus &s) = 0;
-
+		
 		virtual NodeBase* clone(void *into = NULL) = 0;
 		virtual int size() = 0;
 		
 		std::string *type;
+		
+	protected:
+		virtual Diatomize::Descriptor getSD() = 0;
 	};
 	
 	template<class Derived>

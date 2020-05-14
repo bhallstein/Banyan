@@ -4,7 +4,6 @@ Test TreeDefinition serialization & deserialization.
 
 */
 
-// #include "Diatom-Lua.h"
 #include "Diatom-Storage.h"
 #include "Banyan.h"
 #include "_Register_Test_Nodes.h"

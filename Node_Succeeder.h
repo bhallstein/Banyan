@@ -14,8 +14,7 @@ namespace Banyan {
 	public:
 		ChildLimits childLimits()  { return { 1, 1 }; }
 		Diatomize::Descriptor getSD() {
-			static Diatomize::Descriptor sd;
-			return sd;
+			return Diatomize::Descriptor();
 		}
 		
 		Succeeder() {  }

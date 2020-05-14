@@ -62,8 +62,9 @@ namespace Banyan {
 		/*** Serialization ***/
 	
 		// The serialized form of the TreeDef is like so:
-		//    nodes => { node, node, node },
-		//    tree => [generictree serialized form]
+		//    treedef:
+		//       nodes: { node, node, node },
+		//       tree:  [generictree serialized form]
 		
 		Diatom toDiatom() {
 			Diatom d;
@@ -114,14 +115,8 @@ namespace Banyan {
 		std::vector<NodeBase*> treedef_nodes;
 		StretchyUnpoppableStackAllocator allocator;
 		
-		static Diatom
-		nodeToDiatom(NodeBase *n) {
-			Diatom d;
-			
-			d = diatomize(*n, n->getSD());
-			d["type"] = *n->type;
-			
-			return d;
+		static Diatom nodeToDiatom(NodeBase *n) {
+			return diatomize(*n, n->_getSD());
 		}
 		
 		void nodesFromDiatom(Diatom &d_nodes) {
@@ -148,7 +143,7 @@ namespace Banyan {
 				
 				// Clone the node, then deserialize it
 				NodeBase *n = nw_def->node->clone();
-				antidiatomize(*n, n->getSD(), dn);
+				antidiatomize(*n, n->_getSD(), dn);
 				
 				treedef_nodes.push_back(n);
 			}
