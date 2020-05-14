@@ -1,10 +1,7 @@
 
 
  clang++                                \
- 	_Test_BTDef_Serialization.cpp        \
-	NodeDefinition.cpp                  \
-	import_node_defs.cpp                \
-	../L-Serialize/L*.cpp               \
+ 	_Test_BTDef_Serialization.cpp       \
 	../Lua/LuaObj/LuaObj.cpp            \
 	                                    \
 	-I ../L-Serialize/                  \

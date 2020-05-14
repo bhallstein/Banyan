@@ -29,108 +29,111 @@
 #include "NodeDefinition.h"
 #include <cassert>
 
-class BT_Inst {
-public:
-	BT_Inst(BT_Def *_bt, int _ident) :
-		bt(_bt),
-		identifier(_ident),
-		currentNode_gtInd(-1)
-	{
+namespace Banyan {
+
+	class TreeInstance {
+	public:
+		TreeInstance(TreeDefinition *_bt, int _ident) :
+			bt(_bt),
+			identifier(_ident),
+			currentNode_gtInd(-1)
+		{
+			
+		}
 		
-	}
-	
-	void begin() {
-		currentNode_gtInd = bt->t.indexOfTopNode();
-		assert(currentNode_gtInd >= 0);
+		void begin() {
+			currentNode_gtInd = bt->t.indexOfTopNode();
+			assert(currentNode_gtInd >= 0);
+			
+			pushNode(currentNode_gtInd);
+			update();
+		}
 		
-		pushNode(currentNode_gtInd);
-		update();
-	}
-	
-	void update() {
-		BehaviourStatus s = callNode(stack.back());
-		update(s);
-	}
-	
-	void update(BehaviourStatus s) {
-		while (s.status != NodeReturnStatus::Running) {
-			if (s.status == NodeReturnStatus::Success || s.status == NodeReturnStatus::Failure) {
-				popNode();
-				if (stack.size() == 0) {
-					// printf("Stack size now zero\n");
-					// TODO: signal finishing to the user somehow
-					break;
+		void update() {
+			BehaviourStatus s = callNode(stack.back());
+			update(s);
+		}
+		
+		void update(BehaviourStatus s) {
+			while (s.status != NodeReturnStatus::Running) {
+				if (s.status == NodeReturnStatus::Success || s.status == NodeReturnStatus::Failure) {
+					popNode();
+					if (stack.size() == 0) {
+						// printf("Stack size now zero\n");
+						// TODO: signal finishing to the user somehow
+						break;
+					}
+					s = stack.back().nc
+						->resume(identifier, s);
 				}
-				s = stack.back().nc
-					->resume(identifier, s);
-			}
-			else if (s.status == NodeReturnStatus::PushChild) {
-				pushNode(bt->indexOfChild_ForNode(currentNode_gtInd, s.child));
-				s = callNode(stack.back());
+				else if (s.status == NodeReturnStatus::PushChild) {
+					pushNode(bt->indexOfChild_ForNode(currentNode_gtInd, s.child));
+					s = callNode(stack.back());
+				}
 			}
 		}
-	}
-	
-	void end_running_state(BehaviourStatus s) {
-		popNode();
-		update(s);
-	}
-	
-	int stackSize() {
-		return (int) stack.size();
-	}
-	
-private:
-	
-	BT_Def *bt;
-	
-	int identifier;
-	int currentNode_gtInd;	// The index of the node within the GenericTree
-	
-	std::vector<NodeConcrete::Wrapper> stack;
-		// Nodes are pushed/popped as we descend/ascend the tree
-	
-	BehaviourStatus callNode(NodeConcrete::Wrapper &ncw) {
-		int nChildren = bt->nChildren_ForNode(currentNode_gtInd);
 		
-		if (ncw.type == NodeDef::Type::Class) {
-			NodeConcrete *nc = ncw.nc;
-			return nc->call(identifier, nChildren);
+		void end_running_state(BehaviourStatus s) {
+			popNode();
+			update(s);
 		}
-		else {
-			NodeDef::node_function *f = ncw.nf;
-			return f(identifier, nChildren);
+		
+		int stackSize() {
+			return (int) stack.size();
 		}
-	}
-	
-	void pushNode(int index) {
-		currentNode_gtInd = index;
 		
-		NodeDef::Wrapper *ndw = bt->nodeDefWrapper_ForNode(index);
+	private:
 		
-		NodeConcrete::Wrapper ncw;
-		ncw.type = ndw->type;
+		TreeDefinition *bt;
+		
+		int identifier;
+		int currentNode_gtInd;	// The index of the node within the GenericTree
+		
+		std::vector<NodeConcrete::Wrapper> stack;
+			// Nodes are pushed/popped as we descend/ascend the tree
+		
+		BehaviourStatus callNode(NodeConcrete::Wrapper &ncw) {
+			int nChildren = bt->nChildren_ForNode(currentNode_gtInd);
+			
+			if (ncw.type == NodeDef::Type::Class) {
+				NodeConcrete *nc = ncw.nc;
+				return nc->call(identifier, nChildren);
+			}
+			else {
+				NodeDef::node_function *f = ncw.nf;
+				return f(identifier, nChildren);
+			}
+		}
+		
+		void pushNode(int index) {
+			currentNode_gtInd = index;
+			
+			NodeDef::Wrapper *ndw = bt->nodeDefWrapper_ForNode(index);
+			
+			NodeConcrete::Wrapper ncw;
+			ncw.type = ndw->type;
 
-		if (ndw->type == NodeDef::Type::Class)
-			ncw.nc = ndw->nodeDef->concreteFactory();
-		else
-			ncw.nf = ndw->nodeFn;
+			if (ndw->type == NodeDef::Type::Class)
+				ncw.nc = ndw->nodeDef->concreteFactory();
+			else
+				ncw.nf = ndw->nodeFn;
+			
+			stack.push_back(ncw);
+		}
 		
-		stack.push_back(ncw);
-	}
-	
-	void popNode() {
-		NodeConcrete::Wrapper ncw = stack.back();
-		stack.pop_back();
-		
-		if (ncw.type == NodeDef::Type::Class)
-			delete ncw.nc;
-		
-		currentNode_gtInd = bt->indexOfParent_ForNode(currentNode_gtInd);
-		// NB - may be NOT_FOUND -- caller should check & decide what to do
-	}
+		void popNode() {
+			NodeConcrete::Wrapper ncw = stack.back();
+			stack.pop_back();
+			
+			if (ncw.type == NodeDef::Type::Class)
+				delete ncw.nc;
+			
+			currentNode_gtInd = bt->indexOfParent_ForNode(currentNode_gtInd);
+			// NB - may be NOT_FOUND -- caller should check & decide what to do
+		}
 
-};
+	};
 
+}
 
 #endif
