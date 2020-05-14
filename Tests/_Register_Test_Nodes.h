@@ -15,7 +15,7 @@ public:
 	
 	Diatomize::Descriptor getSD() {
 		return {{
-			diatomPart("succeeds", &MockLeaf::succeeds)
+			diatomPart("succeeds", &succeeds)
 		}};
 	}
 	

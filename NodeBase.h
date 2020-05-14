@@ -42,7 +42,7 @@ namespace Banyan {
 		virtual ChildLimits childLimits() = 0;
 		Diatomize::Descriptor _getSD() {
 			Diatomize::Descriptor sd = getSD();
-			sd.descriptor.push_back(diatomPart("type", &NodeBase::type));
+			sd.descriptor.push_back(diatomPart("type", &type));
 			return sd;
 		}
 		
@@ -80,8 +80,7 @@ namespace Banyan {
 	public:
 		ChildLimits childLimits() { return { 0, 0}; }
 		Diatomize::Descriptor getSD() {
-			static Diatomize::Descriptor sd;
-			return sd;
+			return Diatomize::Descriptor();
 		}
 		
 		NodeReturnStatus call(int identifier, int nChildren) {

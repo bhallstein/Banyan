@@ -116,7 +116,7 @@ namespace Banyan {
 		StretchyUnpoppableStackAllocator allocator;
 		
 		static Diatom nodeToDiatom(NodeBase *n) {
-			return diatomize(*n, n->_getSD());
+			return diatomize(n->_getSD());
 		}
 		
 		void nodesFromDiatom(Diatom &d_nodes) {
@@ -143,7 +143,7 @@ namespace Banyan {
 				
 				// Clone the node, then deserialize it
 				NodeBase *n = nw_def->node->clone();
-				antidiatomize(*n, n->_getSD(), dn);
+				antidiatomize(n->_getSD(), dn);
 				
 				treedef_nodes.push_back(n);
 			}

@@ -25,7 +25,7 @@ namespace Banyan {
 		ChildLimits childLimits()  { return { 2, 2 }; }
 		Diatomize::Descriptor getSD() {
 			return {{
-				diatomPart("breakOnFailuresIn2ndChild", &While::breakOnFailuresIn2ndChild)
+				diatomPart("breakOnFailuresIn2ndChild", &breakOnFailuresIn2ndChild)
 			}};
 		}
 		

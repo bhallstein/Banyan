@@ -15,7 +15,7 @@ namespace Banyan {
 		ChildLimits childLimits()  { return { 1, -1 }; }
 		Diatomize::Descriptor getSD() {
 			return {{
-				diatomPart("ignoreFailure", &Sequence::ignoreFailure)
+				diatomPart("ignoreFailure", &ignoreFailure)
 			}};
 		}
 		

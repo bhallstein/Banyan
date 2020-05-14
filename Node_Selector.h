@@ -17,8 +17,8 @@ namespace Banyan {
 		ChildLimits childLimits()  { return { 1, -1 }; }
 		Diatomize::Descriptor getSD() {
 			return {{
-				diatomPart("stopAfterFirstSuccess", &Selector::stopAfterFirstSuccess),
-				diatomPart("randomizeOrder", &Selector::randomizeOrder)
+				diatomPart("stopAfterFirstSuccess", &stopAfterFirstSuccess),
+				diatomPart("randomizeOrder", &randomizeOrder)
 			}};
 		}
 		
