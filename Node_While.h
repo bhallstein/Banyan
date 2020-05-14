@@ -16,68 +16,46 @@
 #ifndef __Node_While_h
 #define __Node_While_h
 
-#include "NodeDefinition.h"
+#include "NodeBase.h"
 
 namespace Banyan {
 
-	class While : public NodeConcrete {
+	class While : public NodeBase_CRTP<While> {
 	public:
-		
-		class Def : public NodeDefBaseCRTP<Def> {
-		public:
-			ChildLimits childLimits()  { return { 2, 2 }; }
-			NodeConcrete* concreteFactory() { return new While(this); }
-			
-			bool breakOnFailuresIn2ndChild;  // Should failures in the action child cease the sequence?
-			
-			void getSDs(sdvec &vec) {
-				static serialization_descriptor sd = {
-					{ "breakOnFailuresIn2ndChild", makeSerializer(&Def::breakOnFailuresIn2ndChild) }
-				};
-				vec.push_back(&sd);
-			}
-		};
-		
-		While(const Def *_def) :
-			NodeConcrete(_def),
-			i(0),
-			breakOnFailuresIn2ndChild(_def->breakOnFailuresIn2ndChild)
-		{
-			
+		ChildLimits childLimits()  { return { 2, 2 }; }
+		Diatomize::Descriptor getSD() {
+			static Diatomize::Descriptor sd = {
+				diatomPart("breakOnFailuresIn2ndChild", &While::breakOnFailuresIn2ndChild)
+			};
+			return sd;
 		}
 		
-		~While()
-		{
-			
-		}
+		bool breakOnFailuresIn2ndChild;  // Should failures in the action child cease the sequence?
 		
+		While() : i(0) {  }
+		~While() {  }
 		
-		BehaviourStatus call(int identifier, int _n_children) {
+		NodeReturnStatus call(int identifier, int _n_children) {
 			return { NodeReturnStatus::PushChild, 0 };
 		}
-		BehaviourStatus resume(int identifier, BehaviourStatus &s) {
+		NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
 			if (i == 0) {
 				// Act on condition child return status
-				if (s.status == NodeReturnStatus::Success) {
+				if (s.status == NodeReturnStatus::Success)
 					return { NodeReturnStatus::PushChild, ++i };
-				}
-				else {
+				else
 					return { NodeReturnStatus::Success };
-				}
 			}
 			else {
 				// Act on action child return status
-				if (s.status == NodeReturnStatus::Failure && breakOnFailuresIn2ndChild) {
+				if (s.status == NodeReturnStatus::Failure && breakOnFailuresIn2ndChild)
 					return { NodeReturnStatus::Failure };
-				}
-				else {
+				else
 					return { NodeReturnStatus::PushChild, i=0 };
-				}
 			}
 		}
 		
 		int i;
-		const bool breakOnFailuresIn2ndChild;
 	};
 
 }

@@ -1,148 +1,175 @@
 /*
 
-Test BT_Inst pushing & popping etc.
+Test TreeInstance -- pushing & popping etc.
 
 */
 
 #include "Banyan.h"
-#include "Node_Repeater.h"
-#include "Node_Inverter.h"
-#include "_Test_BTInst_registerTestNodes.h"
+#include "_Register_Test_Nodes.h"
+#include "Diatom-Lua.h"
 
 #define p_assert(x) do {             \
 		printf("TEST: %35s", #x);    \
 		assert(x);                   \
 		printf(" - PASS :)\n");      \
 	} while (false)
+#define p_header(s) do {                                  \
+		for (int i=0; s[i] != '\0'; ++i) printf("*");     \
+		printf("********\n");                             \
+		printf("**  %s  **\n", s);                        \
+		for (int i=0; s[i] != '\0'; ++i) printf("*");     \
+		printf("********\n");                             \
+	} while (false)
 
+
+void testTreeInst();
 
 int main() {
+	testTreeInst();
+	return 0;
+}
+
+
+void loadTreeDef(const std::string &fn, Banyan::TreeDefinition &bt) {
+	bt.reset();
+	
+	Diatom d = luaToDiatom(fn, "treeDef");
+	bt.fromDiatom(d);
+}
+
+
+void testTreeInst() {
+	
+	Banyan::TreeDefinition bt;
 	
 	/**********************/
 	/*** Test Repeaters ***/
 	/**********************/
 	
+	p_header("Testing Repeaters");
+	
+	loadTreeDef("trees/tree_repeater_test.lua", bt);
+	Banyan::TreeInstance bt_inst(&bt, 1);
+	
 	MockLeaf::reset();
-	
-	Banyan::TreeDefinition bt_def("tree_repeater_test.lua");
-	Banyan::TreeInstance bt_inst(&bt_def, 1);
-	
 	bt_inst.begin();
 	
-	printf("\nTesting repeaters:\n");
 	p_assert(bt_inst.stackSize() == 0);
 	p_assert(MockLeaf::n_times_created == 6);
 	p_assert(MockLeaf::n_times_called  == 6);
 	p_assert(MockLeaf::n_times_resumed == 0);
+	printf("\n");
 	
 	
 	/**********************/
 	/*** Test Inverters ***/
 	/**********************/
 	
+	p_header("Testing Inverters");
+	
+	loadTreeDef("trees/tree_inverter_test.lua", bt);
+	bt_inst = Banyan::TreeInstance(&bt, 1);
+	
 	MockLeaf::reset();
-	
-	bt_def = Banyan::TreeDefinition("tree_inverter_test.lua");
-	bt_inst = Banyan::TreeInstance(&bt_def, 1);
-	
 	bt_inst.begin();
-
-	printf("\nTesting inverters:\n");
+	
 	p_assert(bt_inst.stackSize() == 0);	
 	p_assert(MockLeaf::n_times_created == 1);
 	p_assert(MockLeaf::n_times_called  == 1);
 	p_assert(MockLeaf::n_times_resumed == 0);
+	printf("\n");
 	
 	
 	/***********************/
 	/*** Test Succeeders ***/
 	/***********************/
 	
+	p_header("Testing Succeeders");
+	
+	loadTreeDef("trees/tree_succeeder_test.lua", bt);
+	bt_inst = Banyan::TreeInstance(&bt, 1);
+	
 	MockLeaf::reset();
-	
-	bt_def = Banyan::TreeDefinition("tree_succeeder_test.lua");
-	bt_inst = Banyan::TreeInstance(&bt_def, 1);
-	
 	bt_inst.begin();
-
-	printf("\nTesting succeeders:\n");
+	
 	p_assert(bt_inst.stackSize() == 0);
 	p_assert(MockLeaf::n_times_created == 2);
 	p_assert(MockLeaf::n_times_called  == 2);
 	p_assert(MockLeaf::n_times_resumed == 0);
+	printf("\n");
 	
 	
 	/**********************/
 	/*** Test Sequences ***/
 	/**********************/
 	
+	p_header("Testing Sequences");
+	
+	loadTreeDef("trees/tree_sequence_test.lua", bt);
+	bt_inst = Banyan::TreeInstance(&bt, 1);
+	
 	MockLeaf::reset();
-	
-	bt_def = Banyan::TreeDefinition("tree_sequence_test.lua");
-	bt_inst = Banyan::TreeInstance(&bt_def, 1);
-	
 	bt_inst.begin();
-
-	printf("\nTesting sequences:\n");
+	
 	p_assert(bt_inst.stackSize() == 0);
 	p_assert(MockLeaf::n_times_created == 5);
 	p_assert(MockLeaf::n_times_called  == 5);
 	p_assert(MockLeaf::n_times_resumed == 0);
+	printf("\n");
 	
 	
 	/**********************/
 	/*** Test Selectors ***/
 	/**********************/
 	
+	p_header("Testing Selectors");
+	
+	loadTreeDef("trees/tree_selector_test.lua", bt);
+	bt_inst = Banyan::TreeInstance(&bt, 1);
+	
 	MockLeaf::reset();
-	
-	bt_def = Banyan::TreeDefinition("tree_selector_test.lua");
-	bt_inst = Banyan::TreeInstance(&bt_def, 1);
-	
 	bt_inst.begin();
-
-	printf("\nTesting selectors:\n");
-	printf("n_times_created: %d\n", MockLeaf::n_times_created);
+	// printf("n_times_created: %d\n", MockLeaf::n_times_created);
 	
 	p_assert(bt_inst.stackSize() == 0);
 	p_assert(MockLeaf::n_times_created == 4);
 	p_assert(MockLeaf::n_times_called  == 4);
 	p_assert(MockLeaf::n_times_resumed == 0);
+	printf("\n");
 	
 	
 	/**********************/
 	/*** Test Functions ***/
 	/**********************/
 	
-	bt_def = Banyan::TreeDefinition("tree_function_test.lua");
-	bt_inst = Banyan::TreeInstance(&bt_def, 1);
+	p_header("Testing Functions");
+	loadTreeDef("trees/tree_function_test.lua", bt);
+	bt_inst = Banyan::TreeInstance(&bt, 1);
 	
 	bt_inst.begin();
-
-	printf("\nTesting functions:\n");
 	
 	p_assert(bt_inst.stackSize() == 0);
 	p_assert(_fn_node_calls == 4);
+	printf("\n");
 	
 	
 	/*******************/
 	/*** Test Whiles ***/
 	/*******************/
 	
+	p_header("Testing Whiles");
+	
+	loadTreeDef("trees/tree_while_test.lua", bt);
+	bt_inst = Banyan::TreeInstance(&bt, 1);
+	
 	MockLeaf::reset();
-	
-	bt_def = Banyan::TreeDefinition("tree_while_test.lua");
-	bt_inst = Banyan::TreeInstance(&bt_def, 1);
-	
 	bt_inst.begin();
 
-	printf("\nTesting whiles:\n");
 	p_assert(bt_inst.stackSize() == 0);
 	p_assert(_fn_node_calls_2 == 3);
 	p_assert(MockLeaf::n_times_created == 2);
-
 	
-	return 0;
+	printf("\n");
 }
 
 

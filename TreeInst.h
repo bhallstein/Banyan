@@ -25,8 +25,9 @@
 #ifndef __BT_Inst_h
 #define __BT_Inst_h
 
-#include "BT_Def.h"
-#include "NodeDefinition.h"
+#include "TreeDef.h"
+#include "NodeBase.h"
+#include "NodeRegistry.h"
 #include <cassert>
 
 namespace Banyan {
@@ -42,7 +43,7 @@ namespace Banyan {
 		}
 		
 		void begin() {
-			currentNode_gtInd = bt->t.indexOfTopNode();
+			currentNode_gtInd = bt->indexOfTopNode();
 			assert(currentNode_gtInd >= 0);
 			
 			pushNode(currentNode_gtInd);
@@ -50,11 +51,11 @@ namespace Banyan {
 		}
 		
 		void update() {
-			BehaviourStatus s = callNode(stack.back());
+			NodeReturnStatus s = callNode(stack.back());
 			update(s);
 		}
 		
-		void update(BehaviourStatus s) {
+		void update(NodeReturnStatus s) {
 			while (s.status != NodeReturnStatus::Running) {
 				if (s.status == NodeReturnStatus::Success || s.status == NodeReturnStatus::Failure) {
 					popNode();
@@ -63,17 +64,16 @@ namespace Banyan {
 						// TODO: signal finishing to the user somehow
 						break;
 					}
-					s = stack.back().nc
-						->resume(identifier, s);
+					s = stack.back()->resume(identifier, s);
 				}
 				else if (s.status == NodeReturnStatus::PushChild) {
-					pushNode(bt->indexOfChild_ForNode(currentNode_gtInd, s.child));
+					pushNode(bt->childOfNode(currentNode_gtInd, s.child));
 					s = callNode(stack.back());
 				}
 			}
 		}
 		
-		void end_running_state(BehaviourStatus s) {
+		void end_running_state(NodeReturnStatus s) {
 			popNode();
 			update(s);
 		}
@@ -89,46 +89,30 @@ namespace Banyan {
 		int identifier;
 		int currentNode_gtInd;	// The index of the node within the GenericTree
 		
-		std::vector<NodeConcrete::Wrapper> stack;
+		std::vector<NodeBase*> stack;
 			// Nodes are pushed/popped as we descend/ascend the tree
 		
-		BehaviourStatus callNode(NodeConcrete::Wrapper &ncw) {
-			int nChildren = bt->nChildren_ForNode(currentNode_gtInd);
-			
-			if (ncw.type == NodeDef::Type::Class) {
-				NodeConcrete *nc = ncw.nc;
-				return nc->call(identifier, nChildren);
-			}
-			else {
-				NodeDef::node_function *f = ncw.nf;
-				return f(identifier, nChildren);
-			}
+		NodeReturnStatus callNode(NodeBase *n) {
+			int nChildren = bt->nChildren(currentNode_gtInd);
+			return n->call(identifier, nChildren);
 		}
 		
 		void pushNode(int index) {
 			currentNode_gtInd = index;
 			
-			NodeDef::Wrapper *ndw = bt->nodeDefWrapper_ForNode(index);
+			NodeRegistry::Wrapper *nw = bt->get(index);
+			NodeBase *n = (NodeBase*) malloc(nw->node->size());
+			nw->node->clone(n);
 			
-			NodeConcrete::Wrapper ncw;
-			ncw.type = ndw->type;
-
-			if (ndw->type == NodeDef::Type::Class)
-				ncw.nc = ndw->nodeDef->concreteFactory();
-			else
-				ncw.nf = ndw->nodeFn;
-			
-			stack.push_back(ncw);
+			stack.push_back(n);
 		}
 		
 		void popNode() {
-			NodeConcrete::Wrapper ncw = stack.back();
+			NodeBase *n = stack.back();
 			stack.pop_back();
+			delete n;
 			
-			if (ncw.type == NodeDef::Type::Class)
-				delete ncw.nc;
-			
-			currentNode_gtInd = bt->indexOfParent_ForNode(currentNode_gtInd);
+			currentNode_gtInd = bt->parentOfNode(currentNode_gtInd);
 			// NB - may be NOT_FOUND -- caller should check & decide what to do
 		}
 

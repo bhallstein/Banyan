@@ -6,43 +6,26 @@
 #ifndef __Node_Inverter_h
 #define __Node_Inverter_h
 
-#include "NodeDefinition.h"
+#include "NodeBase.h"
 
 namespace Banyan {
 
-	class Inverter : public NodeConcrete {
+	class Inverter : public NodeBase_CRTP<Inverter> {
 	public:
-		
-		class Def : public NodeDefBaseCRTP<Def> {
-		public:
-			ChildLimits childLimits()  { return { 1, 1 }; }
-			NodeConcrete* concreteFactory() { return new Inverter(this); }
-			
-			void getSDs(sdvec &vec) { }	
-		};
-		
-		Inverter(const Def *_def) :
-			NodeConcrete(_def)
-		{
-			
+		ChildLimits childLimits() { return { 1, 1 }; }
+		Diatomize::Descriptor getSD() {
+			static Diatomize::Descriptor sd;
+			return sd;
 		}
 		
-		~Inverter()
-		{
-			
-		}
+		Inverter() {  }
+		~Inverter() {  }
 		
-		
-		BehaviourStatus call(int identifier, int nChildren) {
+		NodeReturnStatus call(int identifier, int nChildren) {
 			return { NodeReturnStatus::PushChild, 0 };
 		}
-		BehaviourStatus resume(int identifier, BehaviourStatus &s) {
-			BehaviourStatus ret = {
-				s.status == NodeReturnStatus::Success ?
-					NodeReturnStatus::Failure :
-					NodeReturnStatus::Success
-			};
-			return ret;
+		NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
+			return NodeReturnStatus::invert(s);
 		}
 	};
 

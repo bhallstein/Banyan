@@ -6,59 +6,41 @@
 #ifndef __Node_Sequence_h
 #define __Node_Sequence_h
 
-#include "NodeDefinition.h"
+#include "NodeBase.h"
 
 namespace Banyan {
 
-	class Sequence : public NodeConcrete {
+	class Sequence : public NodeBase_CRTP<Sequence> {
 	public:
-		
-		class Def : public NodeDefBaseCRTP<Def> {
-		public:
-			ChildLimits childLimits()  { return { 1, -1 }; }
-			NodeConcrete* concreteFactory() { return new Sequence(this); }
-			
-			bool ignoreFailure;
-			
-			void getSDs(sdvec &vec) {
-				static serialization_descriptor sd = {
-					{ "ignoreFailure", makeSerializer(&Def::ignoreFailure) }
-				};
-				vec.push_back(&sd);
-			}
-		};
-		
-		Sequence(const Def *_def) :
-			NodeConcrete(_def),
-			i(0),
-			n_children(-1),
-			ignoreFailures(_def->ignoreFailure)
-		{
-			
+		ChildLimits childLimits()  { return { 1, -1 }; }
+		Diatomize::Descriptor getSD() {
+			static Diatomize::Descriptor sd = {
+				diatomPart("ignoreFailure", &Repeater::ignoreFailure)
+			};
+			return sd;
 		}
 		
-		~Sequence()
-		{
-			
-		}
+		bool ignoreFailure;
 		
+		Sequence() : i(0), n_children(-1) {  }
+		~Sequence() {  }
 		
-		BehaviourStatus call(int identifier, int _n_children) {
+		NodeReturnStatus call(int identifier, int _n_children) {
 			n_children = _n_children;
 			return { NodeReturnStatus::PushChild, 0 };
 		}
-		BehaviourStatus resume(int identifier, BehaviourStatus &s) {
-			if (s.status == NodeReturnStatus::Failure && !ignoreFailures)
+		NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
+			if (s.status == NodeReturnStatus::Failure && !ignoreFailure)
 				return s;
 			
-			if (++i == n_children) return { NodeReturnStatus::Success };
+			if (++i == n_children)
+				return { NodeReturnStatus::Success };
 			
 			return { NodeReturnStatus::PushChild, i };
 		}
 		
 		int i;
 		int n_children;
-		const bool ignoreFailures;
 	};
 
 }

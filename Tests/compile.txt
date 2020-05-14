@@ -1,0 +1,30 @@
+clang++ -std=c++11 \
+    TreeDef_Serialization.cpp        \
+	_Register_Test_Nodes.cpp         \
+	/Users/bh/Desktop/Dev/Diatom/Diatom.cpp      \
+	/Users/bh/Desktop/Dev/Diatom/Diatom-Lua.cpp  \
+    -I .. \
+    -I /Users/bh/Desktop/Dev/GenericTree  \
+    -I /Users/bh/Desktop/Dev/Diatom       \
+    -I /Users/bh/Desktop/Dev/Diatomize    \
+    -I /Users/bh/Desktop/Dev/L-Serialize/lua-5.2.1/src  \
+	-L /Users/bh/Desktop/Dev/L-Serialize/lua-5.2.1      \
+	-lLua-x86_64-O3  \
+	-o ser #-g
+
+
+clang++ -std=c++11 \
+	TreeInst.cpp                     \
+	_Register_Test_Nodes.cpp         \
+	/Users/bh/Desktop/Dev/Diatom/Diatom.cpp      \
+	/Users/bh/Desktop/Dev/Diatom/Diatom-Lua.cpp  \
+    -I .. \
+    -I /Users/bh/Desktop/Dev/GenericTree  \
+	-I /Users/bh/Desktop/Dev/Diatom       \
+    -I /Users/bh/Desktop/Dev/Diatomize    \
+    -I /Users/bh/Desktop/Dev/L-Serialize/lua-5.2.1/src  \
+	-L /Users/bh/Desktop/Dev/L-Serialize/lua-5.2.1      \
+	-lLua-x86_64-O3  \
+	-o inst #-g
+
+
