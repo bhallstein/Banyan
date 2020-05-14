@@ -25,8 +25,7 @@ Test TreeInstance -- pushing & popping etc.
 void testTreeInst();
 
 int main() {
-	for (int i=0; i < 50; ++i)
-		testTreeInst();
+	testTreeInst();
 	return 0;
 }
 

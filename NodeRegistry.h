@@ -31,7 +31,9 @@ namespace Banyan {
 			Wrapper(NodeBase *_n, const std::string &_id) :
 				node(_n),
 				identifier(_id)
-			{  }
+			{
+				node->type = &identifier;
+			}
 			~Wrapper()
 			{
 				delete node;

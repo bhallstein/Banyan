@@ -11,7 +11,7 @@ clang++ -std=c++11 \
     -I ../../L-Serialize/lua-5.2.1/src  \
 	-L ../../L-Serialize/lua-5.2.1      \
 	-lLua-x86_64-O3  \
-	-o ser -g
+	-o ser #-O3 #-g
 
 
 clang++ -std=c++11 \
@@ -27,6 +27,6 @@ clang++ -std=c++11 \
     -I ../../L-Serialize/lua-5.2.1/src  \
 	-L ../../L-Serialize/lua-5.2.1      \
 	-lLua-x86_64-O3  \
-	-o inst -g
+	-o inst #-O3 #-g
 
 

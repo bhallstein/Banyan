@@ -17,6 +17,7 @@
 
 #define _GT_ENABLE_SERIALIZATION
 #include "GenericTree.h"
+#include "UnpoppableStackAllocator.h"
 
 #include "Node_Repeater.h"
 #include "Node_Inverter.h"
@@ -29,12 +30,8 @@
 
 namespace Banyan {
 
-	class TreeDefinition : public GenericTree<NodeRegistry::Wrapper> {
-		
-		typedef GenericTree<NodeRegistry::Wrapper> super;
-		
-		std::vector<NodeRegistry::Wrapper*> treedef_nodes;
-		
+	class TreeDefinition : public GenericTree<NodeBase> {
+		typedef GenericTree<NodeBase> super;
 		
 	public:
 		
@@ -91,7 +88,7 @@ namespace Banyan {
 			_assert(d_nodes.isTable());
 			_assert(d_gt.isTable());
 			
-			treedef_nodes = _nodesFromDiatom(d_nodes);
+			nodesFromDiatom(d_nodes);
 			super::fromDiatom(d_gt, treedef_nodes);
 			
 			/*
@@ -115,30 +112,30 @@ namespace Banyan {
 			*/
 		}
 		
-	private:
+	private:		
+		std::vector<NodeBase*> treedef_nodes;
+		StretchyUnpoppableStackAllocator allocator;
+		
 		static Diatom
-		nodeToDiatom(NodeRegistry::Wrapper *nw) {
+		nodeToDiatom(NodeBase *n) {
 			Diatom d;
 			
-			d = diatomize(*nw->node, nw->node->getSD());
-			d["type"] = nw->identifier;
+			d = diatomize(*n, n->getSD());
+			d["type"] = *n->type;
 			
 			return d;
 		}
 		
-		static std::vector<NodeRegistry::Wrapper*>
-		_nodesFromDiatom(Diatom &d_nodes) {
+		void nodesFromDiatom(Diatom &d_nodes) {
 			// For each node, instantiate into the vector by copying from the definitions
 			// vector, using the identifier
-			std::vector<NodeRegistry::Wrapper*> _nodes;
 			
 			_assert(d_nodes.isTable());
 			
 			for (auto &entry : d_nodes.descendants()) {
 				Diatom &dn = entry.second;
 				
-				Diatom d_identifier = dn["type"];
-				std::string identifier = d_identifier.str_value();
+				std::string identifier = dn["type"].str_value();
 				
 				// Find existing NodeDef with the right identifier
 				NodeRegistry::Wrapper *nw_def = NULL;
@@ -152,15 +149,11 @@ namespace Banyan {
 					);
 				
 				// Clone the node, then deserialize it
-				NodeRegistry::Wrapper *nw_new = new NodeRegistry::Wrapper(
-					nw_def->node->clone(), nw_def->identifier
-				);
-				antidiatomize(*nw_new->node, nw_new->node->getSD(), dn);
+				NodeBase *n = nw_def->node->clone();
+				antidiatomize(*n, n->getSD(), dn);
 				
-				_nodes.push_back(nw_new);
+				treedef_nodes.push_back(n);
 			}
-
-			return _nodes;
 		}
 		
 	};

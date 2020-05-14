@@ -46,6 +46,10 @@ namespace Banyan {
 		{
 			
 		}
+		~TreeInstance()
+		{
+			while (stack.size() > 0) popNode();
+		}
 		
 		void begin() {
 			currentNode_gtInd = bt->indexOfTopNode();
@@ -106,7 +110,7 @@ namespace Banyan {
 		void pushNode(int index) {
 			currentNode_gtInd = index;
 			
-			NodeBase *source_node = bt->get(index)->node;
+			NodeBase *source_node = bt->get(index);
 			NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
 			source_node->clone(n);
 			

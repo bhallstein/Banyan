@@ -47,14 +47,19 @@ namespace Banyan {
 
 		virtual NodeBase* clone(void *into = NULL) = 0;
 		virtual int size() = 0;
+		
+		std::string *type;
 	};
 	
 	template<class Derived>
 	class NodeBase_CRTP : public NodeBase {
 	public:
 		NodeBase* clone(void *mem = NULL) {
-			if (mem) return new (mem) Derived((Derived const &) (*this));
-			else     return new Derived((Derived const &) (*this));
+			NodeBase *n;
+			if (mem) n = new (mem) Derived((Derived const &) (*this));
+			else     n = new Derived((Derived const &) (*this));
+			n->type = type;
+			return n;
 		}
 		int size() { return sizeof(Derived); }
 			// CRTP superclass

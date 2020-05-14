@@ -29,8 +29,7 @@ Test TreeDefinition serialization & deserialization.
 void testTreeDef();
 
 int main() {
-	for (int i=0; i < 50; ++i)
-		testTreeDef();
+	testTreeDef();
 	return 0;
 }
 
