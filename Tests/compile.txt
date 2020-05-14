@@ -8,7 +8,7 @@ clang++ -std=c++11 \
     -I ../../GenericTree  \
     -I ../../Diatom       \
     -I ../../Diatomize    \
-	-I ../../PoppableStackAllocator     \
+	-I ../../C\+\+\ Containers/PoppableStackAllocator     \
 	-o ser #-O3 #-g
 
 clang++ -std=c++11 \
@@ -21,7 +21,7 @@ clang++ -std=c++11 \
     -I ../../GenericTree  \
 	-I ../../Diatom       \
     -I ../../Diatomize    \
-	-I ../../PoppableStackAllocator     \
+	-I ../../C\+\+\ Containers/PoppableStackAllocator     \
 	-o inst #-O3 #-g
 
 

@@ -14,7 +14,7 @@ namespace Banyan {
 
 	class Selector : public NodeBase_CRTP<Selector> {
 	public:
-		ChildLimits childLimits()  { return { 1, -1 }; }
+		ChildLimits childLimits() { return { 1, -1 }; }
 		Diatomize::Descriptor getSD() {
 			return {{
 				diatomPart("stopAfterFirstSuccess", &stopAfterFirstSuccess),
@@ -22,7 +22,7 @@ namespace Banyan {
 			}};
 		}
 		
-		bool stopAfterFirstSuccess;  // Should a  cease the selector?
+		bool stopAfterFirstSuccess;  // Return success after a child succeeds
 		bool randomizeOrder;         // Call children in random order?
 		
 		Selector() : i(0), n_children(-1) {  }
@@ -41,8 +41,7 @@ namespace Banyan {
 			if (++i == n_children)
 				return s;
 			
-			else
-				return { NodeReturnStatus::PushChild, children[i] };
+			return { NodeReturnStatus::PushChild, children[i] };
 		}
 		
 		int i;

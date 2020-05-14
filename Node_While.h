@@ -29,7 +29,8 @@ namespace Banyan {
 			}};
 		}
 		
-		bool breakOnFailuresIn2ndChild;  // Should failures in the action child cease the sequence?
+		bool breakOnFailuresIn2ndChild;  // Should failures in the action child
+		                                 // cease the sequence?
 		
 		While() : i(0) {  }
 		~While() {  }

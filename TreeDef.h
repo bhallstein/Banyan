@@ -48,11 +48,11 @@ namespace Banyan {
 		static bool registerBuiltins() {
 			static bool loaded = false;
 			if (!loaded) {
-				NODE_DEFINITION(Repeater, Repeater);	// Decorators
+				NODE_DEFINITION(Repeater, Repeater); // Decorators
 				NODE_DEFINITION(Inverter, Inverter);
 				NODE_DEFINITION(Succeeder, Succeeder);
 			
-				NODE_DEFINITION(Sequence, Sequence);	// Composites
+				NODE_DEFINITION(Sequence, Sequence);	 // Composites
 				NODE_DEFINITION(Selector, Selector);
 				NODE_DEFINITION(While, While);
 			}
