@@ -22,6 +22,15 @@ void resetMockLeaf() {
 	MockLeaf::n_times_resumed = 0;
 }
 
+// Register mock leaf for testing
+#include "Node_MockLeaf.h"
+
+NODE_DEFINITION(MockLeaf, MockLeaf::Def);
+
+int MockLeaf::n_times_created;
+int MockLeaf::n_times_called;
+int MockLeaf::n_times_resumed;
+
 // Register function node for testing
 int _fn_node_calls = 0;
 BehaviourStatus someNodeFunction(int identifier, int n_children) {
@@ -31,11 +40,11 @@ BehaviourStatus someNodeFunction(int identifier, int n_children) {
 int _fn_node_calls_2 = 0;
 BehaviourStatus nodeFnThatFailsEventually(int id, int nch) {
 	if (++_fn_node_calls_2 == 3) {
-		printf("nodeFnThatOnlySucceedsOnce: Failure\n");
+		printf("nodeFnThatFailsEventually: Failure\n");
 		return { NodeReturnStatus::Failure };
 	}
 	else {
-		printf("nodeFnThatOnlySucceedsOnce: Success\n");
+		printf("nodeFnThatFailsEventually: Success\n");
 		return { NodeReturnStatus::Success };
 	}
 }

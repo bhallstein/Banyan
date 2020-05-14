@@ -17,6 +17,13 @@
 #define _GT_ENABLE_SERIALIZATION
 #include "GenericTree.h"
 
+#include "Node_Repeater.h"
+#include "Node_Inverter.h"
+#include "Node_Succeeder.h"
+#include "Node_Sequence.h"
+#include "Node_Selector.h"
+#include "Node_While.h"
+
 #include <stdexcept>
 
 class BT_Def {
@@ -24,6 +31,8 @@ public:
 	
 	BT_Def(const char *filename)
 	{
+		static bool built_ins_loaded = loadBuiltIns();
+		
 		LuaObj l_nodes(filename, "nodes");
 		LuaObj l_tree(filename, "tree");
 		
@@ -46,6 +55,23 @@ public:
 	}
 	NodeDef::Wrapper* nodeDefWrapper_ForNode(int index_in_gt) {
 		return t.get(index_in_gt);
+	}
+	
+	static bool loadBuiltIns() {
+		// NodeDef::AutoRegister _reg_repeater(
+		// 	new sym,    \
+		// 	#ident,      \
+		// 	#sym        \
+		// )
+		NODE_DEFINITION(Repeater, Repeater::Def);
+		NODE_DEFINITION(Inverter, Inverter::Def);
+		NODE_DEFINITION(Succeeder, Succeeder::Def);
+		
+		NODE_DEFINITION(Sequence, Sequence::Def);
+		NODE_DEFINITION(Selector, Selector::Def);
+		NODE_DEFINITION(While, While::Def);
+		
+		return true;
 	}
 	
 	/* Serialization */

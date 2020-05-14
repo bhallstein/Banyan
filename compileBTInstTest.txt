@@ -1,8 +1,7 @@
 
 
  clang++                                \
- 	Test_BTInst.cpp                     \
-	NodeDefinition.cpp                  \
+ 	_Test_BTInst.cpp                    \
 	../L-Serialize/L*.cpp               \
 	../Lua/LuaObj/LuaObj.cpp            \
 	                                    \
