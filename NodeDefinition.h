@@ -12,6 +12,8 @@
 #include <string>
 #include <stdexcept>
 
+#include "BanyanThrow.h"
+
 #ifndef __BANYAN_DISABLE_THROWS
 	#define __LS_THROW_ON_MISSING_VALUES 1
 #endif
@@ -140,7 +142,7 @@ namespace Banyan {
 		// - Created when pushed. Therefore, perform any necessary setup in the constructor.
 		
 		virtual BehaviourStatus call(int identifier, int nChildren) = 0;
-		// - After creation, is call()'d, and returns S/F/R/PC[n].	
+		// - After creation, is call()'d, and returns S/F/R/PC[n].
 		
 		virtual BehaviourStatus resume(int identifier, BehaviourStatus &s) = 0;
 		// - Called when a child returns. May use the return value of the child to

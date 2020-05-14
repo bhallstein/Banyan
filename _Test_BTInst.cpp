@@ -9,10 +9,10 @@ Test BT_Inst pushing & popping etc.
 #include "Node_Inverter.h"
 #include "_Test_BTInst_registerTestNodes.h"
 
-#define p_assert(x) do {        \
+#define p_assert(x) do {             \
 		printf("TEST: %35s", #x);    \
-		assert(x);              \
-		printf(" - PASS :)\n"); \
+		assert(x);                   \
+		printf(" - PASS :)\n");      \
 	} while (false)
 
 

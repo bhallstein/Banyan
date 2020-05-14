@@ -119,7 +119,7 @@ namespace Banyan {
 		
 		static GenericTree<NodeDef::Wrapper>
 		_deserializeTree(LuaObj &l_tree, std::vector<NodeDef::Wrapper*> &nodes, const char *filename) {
-			if (l_tree.type != LuaObj::Type::Table)
+			if (!l_tree.isTable())
 				_bnyn_throw(
 					(std::string("\"tree\" not found in BT_Def file '") +
 					std::string(filename) + "'").c_str()
@@ -153,17 +153,16 @@ namespace Banyan {
 			// vector, using the identifier
 			std::vector<NodeDef::Wrapper*> _nodes;
 			
-			if (l_nodes.type != LuaObj::Type::Table)
+			if (!l_nodes.isTable())
 				throw std::runtime_error(
 					(std::string("\"nodes\" not found in BT_Def file '") +
 					std::string(filename) + "'").c_str()
 				);
 			
-			for (auto &entry : l_nodes.descendants) {
-				auto &l_node = entry.second;
+			for (auto &entry : l_nodes.descendants()) {
+				LuaObj &l_node = entry.second;
 				
-				LuaObj l_identifier = l_node["type"];
-				std::string identifier = l_identifier.str_value;
+				std::string identifier = l_node["type"].str_value();
 				
 				// Find existing NodeDef with the right identifier
 				NodeDef::Wrapper *ndw_def = NULL;
