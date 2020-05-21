@@ -2,7 +2,7 @@
 #ifndef __Test_BTInst_registerTestNodes_h
 #define __Test_BTInst_registerTestNodes_h
 
-#include "Banyan.h"
+#include "../Banyan.h"
 
 // MockLeaf class-type node
 

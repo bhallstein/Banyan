@@ -1,15 +1,9 @@
-/*
- * NodeBase.h
- *
- *
- */
-
 #ifndef __NodeBase_h
 #define __NodeBase_h
 
 #include <new>
 
-#include "Diatomize.h"
+#include "../GenericTree/Diatom/Diatomize/Diatomize.h"
 #include <stdexcept>
 
 namespace Banyan {

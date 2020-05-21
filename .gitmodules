@@ -1,0 +1,9 @@
+[submodule "GenericTree"]
+	path = GenericTree
+	url = git@github.com:bhallstein/GenericTree.git
+[submodule "ChunkVector"]
+	path = ChunkVector
+	url = git@github.com:bhallstein/ChunkVector.git
+[submodule "StackAllocators"]
+	path = StackAllocators
+	url = git@github.com:bhallstein/StackAllocators.git

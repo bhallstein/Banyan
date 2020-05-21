@@ -1,4 +1,3 @@
-
 treeDef:
   nodes:
     n0:
@@ -15,17 +14,17 @@ treeDef:
   tree:
     tree:
       n0:
-        node_orig_ind: 0
-        parent_gt_ind: 2
-        child_gt_inds:
+        i__ext: 0
+        i__parent: 2
+        i__children:
           n0: 1
       n1:
-        node_orig_ind: 1
-        parent_gt_ind: 0
-        child_gt_inds:
+        i__ext: 1
+        i__parent: 0
+        i__children:
       n2:
-        node_orig_ind: 2
-        parent_gt_ind: -1
-        child_gt_inds:
+        i__ext: 2
+        i__parent: -1
+        i__children:
           n0: 0
     free_list:

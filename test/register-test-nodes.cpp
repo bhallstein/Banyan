@@ -1,4 +1,4 @@
-#include "_Register_Test_Nodes.h"
+#include "register-test-nodes.h"
 
 // Register mock leaf for testing
 NODE_DEFINITION(MockLeaf, MockLeaf);
