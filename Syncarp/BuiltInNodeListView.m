@@ -105,16 +105,23 @@ void *node_descriptions = (void*) &descriptions;
 	NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
 	int ind = p.y / 54;
 	indexOfSelectedNode = ind;
+	
 	DISP;
 }
 -(void)mouseDragged:(NSEvent*)ev {
+	
 	// Get image
-	float h = self.bounds.size.height;
-	NSRect r = NSMakeRect(0, h-53-indexOfSelectedNode*54., self.bounds.size.width, 53.);
-	NSBitmapImageRep *rep = [self bitmapImageRepForCachingDisplayInRect:r];
-	[self cacheDisplayInRect:r toBitmapImageRep:rep];
-	self.dragImage = [[NSImage alloc] initWithSize:rep.size];
-	[self.dragImage addRepresentation:rep];
+	NSBitmapImageRep *rep = [self bitmapImageRepForCachingDisplayInRect:self.bounds];
+	[self cacheDisplayInRect:self.bounds toBitmapImageRep:rep];
+	
+	NSRect r = NSMakeRect(0, 53. + indexOfSelectedNode*54. - 53., self.bounds.size.width, 53.);
+	
+	CGImageRef cgImg = CGImageCreateWithImageInRect(rep.CGImage, NSRectToCGRect(r));
+	NSBitmapImageRep *rep2 = [[NSBitmapImageRep alloc] initWithCGImage:cgImg];
+	CGImageRelease(cgImg);
+	
+	self.dragImage = [[NSImage alloc] initWithSize:rep2.size];
+	[self.dragImage addRepresentation:rep2];
 	
 	// Get string data
 	auto nodes = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
