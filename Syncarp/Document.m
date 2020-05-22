@@ -184,9 +184,13 @@
 	nodes.push_back(w);
 	return &nodes.back();
 }
--(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B {
+-(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B atIndex:(int)i {
+	auto &ch = B->children;
+	assert(i >= 0 && i <= ch.size());
+
 	[self detachNodeFromTree:A];
-	B->children.push_back(index_in_vec(nodes, A));
+	auto it = ch.begin() + i;
+	ch.insert(it, index_in_vec(nodes, A));
 }
 
 

@@ -684,11 +684,30 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	NSPoint p = [self convertCurrentMouseLocation];
 	
 	hoveredNode = [self findNodeAtPosition:p];
-	if (!(hoveredNode && isOverParentConnector(hoveredNode, p)) || hoveredNode == inFlightConnection.toNode_prev)
+	
+	// If over a node, but not a connector, do nothing
+	if (hoveredNode && !isOverParentConnector(hoveredNode, p))
 		return;
 	
+	// If over the same node as was connected previously, do nothing
+	if (hoveredNode && hoveredNode == inFlightConnection.toNode_prev)
+		return;
 	
+	// If over a target, but the target already has a parent node, do nothing
+	if ([self.doc parentOfNode:hoveredNode] != NULL)
+		return;
 	
+	// If not over a node, and there exists a previous connected child,
+	// detach it
+	if (!hoveredNode && inFlightConnection.toNode_prev) {
+		[self.doc detachNodeFromTree:inFlightConnection.toNode_prev];
+		return;
+	}
+	
+	// Over a valid node -- make the connection
+	[self.doc makeNode:hoveredNode
+			   childOf:inFlightConnection.fromNode
+			   atIndex:inFlightConnection.index_of_child_in_parent_children];
 }
 
 
