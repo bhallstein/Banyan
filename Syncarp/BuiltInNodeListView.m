@@ -49,15 +49,16 @@ void *node_descriptions = (void*) &descriptions;
 -(void)drawRect:(NSRect)dirtyRect {
     [super drawRect:dirtyRect];
 	
-	auto nodes = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
-	if (!nodes) return;
+    Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
+	auto defs = (std::vector<Diatom>*) doc.getAllNodeDefs;
+	if (!defs) return;
 	
 	float y = 0;
 	float w = self.frame.size.width;
-	float h = 54.0 * nodes->size();
+	float h = 54.0 * defs->size();
 	
 	int i = 0;
-	for (auto &nd : *nodes) {
+	for (auto &nd : *defs) {
 		// If selected, draw blue gradienty background
 		bool sel = false;
 		if (indexOfSelectedNode == i++) {
@@ -89,7 +90,7 @@ void *node_descriptions = (void*) &descriptions;
 							  }];
 		
 		// draw horizontal line
-		if (&nd != &nodes->back()) {
+		if (&nd != &defs->back()) {
 			NSRect lineRect = NSMakeRect(0, y + 53, w, 1);
 			[[NSColor colorWithDeviceRed:0.9 green:0.9 blue:0.9 alpha:1] set];
 			NSRectFill(lineRect);
@@ -98,6 +99,7 @@ void *node_descriptions = (void*) &descriptions;
 		y += 54;
 	}
 	
+    free(defs);
 	[self setFrameSize:NSMakeSize(w, h-1)];
 }
 

@@ -23,7 +23,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="133" y="235" width="679" height="453"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1440" height="877"/>
             <value key="minSize" type="size" width="670" height="448"/>
             <view key="contentView" id="gIp-Ho-8D9">
                 <rect key="frame" x="0.0" y="0.0" width="679" height="453"/>
@@ -79,7 +79,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="Gqf-Jw-ZeE">
-                            <rect key="frame" x="222" y="1" width="16" height="279"/>
+                            <rect key="frame" x="223" y="1" width="15" height="279"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
@@ -146,12 +146,7 @@
             <connections>
                 <outlet property="delegate" destination="-2" id="0bl-1N-x8E"/>
             </connections>
-            <point key="canvasLocation" x="459.5" y="103.5"/>
+            <point key="canvasLocation" x="493.5" y="185.5"/>
         </window>
-        <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" id="QHW-Bl-5FU">
-            <rect key="frame" x="0.0" y="0.0" width="48" height="48"/>
-            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="awo-zU-QGI"/>
-        </imageView>
     </objects>
 </document>

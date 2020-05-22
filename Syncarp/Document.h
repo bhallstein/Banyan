@@ -15,6 +15,8 @@ class Wrapper;
 
 @interface Document : NSDocument <NSTextFieldDelegate>
 
+@property (nonatomic) BOOL loaderIsOpen;
+
 -(void*)getNodes;
 -(Wrapper*)topNode;
 
@@ -29,6 +31,10 @@ class Wrapper;
 -(Wrapper*)parentOfNode:(Wrapper*)n;
 
 -(void)setSelectedNode:(Wrapper*)n;
+
+-(void*)getAllNodeDefs;
+    // The vector returned by this is dynamically allocated
+    // and must be freed by the caller
 
 @end
 

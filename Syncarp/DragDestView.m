@@ -13,8 +13,6 @@
 @property NSColor *bgColour;
 @property NSColor *defaultBGColour;
 @property NSColor *defaultTextColour;
-@property IBOutlet NSTextField *textField;
-@property NSString *textField_orig;
 
 @property (copy) DragTest_FileDropCallback cb;
 @property NSArray *file_paths;
@@ -34,10 +32,14 @@
 }
 
 -(void)awakeFromNib {
-	self.defaultBGColour   = [NSColor windowBackgroundColor];
-	self.defaultTextColour = self.textField.textColor;
 	[self registerForDraggedTypes:@[ NSFilenamesPboardType ]];
-	self.textField_orig = self.textField.stringValue;
+    
+    self.defaultBGColour = [NSColor windowBackgroundColor];
+    
+    if (self.textField) {
+        self.defaultTextColour = self.textField.textColor;
+        self.textField_origStr = self.textField.stringValue;
+    }
 }
 
 -(NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
@@ -64,8 +66,8 @@
 }
 
 -(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
-	printf("performDragOp\n");
 	NSArray *types = sender.draggingPasteboard.types;
+    
 	self.file_paths = [[sender draggingPasteboard] propertyListForType:NSFilenamesPboardType];
 //	self.file_paths_filtered = [file_paths filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
 //		NSString *str = evaluatedObject;
@@ -92,7 +94,9 @@
 -(void)runCallback:(id)blah {
 	if (self.cb && self.file_paths && self.file_paths.count > 0)
 		self.cb(self.file_paths);
-	self.textField.stringValue = self.textField_orig;
+
+    if (self.textField_origStr)
+        self.textField.stringValue = self.textField_origStr;
 }
 
 

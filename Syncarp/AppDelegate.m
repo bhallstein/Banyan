@@ -11,27 +11,18 @@
 #include "Banyan.h"
 #include "Diatom.h"
 #include "Diatom-Storage.h"
+#include "Document.h"
 
 @interface AppDelegate () {
 	std::vector<Diatom> *nodeDefs;
 }
 
-@property IBOutlet NSWindow *nodeDefsWindow;
-@property IBOutlet DragDestView *dragDestView;
+@property IBOutlet NSMenuItem *menuitem_ShowNodeLoader;
 
 @end
 
 
 @implementation AppDelegate
-
-void putUpError(NSString *title, NSString *detail) {
-	NSError *err = [NSError errorWithDomain:@"" code:1257
-								   userInfo:@{
-											  NSLocalizedDescriptionKey: title,
-											  NSLocalizedRecoverySuggestionErrorKey: detail
-											  }];
-	[[NSAlert alertWithError:err] runModal];
-}
 
 -(void*)builtInNodes {
 	return nodeDefs;
@@ -39,6 +30,8 @@ void putUpError(NSString *title, NSString *detail) {
 
 -(void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	nodeDefs = new std::vector<Diatom>;
+	self.menuitem_ShowNodeLoader.target = self;
+	self.menuitem_ShowNodeLoader.action = @selector(showLoader:);
 	
 	// Load built-in Nodes (as Diatoms)
 	Banyan::TreeDefinition::registerBuiltins();
@@ -50,40 +43,6 @@ void putUpError(NSString *title, NSString *detail) {
 		d["maxChildren"] = (double) nw->node->childLimits().max;
 		nodeDefs->push_back(d);
 	}
-	
-	// Load dropped nodes (as Diatoms)
-	__unsafe_unretained typeof(self) weakSelf = self;
-	[self.dragDestView setFileDropCallback:^(NSArray *files) {
-		// - Get list of .diatom files containing node definitions
-		// - Load each file into a Diatom object
-		//    - If any fail, add to errors
-		// - Ensure each has the required properties:
-		//    - type
-		//    - any options w/ defaults
-		
-		NSMutableArray *failed = [NSMutableArray array];
-		
-		for (NSString *file in files) {
-			Diatom d = diatomFromFile([file UTF8String]);
-			if (d.isNil()) [failed addObject:file];
-			else if (!d["nodeDef"].isTable())          [failed addObject:file];
-			else if (!d["nodeDef"]["type"].isString()) [failed addObject:file];
-			else {
-				auto defs = (std::vector<Diatom>*)weakSelf.builtInNodes;
-				defs->push_back(d["nodeDef"]);
-			}
-		}
-		
-		if (nodeDefs->size() == 0) {
-			NSMutableString *errFilesList = [[NSMutableString alloc] init];
-			for (int i=0; i < failed.count; ++i)
-				[errFilesList appendFormat:@"\n %@", failed[i]];
-			NSString *errStr = [NSString stringWithFormat:@"%@ %@",
-								@"The following definition files were invalid:", errFilesList];
-			putUpError(@"Error loading node definitions", errStr);
-			return;
-		}
-	}];
 }
 
 -(Diatom)getNodeWithType:(const char *)type {
@@ -106,6 +65,19 @@ void putUpError(NSString *title, NSString *detail) {
 
 -(BOOL) applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
 	return NO;
+}
+
+-(BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+	Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
+	if (doc) {
+		self.menuitem_ShowNodeLoader.state = doc.loaderIsOpen;
+	}
+	return doc != nil;
+}
+
+-(void)showLoader:(id)sender {
+	Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
+	doc.loaderIsOpen = !doc.loaderIsOpen;
 }
 
 @end

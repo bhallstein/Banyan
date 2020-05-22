@@ -12,8 +12,10 @@
 #include "Banyan.h"
 #import "ScrollingTreeView.h"
 #import "AppDelegate.h"
+#import "Helpers.h"
 #include "Wrapper.h"
 #include "BuiltInNodeListView.h"
+#include "NodeLoaderWinCtrlr.h"
 
 /*
    ✓ Create wrapper struct for Diatom, with vector of children
@@ -70,6 +72,8 @@
 	std::vector<Wrapper> nodes;
 	std::map<void*, Diatom*> form_ctrl_to_settable_property_map;
 	Wrapper *selectedNode;
+    
+    std::vector<Diatom> document_nodeDefs;
 }
 
 @property IBOutlet ScrollingTreeView *view_scrollingTree;
@@ -85,20 +89,44 @@
 @property NSArray *panel_form_labels;
 @property NSArray *panel_form_controls;
 
+@property (strong, nonatomic) NodeLoaderWinCtrlr *nodeLoaderWC;
+
 @end
 
 
 @implementation Document
 
+
 -(instancetype)init {
 	if (self = [super init]) {
 		selectedNode = NULL;
+		_loaderIsOpen = NO;
 	}
 	return self;
 }
 
 -(void)awakeFromNib {
 	[self setSidePanelToEmpty];
+    self.nodeLoaderWC = [[NodeLoaderWinCtrlr alloc] init];
+    [self setUpFileDropCallback];
+}
+
+// Opening & closing the node def loader window
+-(void)setLoaderIsOpen:(BOOL)loaderIsOpen {
+	if (_loaderIsOpen == loaderIsOpen)
+		return;
+    
+	_loaderIsOpen = loaderIsOpen;
+    
+    if (_loaderIsOpen) {
+        [self.nodeLoaderWC showWindow:nil];
+        [self.nodeLoaderWC.window makeKeyAndOrderFront:nil];
+        [self addWindowController:self.nodeLoaderWC];
+    }
+    else {
+        [self.nodeLoaderWC close];
+        [self removeWindowController:self.nodeLoaderWC];
+    }
 }
 
 // Opening & closing node options
@@ -568,6 +596,75 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	}
 	
 	return YES;
+}
+
+
+-(Diatom)getNodeWithType:(const char *)type {
+    for (auto &def : document_nodeDefs)
+        if (def["type"].str_value() == type) {
+            Diatom new_node = def;
+            if (def["minChildren"].isNumber())
+                new_node["minChildren"] = def["minChildren"],
+                new_node["maxChildren"] = def["maxChildren"];
+            return new_node;
+        }
+    
+    return [self.appDelegate getNodeWithType:type];
+}
+
+-(void*)nodeDefs {
+    return (void*) &document_nodeDefs;
+}
+
+-(void*)getAllNodeDefs {
+    std::vector<Diatom> *all = new std::vector<Diatom>;
+    
+    for (auto &i : document_nodeDefs)
+        all->push_back(i);
+    
+    auto built_ins = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
+    for (auto &i : *built_ins)
+        all->push_back(i);
+    
+    return all;
+}
+
+-(void)setUpFileDropCallback {
+    // Load dropped nodes (as Diatoms)
+    __unsafe_unretained typeof(self) weakSelf = self;
+    [self.nodeLoaderWC setCB:^(NSArray *files) {
+        // - Get list of .diatom files containing node definitions
+        // - Load each file into a Diatom object
+        //    - If any fail, add to errors
+        // - Ensure each has the required properties:
+        //    - type
+        //    - any options w/ defaults
+        
+        NSMutableArray *failed = [NSMutableArray array];
+        auto *defs = (std::vector<Diatom>*) weakSelf.nodeDefs;
+        
+        for (NSString *file in files) {
+            Diatom d = diatomFromFile([file UTF8String]);
+            if (d.isNil()) [failed addObject:file];
+            else if (!d["nodeDef"].isTable())          [failed addObject:file];
+            else if (!d["nodeDef"]["type"].isString()) [failed addObject:file];
+            else {
+                defs->push_back(d["nodeDef"]);
+            }
+        }
+        
+        [weakSelf.view_nodeList setNeedsDisplay:YES];
+        
+        if ([failed count] != 0) {
+            NSMutableString *errFilesList = [[NSMutableString alloc] init];
+            for (int i=0; i < failed.count; ++i)
+                [errFilesList appendFormat:@"\n %@", failed[i]];
+            NSString *errStr = [NSString stringWithFormat:@"%@ %@",
+                                @"The following definition files were invalid:", errFilesList];
+            putUpError(@"Error loading node definitions", errStr);
+            return;
+        }
+    }];
 }
 
 @end
