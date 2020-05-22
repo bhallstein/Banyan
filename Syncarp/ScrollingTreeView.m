@@ -35,6 +35,7 @@
 		Wrapper *toNode_prev;
 		NSPoint currentPosition;
 		int index_of_child_in_parent_children;
+		int temporary_index_of_child_in_parent_children;
 	} inFlightConnection;
 	
 	NSTimer *dragTimer;
@@ -386,8 +387,22 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 				c_ind++;
 				continue;
 			}
+			int ind = c_ind;
+			// For FromChild connections, shuffle existing connector indices
+			if (inFlightConnection.type == InFlightConnection::FromChild && hoveredNode == &i) {
+				int temp_cnxn_ind = inFlightConnection.temporary_index_of_child_in_parent_children;
+				if (temp_cnxn_ind != -1) {
+					if (inFlightConnection.toNode_prev == &i) {
+						if (c_ind <= temp_cnxn_ind)
+							--ind;
+					}
+					else if (c_ind >= temp_cnxn_ind)
+						++ind;
+				}
+			}
 			cnxns.push_back(attachmentCoord_Parent_forNode(&nc));
-			cnxns.push_back(attachmentCoord_Child_forNode(&i, c_ind++));
+			cnxns.push_back(attachmentCoord_Child_forNode(&i, ind));
+			++c_ind;
 		}
 	}
 	
@@ -505,7 +520,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 					w,
 					NULL,
 					p,
-					child_ind
+					child_ind,
+					-1
 				};
 				[self startMouseDragAt:p];
 			}
@@ -518,7 +534,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 					child,
 					w,
 					p,
-					child_ind
+					child_ind,
+					-1
 				};
 				[self startMouseDragAt:p];
 			}
@@ -605,8 +622,10 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
 	
 		int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
-		if (hovered_child_ind > -1)
+		if (hovered_child_ind > -1) {
 			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
+			inFlightConnection.temporary_index_of_child_in_parent_children = hovered_child_ind;
+		}
 		
 	}
 	
