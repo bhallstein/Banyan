@@ -92,13 +92,13 @@
                         </textFieldCell>
                     </textField>
                     <box verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="EPM-q3-XrX">
-                        <rect key="frame" x="450" y="409" width="217" height="5"/>
+                        <rect key="frame" x="450" y="409" width="217" height="4"/>
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <font key="titleFont" metaFont="system"/>
                     </box>
                     <box verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" title="Box" boxType="separator" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="upd-Hj-tL6">
-                        <rect key="frame" x="450" y="335" width="217" height="5"/>
+                        <rect key="frame" x="450" y="335" width="217" height="4"/>
                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <font key="titleFont" metaFont="system"/>

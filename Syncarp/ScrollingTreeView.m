@@ -10,6 +10,7 @@
 #import "Document.h"
 #import "Wrapper.h"
 #import "GraphPaperView.h"
+#include "Helpers.h"
 
 
 @interface ScrollingTreeView () {
@@ -109,18 +110,15 @@ static const NSSize unitSize = {1.0, 1.0};
 		p.x -= node_width / 2;
 		p.y -= node_height() / 2;
 		
-		hoveredNode = [self.doc addNodeOfType:type at:p];
+		hoveredNode = [DOC addNodeOfType:type at:p];
 		DISP;
 	}
 	
 	return YES;
 }
 
--(Document*)doc {
-	return [[[self window] windowController] document];
-}
 -(std::vector<Wrapper>*)nodes {
-	return (std::vector<Wrapper>*) self.doc.getNodes;
+	return (std::vector<Wrapper>*) DOCW.getNodes;
 }
 
 -(NSSize)scale {
@@ -189,7 +187,7 @@ int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightCo
 
 
 -(void)layOutTree {
-	Wrapper *topNode = self.doc.topNode;
+	Wrapper *topNode = DOC.topNode;
 	if (!topNode) return;
 	
 	int recursionLevel = 0;
@@ -493,13 +491,13 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	if (w) {
 		if (selectedNode != w) {
 			selectedNode = w;
-			[self.doc setSelectedNode:w];
+			[DOC setSelectedNode:w];
 		}
 		
 		if (isOverParentConnector(w, p)) {
 
 			// If an orphan, create a new connection from the selected node
-			if ([self.doc nodeIsOrphan:selectedNode]) {
+			if ([DOC nodeIsOrphan:selectedNode]) {
 				inFlightConnection = {
 					InFlightConnection::FromChild,
 					selectedNode,
@@ -512,7 +510,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			
 			// If not an orphan, set connection from parent node
 			else {
-				Wrapper *parent = [self.doc parentOfNode:selectedNode];
+				Wrapper *parent = [DOC parentOfNode:selectedNode];
 				if (!parent)
 					NSLog(@"Oh dear - expected to find a parent node!");
 				inFlightConnection = {
@@ -563,7 +561,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	else {
 		selectedNode = NULL;
-		[self.doc setSelectedNode:NULL];
+		[DOC setSelectedNode:NULL];
 		[self endMouseDrag];
 	}
 	
@@ -588,7 +586,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	// Delete
 	if (x == 8 || x == 127)
 		if (selectedNode)
-			[self.doc destroyNode:selectedNode];
+			[DOC destroyNode:selectedNode];
 	
 	DISP;
 }
@@ -646,7 +644,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			
 			// Forbidden if:
 			int hov_max_children = hoveredNode->d["maxChildren"].number_value();
-			if ([self.doc node:inFlightConnection.fromNode isAncestorOf:hoveredNode] || // from node is ancestor of hovered node
+			if ([DOC node:inFlightConnection.fromNode isAncestorOf:hoveredNode] || // from node is ancestor of hovered node
 				hov_max_children == hoveredNode->children.size()) {                     // hovered node at capacity
 				ifc_forbidden = true;
 			}
@@ -672,11 +670,11 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 		inFlightConnection.currentPosition = attachmentCoord_Parent_forNode(hoveredNode);
 		ifc_attached = true;
 		
-		Wrapper *hov_parent = [self.doc parentOfNode:hoveredNode];
+		Wrapper *hov_parent = [DOC parentOfNode:hoveredNode];
 		if (hov_parent && hoveredNode != inFlightConnection.toNode_prev)
 			ifc_forbidden = true;
 		
-		else if ([self.doc node:hoveredNode isAncestorOf:inFlightConnection.fromNode])
+		else if ([DOC node:hoveredNode isAncestorOf:inFlightConnection.fromNode])
 			ifc_forbidden = true;
 	}
 	
@@ -694,7 +692,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	
 	// If not over a node, and a previous parent exists, detach
 	if (!hov) {
-		if (to_prev) [self.doc detachNodeFromTree:from];
+		if (to_prev) [DOC detachNodeFromTree:from];
 		return;
 	}
 	
@@ -704,16 +702,16 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	// Do nothing if:
 	if (over_cnctr == -1                           ||   // over a node, but not a connector
 		(hov == to_prev && over_cnctr == orig_ind) ||   // over the same node and connector as before
-		[self.doc node:from isAncestorOf:hov]      ||   // over a target, but we are an ancestor of that target
+		[DOC node:from isAncestorOf:hov]      ||   // over a target, but we are an ancestor of that target
 		hov->children.size() == hov_max_ch) {           // target node is at capacity
 		return;
 	}
 	
 	// Detach the node
-	[self.doc detachNodeFromTree:from];
+	[DOC detachNodeFromTree:from];
 	
 	// Re-add it
-	[self.doc makeNode:from childOf:hov atIndex:over_cnctr];
+	[DOC makeNode:from childOf:hov atIndex:over_cnctr];
 }
 
 -(void)endDrag_ConnectionFromParent:(NSEvent*)ev {
@@ -726,26 +724,26 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	// If not over a node, and a previously connected child exists,
 	// detach it
 	if (!hov) {
-		if (to_prev) [self.doc detachNodeFromTree:to_prev];
+		if (to_prev) [DOC detachNodeFromTree:to_prev];
 		return;
 	}
 	
 	// Do nothing if:
 	if (!isOverParentConnector(hov, p)       ||     // over a node, but not a connector
 		hov == to_prev                       ||     // over the same node as was connected previously
-		[self.doc parentOfNode:hov] != NULL  ||     // over a target, but the target already has a parent node
-		[self.doc node:hov isAncestorOf:from]) {	    // over a target, but the target is an ancestor of the current node
+		[DOC parentOfNode:hov] != NULL  ||     // over a target, but the target already has a parent node
+		[DOC node:hov isAncestorOf:from]) {	    // over a target, but the target is an ancestor of the current node
 		return;
 	}
 	
 	// Over a valid node -- make the connection
-	[self.doc makeNode:hov
+	[DOC makeNode:hov
 			   childOf:from
 			   atIndex:inFlightConnection.index_of_child_in_parent_children];
 	
 	// If there was a previous connection, unmake it
 	if (to_prev)
-		[self.doc detachNodeFromTree:to_prev];
+		[DOC detachNodeFromTree:to_prev];
 }
 
 

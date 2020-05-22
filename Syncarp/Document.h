@@ -36,5 +36,7 @@ class Wrapper;
     // The vector returned by this is dynamically allocated
     // and must be freed by the caller
 
+-(void*)getDefinitionFiles;
+
 @end
 

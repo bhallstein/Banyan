@@ -6,6 +6,7 @@
 #import "Document.h"
 #import "AppDelegate.h"
 #include "Diatom.h"
+#include "Helpers.h"
 #include <vector>
 #include <map>
 
@@ -31,7 +32,9 @@
 	return self;
 }
 
--(AppDelegate*)appDelegate { return (AppDelegate*)[NSApplication sharedApplication].delegate; }
+-(AppDelegate*)appDelegate {
+    return (AppDelegate*)[NSApplication sharedApplication].delegate;
+}
 
 const std::map<std::string, std::string> descriptions = {
 	{ "Inverter",  "Inverts its descendant's status" },
@@ -49,8 +52,7 @@ void *node_descriptions = (void*) &descriptions;
 -(void)drawRect:(NSRect)dirtyRect {
     [super drawRect:dirtyRect];
 	
-    Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
-	auto defs = (std::vector<Diatom>*) doc.getAllNodeDefs;
+	auto defs = (std::vector<Diatom>*) DOCW.getAllNodeDefs;
 	if (!defs) return;
 	
 	float y = 0;
@@ -125,9 +127,10 @@ void *node_descriptions = (void*) &descriptions;
 	[self.dragImage addRepresentation:rep2];
 	
 	// Get string data
-	auto nodes = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
-	NSString *str = [NSString stringWithFormat:@"%s", (*nodes)[indexOfSelectedNode]["type"].str_value().c_str()];
+	auto nodeDefs = (std::vector<Diatom>*) DOC.getAllNodeDefs;
+	NSString *str = [NSString stringWithFormat:@"%s", (*nodeDefs)[indexOfSelectedNode]["type"].str_value().c_str()];
 	self.dragData = [str dataUsingEncoding:NSUTF8StringEncoding];
+    free(nodeDefs);
 	
 	// Create pasteboard item
 	NSPasteboardItem *pbitem = [NSPasteboardItem new];

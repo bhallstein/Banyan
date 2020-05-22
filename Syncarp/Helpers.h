@@ -13,5 +13,10 @@
 
 void putUpError(NSString *title, NSString *detail);
 
+#define DOC ((Document*) \
+  [[NSDocumentController sharedDocumentController] currentDocument])
+
+#define DOCW ((Document*) \
+  [[[self window] windowController] document])
 
 #endif

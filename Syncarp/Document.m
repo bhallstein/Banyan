@@ -13,9 +13,11 @@
 #import "ScrollingTreeView.h"
 #import "AppDelegate.h"
 #import "Helpers.h"
+#include "Helpers.h"
 #include "Wrapper.h"
 #include "BuiltInNodeListView.h"
 #include "NodeLoaderWinCtrlr.h"
+#include "NodeDefFile.h"
 
 /*
    ✓ Create wrapper struct for Diatom, with vector of children
@@ -65,8 +67,9 @@
 					settable_property: 0...
 				...
  
- 
 */
+
+#define nStr(prefix, str) (std::string(#prefix) + std::to_string(str))
 
 @interface Document () {
 	std::vector<Wrapper> nodes;
@@ -74,6 +77,10 @@
 	Wrapper *selectedNode;
     
     std::vector<Diatom> document_nodeDefs;
+    
+    std::vector<NodeDefFile> definition_files;
+    
+    BOOL should_initially_show_loader_window;
 }
 
 @property IBOutlet ScrollingTreeView *view_scrollingTree;
@@ -101,14 +108,32 @@
 	if (self = [super init]) {
 		selectedNode = NULL;
 		_loaderIsOpen = NO;
+        should_initially_show_loader_window = NO;
 	}
 	return self;
 }
 
 -(void)awakeFromNib {
 	[self setSidePanelToEmpty];
-    self.nodeLoaderWC = [[NodeLoaderWinCtrlr alloc] init];
-    [self setUpFileDropCallback];
+}
+
+-(void)windowControllerDidLoadNib:(NSWindowController *)aController {
+    NSLog(@"didloadnib");
+    [super windowControllerDidLoadNib:aController];
+    
+    if (!self.view_nodeList) {
+        self.view_nodeList = [[BuiltInNodeListView alloc] initWithFrame:self.view_nodeListContainer.frame];
+        [self.view_nodeListContainer setDocumentView:self.view_nodeList];
+    }
+    
+    if (!self.nodeLoaderWC) {
+        self.nodeLoaderWC = [[NodeLoaderWinCtrlr alloc] initWithDoc:self];
+        [self setUpFileDropCallback];
+        if (should_initially_show_loader_window) {
+            [self setLoaderIsOpen:YES];
+            should_initially_show_loader_window = NO;
+        }
+    }
 }
 
 // Opening & closing the node def loader window
@@ -178,7 +203,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	const auto &n_type = d["type"].str_value();
 	auto n_desc = getDescrs()[n_type];
 	if (n_type == "Unknown")
-		n_desc = std::string("Type '") + d["original_type"].str_value() + std::string("' is not loaded");
+		n_desc = std::string("Warning: type '") + d["original_type"].str_value() + std::string("' is not loaded");
 	
 	self.panel_label_nodeType.stringValue = nsstr(n_type);
 	self.panel_label_nodeDescr.stringValue = nsstr(n_desc);
@@ -334,13 +359,6 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	return top;
 }
 
--(void)windowControllerDidLoadNib:(NSWindowController *)aController {
-	[super windowControllerDidLoadNib:aController];
-	
-	self.view_nodeList = [[BuiltInNodeListView alloc] initWithFrame:self.view_nodeListContainer.frame];
-	[self.view_nodeListContainer setDocumentView:self.view_nodeList];
-}
-
 
 -(void)detachNodeFromTree:(Wrapper*)n {
 	int ind = index_in_vec(nodes, n);
@@ -363,7 +381,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 }
 -(Wrapper*)addNodeOfType:(NSString*)type at:(NSPoint)p {
 	const char *t = [type UTF8String];
-	Diatom new_node = [self.appDelegate getNodeWithType:t];
+	Diatom new_node = [self getNodeWithType:t];
 	new_node["posX"] = p.x;
 	new_node["posY"] = p.y;
 
@@ -405,15 +423,25 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		return nil;
 	}
 	
+    Diatom d;
+    
+    // Save definition file locations, if present
+    if (definition_files.size() > 0) {
+        Diatom &df = d["definitionFiles"] = Diatom();
+        for (size_t i=0, n = definition_files.size(); i < n; ++i) {
+            df[nStr(f, i)] = definition_files[i].path;
+        }
+    }
+    
 	// Repack the nodes into nodes_diatom_ptrs, and build a tree
 	Wrapper *top = [self topNode];
 	if (top == NULL) {
-		Diatom d;
-		d["nodes"] = Diatom();
-		d["tree"] = Diatom();
-		d["tree"]["tree"] = Diatom();
-		d["tree"]["free_list"] = Diatom();
-		Str str = diatomToString(d, "treeDef");
+        d["treeDef"] = Diatom();
+		d["treeDef"]["nodes"] = Diatom();
+		d["treeDef"]["tree"] = Diatom();
+		d["treeDef"]["tree"]["tree"] = Diatom();
+		d["treeDef"]["tree"]["free_list"] = Diatom();
+		Str str = diatomToString(d);
 		return [NSData dataWithBytes:str.c_str() length:str.size()];
 	}
 	
@@ -446,19 +474,19 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		
 		++i;
 	}
-	Diatom d;
-	d["tree"] = tree.toDiatom(nodes_diatom_ptrs);
-	std::string trstr = diatomToString(d, "treeDef");
-//	printf("TRSTR: %s\n", trstr.c_str());
+    d["treeDef"] = Diatom();
+    
+	d["treeDef"]["tree"] = tree.toDiatom(nodes_diatom_ptrs);
+	std::string trstr = diatomToString(d);
 	
-	d["nodes"] = Diatom();
+	d["treeDef"]["nodes"] = Diatom();
 	for (int i=0; i < nodes_diatom_ptrs.size(); ++i) {
 		Diatom *n = nodes_diatom_ptrs[i];
-		d["nodes"][Str("n") + std::to_string(i)] = *n;
+		d["treeDef"]["nodes"][nStr(n, i)] = *n;
 		delete n;
 	}
 	
-	std::string str = diatomToString(d, "treeDef");
+	std::string str = diatomToString(d);
 	
 	return [NSData dataWithBytes:str.c_str() length:str.size()];
 }
@@ -513,6 +541,27 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 			}
 		}
 	}
+    
+    // Load document-level node definition files
+    {
+        if (d["definitionFiles"].isTable()) {
+            for (auto &desc : d["definitionFiles"].descendants()) {
+                NSString *file = [NSString stringWithFormat:@"%s", desc.second.str_value().c_str()];
+                [self addNodeDef_FromFile:file];
+            }
+        }
+        
+        // If there were failures, open the node loader window
+        for (auto &f : definition_files) {
+            if (!f.succeeded) {
+                putUpError(@"Node definition files missing",
+                           @"You should fix this by reconnecting them in the Node Loader window");
+                should_initially_show_loader_window = YES;
+                break;
+            }
+        }
+    }
+    
 	
 	try {
 		std::vector<Diatom*> nodes_diatom_ptrs;
@@ -525,7 +574,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 			Diatom n = i.second;
 			const std::string &ntype = i.second["type"].str_value();
 			
-			Diatom node_definition = [self.appDelegate getNodeWithType:ntype.c_str()];
+			Diatom node_definition = [self getNodeWithType:ntype.c_str()];
 			if (node_definition.isNil()) {
 				Diatom stand_in;
 				stand_in["type"] = "Unknown";
@@ -587,8 +636,9 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	}
 	
 	if (unknown_node_types.size() > 0) {
-		// Show a kind of warning and let user select replacement definition
-		// files
+        putUpError(@"Warning: unknown node types detected",
+                   @"You should load the requisite node definition files in the Node Loader window.");
+        should_initially_show_loader_window = YES;
 	}
 	if (unknown_node_properties.size() > 0) {
 		for (auto &s : unknown_node_properties)
@@ -623,10 +673,33 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
         all->push_back(i);
     
     auto built_ins = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
-    for (auto &i : *built_ins)
-        all->push_back(i);
+    if (built_ins) {
+        for (auto &i : *built_ins)
+            all->push_back(i);
+        // BROKEN?!!
+    }
     
     return all;
+}
+
+-(void*)getDefinitionFiles {
+    return &definition_files;
+}
+
+-(void)addNodeDef:(Diatom)def {
+    auto defs = (std::vector<Diatom>*) self.nodeDefs;
+    defs->push_back(def);
+}
+-(BOOL)addNodeDef_FromFile:(NSString*)path {
+    definition_files.push_back({ [path UTF8String], false });
+    
+    Diatom d = diatomFromFile([path UTF8String]);
+    if (!d.isTable() || !d["nodeDef"].isTable() || !d["nodeDef"]["type"].isString())
+        return NO;
+    
+    definition_files.back().succeeded = true;
+    [self addNodeDef:d["nodeDef"]];
+    return YES;
 }
 
 -(void)setUpFileDropCallback {
@@ -640,17 +713,13 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
         //    - type
         //    - any options w/ defaults
         
+        [weakSelf.nodeLoaderWC disp];
+        
         NSMutableArray *failed = [NSMutableArray array];
-        auto *defs = (std::vector<Diatom>*) weakSelf.nodeDefs;
         
         for (NSString *file in files) {
-            Diatom d = diatomFromFile([file UTF8String]);
-            if (d.isNil()) [failed addObject:file];
-            else if (!d["nodeDef"].isTable())          [failed addObject:file];
-            else if (!d["nodeDef"]["type"].isString()) [failed addObject:file];
-            else {
-                defs->push_back(d["nodeDef"]);
-            }
+            BOOL res = [weakSelf addNodeDef_FromFile:file];
+            if (!res) [failed addObject:file];
         }
         
         [weakSelf.view_nodeList setNeedsDisplay:YES];
