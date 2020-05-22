@@ -90,8 +90,10 @@ static const NSSize unitSize = {1.0, 1.0};
 	ifc_forbidden = false;
 	
 	NSTrackingAreaOptions tr_options =
-		NSTrackingActiveAlways | NSTrackingInVisibleRect |
-		NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved;
+		NSTrackingActiveAlways |
+		NSTrackingInVisibleRect |
+		NSTrackingMouseEnteredAndExited |
+		NSTrackingMouseMoved;
 	[self addTrackingArea:[[NSTrackingArea alloc] initWithRect:[self bounds]
 													   options:tr_options
 														 owner:self
@@ -401,11 +403,15 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			int ind = c_ind;
 			// For FromChild connections, shuffle existing connector indices
 			if (inFlightConnection.type == InFlightConnection::FromChild && hoveredNode == &i) {
+				int orig_cnxn_ind = inFlightConnection.index_of_child_in_parent_children;
 				int temp_cnxn_ind = inFlightConnection.temporary_index_of_child_in_parent_children;
+				
 				if (temp_cnxn_ind != -1) {
 					if (inFlightConnection.toNode_prev == &i) {
-						if (c_ind <= temp_cnxn_ind)
+						if (orig_cnxn_ind < c_ind && temp_cnxn_ind >= c_ind)
 							--ind;
+						if (orig_cnxn_ind > c_ind && temp_cnxn_ind <= c_ind)
+							++ind;
 					}
 					else if (c_ind >= temp_cnxn_ind)
 						++ind;
@@ -569,13 +575,13 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	DISP;
 }
 -(void)mouseUp:(NSEvent *)ev {
-	[self endMouseDrag];
 	if (inFlightConnection.type == InFlightConnection::FromChild) {
 		
 	}
-	else if (inFlightConnection.type == InFlightConnection::FromParent) {
-		
-	}
+	else if (inFlightConnection.type == InFlightConnection::FromParent)
+		[self endDrag_ConnectionFromParent:ev];
+
+	[self endMouseDrag];
 }
 -(void)mouseMoved:(NSEvent*)ev {
 	hoveredNode = [self findNodeAtPosition:[self convertedPointForEvent:ev]];
@@ -607,6 +613,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	[dragTimer invalidate];
 	
 	inFlightConnection.type = InFlightConnection::None;
+	
 	
 	DISP;
 }
@@ -670,6 +677,18 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	
 	DISP;
+}
+
+
+-(void)endDrag_ConnectionFromParent:(NSEvent*)ev {
+	NSPoint p = [self convertCurrentMouseLocation];
+	
+	hoveredNode = [self findNodeAtPosition:p];
+	if (!(hoveredNode && isOverParentConnector(hoveredNode, p)) || hoveredNode == inFlightConnection.toNode_prev)
+		return;
+	
+	
+	
 }
 
 
