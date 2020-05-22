@@ -28,6 +28,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B51B20601D29B5BA00350A33 /* ChunkVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChunkVector.h; sourceTree = "<group>"; };
+		B51B20641D29B5D900350A33 /* StackAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator.h; sourceTree = "<group>"; };
+		B51B20651D29B5D900350A33 /* StackAllocator_Poppable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Poppable.h; sourceTree = "<group>"; };
+		B51B20661D29B5D900350A33 /* StackAllocator_PoppableAndStretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_PoppableAndStretchy.h; sourceTree = "<group>"; };
+		B51B20671D29B5D900350A33 /* StackAllocator_Stretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Stretchy.h; sourceTree = "<group>"; };
 		B547365D1BC08F82001E4F32 /* NodeDefLoadList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeDefLoadList.h; sourceTree = "<group>"; };
 		B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeDefLoadList.m; sourceTree = "<group>"; };
 		B576ED731BC14A0400C5413F /* NodeDefFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NodeDefFile.h; sourceTree = "<group>"; };
@@ -52,8 +57,6 @@
 		E14399DE1B04C3D100FAEDA2 /* TreeDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeDef.h; sourceTree = "<group>"; };
 		E14399DF1B04C3D100FAEDA2 /* TreeInst.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeInst.h; sourceTree = "<group>"; };
 		E1439A141B04C4FD00FAEDA2 /* GenericTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTree.h; sourceTree = "<group>"; };
-		E1439A1D1B04C51A00FAEDA2 /* PoppableStackAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PoppableStackAllocator.h; sourceTree = "<group>"; };
-		E1439A201B04C51A00FAEDA2 /* UnpoppableStackAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnpoppableStackAllocator.h; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* BuiltInNodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BuiltInNodeListView.h; sourceTree = "<group>"; };
 		E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = BuiltInNodeListView.m; sourceTree = "<group>"; };
 		E1835C501B05369A00815694 /* Diatomize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Diatomize.cpp; sourceTree = "<group>"; };
@@ -91,6 +94,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B51B205F1D29B5BA00350A33 /* ChunkVector */ = {
+			isa = PBXGroup;
+			children = (
+				B51B20601D29B5BA00350A33 /* ChunkVector.h */,
+			);
+			name = ChunkVector;
+			path = "../../../Google Drive/Dev/C++ Containers/ChunkVector";
+			sourceTree = "<group>";
+		};
+		B51B20631D29B5D900350A33 /* StackAllocators */ = {
+			isa = PBXGroup;
+			children = (
+				B51B20641D29B5D900350A33 /* StackAllocator.h */,
+				B51B20651D29B5D900350A33 /* StackAllocator_Poppable.h */,
+				B51B20661D29B5D900350A33 /* StackAllocator_PoppableAndStretchy.h */,
+				B51B20671D29B5D900350A33 /* StackAllocator_Stretchy.h */,
+			);
+			name = StackAllocators;
+			path = "../../../Google Drive/Dev/C++ Containers/StackAllocators";
+			sourceTree = "<group>";
+		};
 		B5B07FD51BB8020B00C0D631 /* Diatom */ = {
 			isa = PBXGroup;
 			children = (
@@ -153,17 +177,7 @@
 				E1439A141B04C4FD00FAEDA2 /* GenericTree.h */,
 			);
 			name = GenericTree;
-			path = ../../Dev/GenericTree;
-			sourceTree = "<group>";
-		};
-		E1439A1B1B04C51A00FAEDA2 /* PoppableStackAllocator */ = {
-			isa = PBXGroup;
-			children = (
-				E1439A1D1B04C51A00FAEDA2 /* PoppableStackAllocator.h */,
-				E1439A201B04C51A00FAEDA2 /* UnpoppableStackAllocator.h */,
-			);
-			name = PoppableStackAllocator;
-			path = ../../Dev/PoppableStackAllocator;
+			path = "../../../Google Drive/Dev/C++ Containers/GenericTree";
 			sourceTree = "<group>";
 		};
 		E1835C4D1B05369A00815694 /* Diatomize */ = {
@@ -212,7 +226,8 @@
 				B5B07FD51BB8020B00C0D631 /* Diatom */,
 				E1835C4D1B05369A00815694 /* Diatomize */,
 				E1439A0F1B04C4FD00FAEDA2 /* GenericTree */,
-				E1439A1B1B04C51A00FAEDA2 /* PoppableStackAllocator */,
+				B51B20631D29B5D900350A33 /* StackAllocators */,
+				B51B205F1D29B5BA00350A33 /* ChunkVector */,
 				E14399BE1B04C3D100FAEDA2 /* Banyan */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
 				B583FACF1BBA755F00EDD446 /* Helpers.m */,

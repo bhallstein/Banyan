@@ -18,6 +18,7 @@
 #include "BuiltInNodeListView.h"
 #include "NodeLoaderWinCtrlr.h"
 #include "NodeDefFile.h"
+#include <map>
 
 /*
    ✓ Create wrapper struct for Diatom, with vector of children
@@ -179,17 +180,17 @@ std::map<std::string, std::string>& getDescrs() {
 }
 std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d) {
 	std::vector<std::pair<std::string, Diatom*>> vec;
-	for (auto &i : d.descendants()) {
-		const auto &prop_name = i.first;
-		if (prop_name == "type" ||
-			prop_name == "maxChildren" ||
-			prop_name == "minChildren" ||
-			prop_name == "posX" ||
-			prop_name == "posY" ||
-			prop_name == "original_type")
-			continue;
-		vec.push_back(make_pair(i.first, &i.second));
-	}
+	d.each_descendant([&](std::string &prop_name, Diatom &d) {
+		if (prop_name != "type" &&
+			prop_name != "maxChildren" &&
+			prop_name != "minChildren" &&
+			prop_name != "posX" &&
+			prop_name != "posY" &&
+			prop_name != "original_type")
+		{
+			vec.push_back(make_pair(prop_name, &d));
+		}
+	});
 	return vec;
 }
 -(void)setSidePanelToFilledOut {
@@ -254,20 +255,20 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 			[self.view_nodeOptions addSubview:checkbox];
 			form_ctrl_to_settable_property_map[(__bridge void*)checkbox] = i.second;
 		}
-		else {
+		else if (d.isString() || d.isNumber()) {
 			// Create string input
 			control_frame.origin = { hOffset_control, v - 1 };
 			NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
 			control.font = [NSFont fontWithName:@"PTSans-Regular" size:11.];
 			control.delegate = self;
-			if (d.isString())
-				control.stringValue = nsstr(d);
-			else
-				control.doubleValue = d.number_value();
+			if (d.isString()) control.stringValue = nsstr(d);
+			else              control.doubleValue = d.number_value();
 			[temp_controls addObject:control];
 			[self.view_nodeOptions addSubview:control];
-			
 			form_ctrl_to_settable_property_map[(__bridge void*)control] = i.second;
+		}
+		else {
+			// Consider displaying an error message
 		}
 		++ind;
 	}
@@ -538,10 +539,10 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
     // Load document-level node definition files
     {
         if (d["definitionFiles"].isTable()) {
-            for (auto &desc : d["definitionFiles"].descendants()) {
-                NSString *file = [NSString stringWithFormat:@"%s", desc.second.str_value().c_str()];
-                [self addNodeDef_FromFile:file];
-            }
+			d["definitionFiles"].each_descendant([&](std::string &key, Diatom &d) {
+				NSString *file = [NSString stringWithFormat:@"%s", d.str_value().c_str()];
+				[self addNodeDef_FromFile:file];
+			});
         }
         
         // If there were failures, open the node loader window
@@ -560,12 +561,10 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		std::vector<Diatom*> nodes_diatom_ptrs;
 		
 		// Load the nodes vector from treeDef.nodes
-		for (auto i : d["treeDef"]["nodes"].descendants()) {
+		d["treeDef"]["nodes"].each_descendant([&](std::string &key, Diatom &n) {
 			// If the node is in the registry, add its min/max children as properties
 			// If not, add a dummy node
-			
-			Diatom n = i.second;
-			const std::string &ntype = i.second["type"].str_value();
+			const std::string &ntype = n["type"].str_value();
 			
 			Diatom node_definition = [self getNodeWithType:ntype.c_str()];
 			if (node_definition.isNil()) {
@@ -584,12 +583,13 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 				
 				// If the node has properties that are not defined in the node definition,
 				// alert the user
-				for (auto &j : n.descendants())
-					if (j.first != "posX" && j.first != "posY")
-						if (node_definition[j.first].isNil())
-							unknown_node_properties.push_back(ntype + std::string("/") + j.first);
+				n.each_descendant([&](std::string &k, Diatom &d) {
+					if (k != "posX" && k != "posY")
+						if (node_definition[k].isNil())
+							unknown_node_properties.push_back(ntype + std::string("/") + k);
+				});
 			}
-		}
+		});
 		
 		// Load the tree, referring to the nodes list
 		{

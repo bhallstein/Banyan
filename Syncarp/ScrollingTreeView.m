@@ -11,6 +11,7 @@
 #import "Wrapper.h"
 #import "GraphPaperView.h"
 #include "Helpers.h"
+#include <map>
 
 
 @interface ScrollingTreeView () {
