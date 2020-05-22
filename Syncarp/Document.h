@@ -23,5 +23,8 @@ class Wrapper;
 -(void)addNodeOfType:(NSString*)t at:(NSPoint)p;
 -(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B;
 
+-(BOOL)nodeIsOrphan:(Wrapper*)n;
+-(Wrapper*)parentOfNode:(Wrapper*)n;
+
 @end
 

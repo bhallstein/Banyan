@@ -28,7 +28,13 @@
 	Wrapper *selectedNode;
 	Wrapper *highlightedNode;
 	
-	bool dragLoop;
+	struct InFlightConnection {
+		enum ConnectionType { None, FromChild, FromParent } type;
+		Wrapper *fromNode;
+		NSPoint currentPosition;
+	} inFlightConnection;
+	
+	enum DragLoop { None, MoveNode, ConnectionFromParent, ConnectionFromChild } dragLoop;
 	NSTimer *dragTimer;
 	NSPoint dragInitial;
 }
@@ -136,6 +142,14 @@ static const NSSize unitSize = {1.0, 1.0};
 		}
 	return n;
 }
+-(BOOL)isOverNodeParentConnector:(Wrapper*)w point:(NSPoint)p {
+	int forgivingness = 4;
+	return
+		p.x >  w->d["posX"].number_value() + node_parent_circle_offset_x - forgivingness &&
+		p.x <= w->d["posX"].number_value() + node_parent_circle_offset_x + node_circle_size + forgivingness &&
+		p.y >  w->d["posY"].number_value() + node_parent_circle_offset_y - forgivingness &&
+		p.y <= w->d["posY"].number_value() + node_parent_circle_offset_y + node_circle_size + forgivingness;
+}
 
 
 -(void)layOutTree {
@@ -219,6 +233,40 @@ void drawNode(int x, int y, NSColor *base_col, bool selected, const char *str_na
 	[circle_path fill];
 }
 
+NSPoint attachmentCoord_Parent_forNode(Wrapper *n, NSPoint scroll) {
+	float x = n->d["posX"].number_value();
+	float y = n->d["posY"].number_value();
+	
+	return (NSPoint) {
+		x + node_parent_circle_offset_x + node_circle_size*0.5,
+		y + node_parent_circle_offset_y + node_circle_size*0.5
+	};
+}
+
+NSPoint attachmentCoord_Child_forNode(Wrapper *n, NSPoint scroll, int childIndex) {
+	float x = n->d["posX"].number_value();
+	float y = n->d["posY"].number_value();
+	
+	return (NSPoint) {
+		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset,
+		y + node_height() - 9
+	};
+}
+
+void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
+	NSBezierPath *path = [NSBezierPath bezierPath];
+	
+	[path moveToPoint:child_cnxn_pos];
+	[path curveToPoint:parent_cnxn_pos
+		 controlPoint1:NSMakePoint(child_cnxn_pos.x, (child_cnxn_pos.y + parent_cnxn_pos.y)*0.5)
+		 controlPoint2:NSMakePoint(parent_cnxn_pos.x, (child_cnxn_pos.y + parent_cnxn_pos.y)*0.5)];
+	
+	[[NSColor lightGrayColor] set];
+	[path setLineWidth:3.0];
+	[path setLineCapStyle:NSRoundLineCapStyle];
+	[path stroke];
+}
+
 void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int childInd) {
 	x1 += offset.x;
 	x2 += offset.x;
@@ -258,11 +306,12 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	
 	if (!laidOutNodes) [self layOutTree];
 	
-	std::vector<float> cnxns;
+	std::vector<NSPoint> cnxns;
 	
 	for (auto &i : *self.nodes) {
 		if (i.destroyed) continue;
 		
+		// Draw node
 		const std::string &type = i.d["type"].str_value();
 		NSColor *col = [NSColor grayColor];
 		auto it = node_colours.find(type);
@@ -271,19 +320,32 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 		float posX = i.d["posX"].number_value();
 		float posY = i.d["posY"].number_value();
 		drawNode(posX, posY, col, &i == selectedNode, type.c_str(), false, scroll);
+		
+		// Also save its child connections
 		int c_ind = 0;
 		for (auto c : i.children) {
 			auto &nc = self.nodes->at(c);
-			cnxns.push_back(posX);
-			cnxns.push_back(posY);
-			cnxns.push_back(nc.d["posX"].number_value());
-			cnxns.push_back(nc.d["posY"].number_value());
-			cnxns.push_back(c_ind++);
+			cnxns.push_back(attachmentCoord_Parent_forNode(&nc, scroll));
+			cnxns.push_back(attachmentCoord_Child_forNode(&i, scroll, c_ind++));
 		}
 	}
 	
-	for (int i=0, n = (int)cnxns.size(); i < n; i += 5)
-		drawLineBetweenNodes(cnxns[i+2], cnxns[i+3], cnxns[i], cnxns[i+1], scroll, cnxns[i+4]);
+	for (int i=0, n = (int)cnxns.size(); i < n; i += 2)
+		drawConnection(cnxns[i], cnxns[i+1]);
+//		drawLineBetweenNodes(<#int x1#>, <#int y1#>, <#int x2#>, <#int y2#>, <#NSPoint offset#>, <#int childInd#>)
+//		drawLineBetweenNodes(cnxns[i+2], cnxns[i+3], cnxns[i], cnxns[i+1], scroll, cnxns[i+4]);
+	
+	// Also draw in-flight connection, if present
+	if (inFlightConnection.type == InFlightConnection::FromChild)
+		drawConnection(
+			attachmentCoord_Parent_forNode(inFlightConnection.fromNode, scroll),
+			inFlightConnection.currentPosition
+		);
+	if (inFlightConnection.type == InFlightConnection::FromParent)
+		drawConnection(
+			attachmentCoord_Child_forNode(inFlightConnection.fromNode, scroll, 0),
+			inFlightConnection.currentPosition
+		);
 }
 
 -(BOOL)isFlipped {
@@ -334,11 +396,50 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 -(void)mouseDown:(NSEvent *)ev {
 	NSPoint p = [self convertedPointForEvent:ev];
 	printf("mouseDown: %.1f,%.1f\n", p.x, p.y);
-
+	
 	Wrapper *w = [self findNodeAtPosition:p];
+	
 	if (w) {
 		selectedNode = w;
-		[self startMouseDragAt:p];
+
+		// If mouse is over a connection point:
+		//  - if a connection exists, edit it by setting the node at the
+		//    other end as active, and setting this connection as in-flight
+		//  - if no connection exists, set this node as active, and this
+		//    connection as in-flight
+		
+		if ([self isOverNodeParentConnector:w point:p]) {
+
+			// If an orphan, create a new connection from the selected node
+			if ([self.doc nodeIsOrphan:selectedNode]) {
+				inFlightConnection = {
+					InFlightConnection::FromChild,
+					selectedNode,
+					p
+				};
+				[self startMouseDragAt:p type:ConnectionFromChild];
+			}
+			
+			// If not an orphan, modify the child connection from the parent
+			// node
+			else {
+				Wrapper *parent = [self.doc parentOfNode:selectedNode];
+				if (!parent) {
+					NSLog(@"Oh dear - expected to find a parent node!");
+				}
+				inFlightConnection = {
+					InFlightConnection::FromParent,
+					parent,
+					p
+				};
+				[self startMouseDragAt:p type:ConnectionFromParent];
+			}
+		}
+		
+		// Otherwise, the drag will reposition the selected Node
+		else {
+			[self startMouseDragAt:p type:MoveNode];
+		}
 	}
 	else {
 		selectedNode = NULL;
@@ -346,11 +447,12 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	}
 	
 	DISP;
-	
 
 }
 -(void)mouseUp:(NSEvent *)ev {
-	if (dragLoop)
+	if (dragLoop == MoveNode)
+		[self endMouseDrag];
+	else if (dragLoop == ConnectionFromChild)
 		[self endMouseDrag];
 }
 -(void)keyDown:(NSEvent *)ev {
@@ -364,17 +466,26 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	DISP;
 }
 
-
--(void)startMouseDragAt:(NSPoint)p {
-	dragLoop = true;
-	dragTimer = [NSTimer scheduledTimerWithTimeInterval:0.04 target:self selector:@selector(dragCB:) userInfo:nil repeats:YES];
+-(void)startMouseDragAt:(NSPoint)p type:(enum DragLoop)t{
+	SEL sel;
+	if (t == MoveNode) sel = @selector(dragCB_MoveNode:);
+	else if (t == ConnectionFromChild) sel = @selector(dragCB_ConnectionFromChild:);
+	else if (t == ConnectionFromParent) sel = @selector(dragCB_ConnectionFromParent:);
+	else return;
+	
+	dragLoop = t;
+	dragTimer = [NSTimer scheduledTimerWithTimeInterval:0.04 target:self selector:sel userInfo:nil repeats:YES];
 	dragInitial = p;
 }
 -(void)endMouseDrag {
-	dragLoop = false;
+	dragLoop = None;
 	[dragTimer invalidate];
+	
+	inFlightConnection.type = InFlightConnection::None;
+	
+	DISP;
 }
--(void)dragCB:(NSEvent*)ev {
+-(void)dragCB_MoveNode:(NSEvent*)ev {
 	if (!selectedNode) {
 		[dragTimer invalidate];
 		return;
@@ -391,6 +502,16 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	
 	DISP;
 }
+-(void)dragCB_ConnectionFromChild:(NSEvent*)ev {
+	NSPoint p = [self convertCurrentMouseLocation];
+	inFlightConnection.currentPosition = p;
+	
+	DISP;
+}
+-(void)dragCB_ConnectionFromParent:(NSEvent*)ev {
+	[self dragCB_ConnectionFromChild:ev];
+}
+
 
 
 @end

@@ -85,23 +85,42 @@
 -(void*)getNodes { return &nodes; }
 -(AppDelegate*)appDelegate { return (AppDelegate*)[NSApplication sharedApplication].delegate; }
 
+template<class T>
+int indexOfNode(std::vector<T> &vec, T *t) {
+	return int(t - &vec[0]);
+}
+
+-(BOOL)nodeIsOrphan_byIndex:(int)i {
+	const Wrapper &n = nodes[i];
+	for (const auto &m : nodes) {
+		if (&n == &m) continue;
+		for (auto c : m.children)
+			if (c == i)
+				return false;
+	}
+	return true;
+}
+-(BOOL)nodeIsOrphan:(Wrapper*)n {
+	return [self nodeIsOrphan_byIndex:indexOfNode(nodes, n)];
+}
+-(Wrapper*)parentOfNode:(Wrapper*)n {
+	int ni = indexOfNode(nodes, n);
+	
+	for (auto &i : nodes)
+		for (auto j : i.children)
+			if (j == ni)
+				return &i;
+	
+	return NULL;
+}
+
+
 -(int)nNodesWithoutParents {
 	int n_orphans = 0;
-	int i = 0;
 	
-	std::map<int, int> parentCounts;
-	
-	for (const auto &n : nodes) {
+	for (auto &n : nodes) {
 		if (n.destroyed) continue;
-		
-		// Find the number of other nodes that are parents of N
-		int n_parents = 0;
-		for (const auto &m : nodes) {
-			if (&n == &m) continue;
-			for (auto c : m.children) if (c == i) n_parents += 1;
-		}
-		if (n_parents == 0) ++n_orphans;
-		++i;
+		if ([self nodeIsOrphan:&n]) ++n_orphans;
 	}
 	
 	return n_orphans;
@@ -137,10 +156,6 @@
 }
 
 
-template<class T>
-int indexOfNode(std::vector<T> &vec, T *t) {
-	return int(t - &vec[0]);
-}
 -(void)detachNodeFromTree:(Wrapper*)n {
 	int ind = indexOfNode(nodes, n);
 	assert(ind >= 0 && ind < nodes.size());
@@ -165,12 +180,12 @@ int indexOfNode(std::vector<T> &vec, T *t) {
 	Diatom new_node = [self.appDelegate getNodeWithType:t];
 	new_node["posX"] = p.x;
 	new_node["posY"] = p.y;
+
 	Wrapper w = {
 		new_node,
 		{ },
 		false
 	};
-	
 	nodes.push_back(w);
 }
 -(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B {
