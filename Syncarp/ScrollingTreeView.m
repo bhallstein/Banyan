@@ -641,17 +641,22 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	
 	ifc_attached = false;
 	ifc_forbidden = false;
+	inFlightConnection.temporary_index_of_child_in_parent_children = -1;
 	
 	hoveredNode = [self findNodeAtPosition:p];
 	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
 		int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
 		if (hovered_child_ind > -1) {
-			if ([self.doc node:inFlightConnection.fromNode isAncestorOf:hoveredNode])
-				ifc_forbidden = true;
+			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
 			
+			// Forbidden if:
+			int hov_max_children = hoveredNode->d["maxChildren"].number_value();
+			if ([self.doc node:inFlightConnection.fromNode isAncestorOf:hoveredNode] || // from node is ancestor of hovered node
+				hov_max_children == hoveredNode->children.size()) {                     // hovered node at capacity
+				ifc_forbidden = true;
+			}
 			else {
 				ifc_attached = true;
-				inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
 				inFlightConnection.temporary_index_of_child_in_parent_children = hovered_child_ind;
 			}
 		}
@@ -699,11 +704,13 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	
 	int over_cnctr = isOverChildConnector(hov, p, hov, &inFlightConnection);
+	int hov_max_ch = hov->d["maxChildren"].number_value();
 	
 	// Do nothing if:
 	if (over_cnctr == -1                           ||   // over a node, but not a connector
 		(hov == to_prev && over_cnctr == orig_ind) ||   // over the same node and connector as before
-		[self.doc node:from isAncestorOf:hov]) {        // over a target, but we are an ancestor of that target
+		[self.doc node:from isAncestorOf:hov]      ||   // over a target, but we are an ancestor of that target
+		hov->children.size() == hov_max_ch) {           // target node is at capacity
 		return;
 	}
 	
