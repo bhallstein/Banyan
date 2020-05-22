@@ -118,7 +118,6 @@
 }
 
 -(void)windowControllerDidLoadNib:(NSWindowController *)aController {
-    NSLog(@"didloadnib");
     [super windowControllerDidLoadNib:aController];
     
     if (!self.view_nodeList) {
@@ -520,25 +519,19 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		
 		// Check has required parts
 		if (!d["treeDef"].isTable()) {
-			if (d.isNil()) {
-				*outError = [NSError errorWithDomain:@"" code:0
-											userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"treeDef\" object." }];
-				return NO;
-			}
+            *outError = [NSError errorWithDomain:@"" code:0
+                                        userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"treeDef\" object." }];
+            return NO;
 		}
 		if (!d["treeDef"]["nodes"].isTable()) {
-			if (d.isNil()) {
-				*outError = [NSError errorWithDomain:@"" code:0
-											userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"nodes\" object." }];
-				return NO;
-			}
+            *outError = [NSError errorWithDomain:@"" code:0
+                                        userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"nodes\" object." }];
+            return NO;
 		}
 		if (!d["treeDef"]["tree"].isTable()) {
-			if (d.isNil()) {
-				*outError = [NSError errorWithDomain:@"" code:0
-											userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"valid tree\" object." }];
-				return NO;
-			}
+            *outError = [NSError errorWithDomain:@"" code:0
+                                        userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"valid tree\" object." }];
+            return NO;
 		}
 	}
     
