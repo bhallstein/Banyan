@@ -38,6 +38,9 @@
 		int temporary_index_of_child_in_parent_children;
 	} inFlightConnection;
 	
+	bool ifc_forbidden;
+	bool ifc_attached;
+	
 	NSTimer *dragTimer;
 	NSPoint dragInitial;
 }
@@ -83,6 +86,8 @@ static const NSSize unitSize = {1.0, 1.0};
 -(void)awakeFromNib {
 	[self.window makeFirstResponder:self];
 	[self registerForDraggedTypes:@[NSPasteboardTypeString]];
+	
+	ifc_forbidden = false;
 	
 	NSTrackingAreaOptions tr_options =
 		NSTrackingActiveAlways | NSTrackingInVisibleRect |
@@ -246,6 +251,9 @@ bool shouldDrawExtraChildConnector(Wrapper *n, Wrapper *hoveredNode, InFlightCon
 	if (!maxCh.isNil() && maxCh.number_value() != -1 && maxCh.number_value() <= n->children.size())
 		return false;
 	
+	if (cx->type == InFlightConnection::FromParent && n == cx->fromNode)
+		return false;
+	
 	if (n == hoveredNode &&
 		!(cx->type == InFlightConnection::FromChild && cx->toNode_prev == hoveredNode) &&
 		!(cx->type == InFlightConnection::FromParent))
@@ -333,7 +341,7 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 	}
 }
 
-void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scroll, bool inFlight = false) {
+void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scroll, bool inFlight, bool forbidden = false, bool attached = false) {
 	NSBezierPath *path = [NSBezierPath bezierPath];
 	
 	child_cnxn_pos  = NSPointAdd(child_cnxn_pos, scroll);
@@ -344,7 +352,10 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 		 controlPoint1:NSMakePoint(child_cnxn_pos.x, (child_cnxn_pos.y + parent_cnxn_pos.y)*0.5)
 		 controlPoint2:NSMakePoint(parent_cnxn_pos.x, (child_cnxn_pos.y + parent_cnxn_pos.y)*0.5)];
 	
-	[[NSColor lightGrayColor] set];
+	if (forbidden)     [[NSColor redColor] set];
+	else if (attached) [[NSColor blueColor] set];
+	else               [[NSColor lightGrayColor] set];
+	
 	[path setLineWidth:3.0];
 	[path setLineCapStyle:NSRoundLineCapStyle];
 	if (inFlight) {
@@ -407,7 +418,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	
 	for (int i=0, n = (int)cnxns.size(); i < n; i += 2)
-		drawConnection(cnxns[i], cnxns[i+1], scroll);
+		drawConnection(cnxns[i], cnxns[i+1], scroll, false);
 	
 	// Also draw in-flight connection, if present
 	if (inFlightConnection.type == InFlightConnection::FromChild)
@@ -415,14 +426,18 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			attachmentCoord_Parent_forNode(inFlightConnection.fromNode),
 			inFlightConnection.currentPosition,
 			scroll,
-			true
+			true,
+			ifc_forbidden,
+			ifc_attached
 		);
 	if (inFlightConnection.type == InFlightConnection::FromParent)
 		drawConnection(
 			attachmentCoord_Child_forNode(inFlightConnection.fromNode, inFlightConnection.index_of_child_in_parent_children),
 			inFlightConnection.currentPosition,
 			scroll,
-			true
+			true,
+			ifc_forbidden,
+			ifc_attached
 		);
 }
 
@@ -635,11 +650,18 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	NSPoint p = [self convertCurrentMouseLocation];
 	inFlightConnection.currentPosition = p;
 	
+	ifc_forbidden = false;
+	ifc_attached = false;
+	
 	hoveredNode = [self findNodeAtPosition:p];
-	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
+	if (hoveredNode && hoveredNode != inFlightConnection.fromNode && isOverParentConnector(hoveredNode, p)) {
+
+		inFlightConnection.currentPosition = attachmentCoord_Parent_forNode(hoveredNode);
+		ifc_attached = true;
 		
-		if (isOverParentConnector(hoveredNode, p))
-			inFlightConnection.currentPosition = attachmentCoord_Parent_forNode(hoveredNode);
+		Wrapper *hov_parent = [self.doc parentOfNode:hoveredNode];
+		if (hov_parent && hoveredNode != inFlightConnection.toNode_prev)
+			ifc_forbidden = true;
 		
 	}
 	
