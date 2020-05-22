@@ -37,7 +37,6 @@
 		int index_of_child_in_parent_children;
 	} inFlightConnection;
 	
-	enum DragLoop { None, MoveNode, ConnectionFromParent, ConnectionFromChild } dragLoop;
 	NSTimer *dragTimer;
 	NSPoint dragInitial;
 }
@@ -360,9 +359,12 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 		int c_ind = 0;
 		for (auto c : i.children) {
 			auto &nc = self.nodes->at(c);
-			if (inFlightConnection.type == InFlightConnection::FromParent &&
+			if ((inFlightConnection.type == InFlightConnection::FromParent &&
 				inFlightConnection.fromNode == &i &&
-				inFlightConnection.toNode_prev == &nc) {
+				inFlightConnection.toNode_prev == &nc) ||
+				(inFlightConnection.type == InFlightConnection::FromChild &&
+				 inFlightConnection.fromNode == &nc &&
+				 inFlightConnection.toNode_prev == &i)) {
 				c_ind++;
 				continue;
 			}
@@ -457,7 +459,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 					p,
 					0
 				};
-				[self startMouseDragAt:p type:ConnectionFromChild];
+				[self startMouseDragAt:p];
 			}
 			
 			// If not an orphan, set connection from parent node
@@ -472,13 +474,13 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 					p,
 					indexInChildren(parent, selectedNode, *self.nodes)
 				};
-				[self startMouseDragAt:p type:ConnectionFromParent];
+				[self startMouseDragAt:p];
 			}
 		}
 		
 		else if ((child_ind = isOverChildConnector(w, p)) != -1) {
 			
-			// If this is a new child connection...
+			// If this is a *new* child connection...
 			if (child_ind >= w->children.size()) {
 				inFlightConnection = {
 					InFlightConnection::FromParent,
@@ -487,25 +489,26 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 					p,
 					child_ind
 				};
-				[self startMouseDragAt:p type:ConnectionFromParent];
+				[self startMouseDragAt:p];
 			}
 			
 			// If not...
 			else {
+				Wrapper *child = &self.nodes->at(w->children[child_ind]);
 				inFlightConnection = {
-					InFlightConnection::FromParent,
+					InFlightConnection::FromChild,
+					child,
 					w,
-					&self.nodes->at(w->children[child_ind]),
 					p,
 					child_ind
 				};
-				[self startMouseDragAt:p type:ConnectionFromParent];
+				[self startMouseDragAt:p];
 			}
 			
 		}
 		
 		else {
-			[self startMouseDragAt:p type:MoveNode];
+			[self startMouseDragAt:p];
 		}
 	}
 	else {
@@ -517,13 +520,10 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 }
 -(void)mouseUp:(NSEvent *)ev {
 	[self endMouseDrag];
-	if (dragLoop == MoveNode) {
+	if (inFlightConnection.type == InFlightConnection::FromChild) {
 		
 	}
-	else if (dragLoop == ConnectionFromChild) {
-		
-	}
-	else if (dragLoop == ConnectionFromParent) {
+	else if (inFlightConnection.type == InFlightConnection::FromParent) {
 		
 	}
 }
@@ -543,25 +543,25 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	DISP;
 }
 
--(void)startMouseDragAt:(NSPoint)p type:(enum DragLoop)t{
+-(void)startMouseDragAt:(NSPoint)p {
 	SEL sel;
-	if (t == MoveNode) sel = @selector(dragCB_MoveNode:);
-	else if (t == ConnectionFromChild) sel = @selector(dragCB_ConnectionFromChild:);
-	else if (t == ConnectionFromParent) sel = @selector(dragCB_ConnectionFromParent:);
-	else return;
 	
-	dragLoop = t;
+	if (inFlightConnection.type == InFlightConnection::FromChild) sel = @selector(dragCB_ConnectionFromChild:);
+	else if (inFlightConnection.type == InFlightConnection::FromParent) sel = @selector(dragCB_ConnectionFromParent:);
+	else sel = @selector(dragCB_MoveNode:);
+	
 	dragTimer = [NSTimer scheduledTimerWithTimeInterval:0.04 target:self selector:sel userInfo:nil repeats:YES];
 	dragInitial = p;
 }
 -(void)endMouseDrag {
-	dragLoop = None;
 	[dragTimer invalidate];
 	
 	inFlightConnection.type = InFlightConnection::None;
 	
 	DISP;
 }
+
+
 -(void)dragCB_MoveNode:(NSEvent*)ev {
 	if (!selectedNode) {
 		[dragTimer invalidate];
@@ -583,10 +583,30 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	NSPoint p = [self convertCurrentMouseLocation];
 	inFlightConnection.currentPosition = p;
 	
+	hoveredNode = [self findNodeAtPosition:p];
+	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
+	
+		int hovered_child_ind = isOverChildConnector(hoveredNode, p);
+		if (hovered_child_ind > -1)
+			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
+		
+	}
+	
 	DISP;
 }
 -(void)dragCB_ConnectionFromParent:(NSEvent*)ev {
-	[self dragCB_ConnectionFromChild:ev];
+	NSPoint p = [self convertCurrentMouseLocation];
+	inFlightConnection.currentPosition = p;
+	
+	hoveredNode = [self findNodeAtPosition:p];
+	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
+		
+		if (isOverParentConnector(hoveredNode, p))
+			inFlightConnection.currentPosition = attachmentCoord_Parent_forNode(hoveredNode);
+		
+	}
+	
+	DISP;
 }
 
 
