@@ -49,9 +49,6 @@
 	for (auto &def : *nodeDefs)
 		if (def["type"].str_value() == type) {
 			Diatom new_node = def;
-			if (def["minChildren"].isNumber())
-				new_node["minChildren"] = def["minChildren"],
-				new_node["maxChildren"] = def["maxChildren"];
 			return new_node;
 		}
 	

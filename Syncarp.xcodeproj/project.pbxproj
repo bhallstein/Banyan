@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */ = {isa = PBXBuildFile; fileRef = B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */; settings = {ASSET_TAGS = (); }; };
-		B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = B583FACF1BBA755F00EDD446 /* Helpers.m */; settings = {ASSET_TAGS = (); }; };
-		B5B07FE61BB8020B00C0D631 /* Diatom-Storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5B07FDA1BB8020B00C0D631 /* Diatom-Storage.cpp */; settings = {ASSET_TAGS = (); }; };
-		B5B07FE71BB8020B00C0D631 /* Diatom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5B07FDC1BB8020B00C0D631 /* Diatom.cpp */; settings = {ASSET_TAGS = (); }; };
-		B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */; settings = {ASSET_TAGS = (); }; };
-		B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */; settings = {ASSET_TAGS = (); }; };
+		B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */ = {isa = PBXBuildFile; fileRef = B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */; };
+		B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = B583FACF1BBA755F00EDD446 /* Helpers.m */; };
+		B5B07FE61BB8020B00C0D631 /* Diatom-Storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5B07FDA1BB8020B00C0D631 /* Diatom-Storage.cpp */; };
+		B5B07FE71BB8020B00C0D631 /* Diatom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5B07FDC1BB8020B00C0D631 /* Diatom.cpp */; };
+		B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */; };
+		B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */; };
 		E152C3B11B13C62900D58FC0 /* BuiltInNodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */; };
 		E1835C561B05369A00815694 /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1835C501B05369A00815694 /* Diatomize.cpp */; };
 		E1CB18621AC057B000E7B579 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18611AC057B000E7B579 /* main.m */; };

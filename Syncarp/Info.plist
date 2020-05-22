@@ -9,7 +9,7 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>diatom</string>
+				<string>syncarp</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string></string>

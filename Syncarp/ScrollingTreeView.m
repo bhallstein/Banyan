@@ -144,7 +144,7 @@ static const NSSize unitSize = {1.0, 1.0};
 	
 	Wrapper *n = NULL;
 	for (auto &w : *nodes)
-		if (w.hasPosition()) {
+		if (!w.destroyed && w.hasPosition()) {
 			float x = w.d["posX"].number_value();
 			float y = w.d["posY"].number_value();
 			if (p.x >= x && p.y >= y &&
@@ -637,6 +637,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	inFlightConnection.temporary_index_of_child_in_parent_children = -1;
 	
 	hoveredNode = [self findNodeAtPosition:p];
+	Wrapper *parent_of_from = [DOC parentOfNode:inFlightConnection.fromNode];
 	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
 		int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
 		if (hovered_child_ind > -1) {
@@ -644,8 +645,9 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			
 			// Forbidden if:
 			int hov_max_children = hoveredNode->d["maxChildren"].number_value();
-			if ([DOC node:inFlightConnection.fromNode isAncestorOf:hoveredNode] || // from node is ancestor of hovered node
-				hov_max_children == hoveredNode->children.size()) {                     // hovered node at capacity
+			if (parent_of_from != hoveredNode &&                                        // the hovered not isn't the existing parent, and
+				([DOC node:inFlightConnection.fromNode isAncestorOf:hoveredNode] ||     // (from node is ancestor of hovered node, or
+				hov_max_children == hoveredNode->children.size())) {                    //  hovered node at capacity)
 				ifc_forbidden = true;
 			}
 			else {
@@ -702,7 +704,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	// Do nothing if:
 	if (over_cnctr == -1                           ||   // over a node, but not a connector
 		(hov == to_prev && over_cnctr == orig_ind) ||   // over the same node and connector as before
-		[DOC node:from isAncestorOf:hov]      ||   // over a target, but we are an ancestor of that target
+		[DOC node:from isAncestorOf:hov]           ||   // over a target, but we are an ancestor of that target
 		hov->children.size() == hov_max_ch) {           // target node is at capacity
 		return;
 	}

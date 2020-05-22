@@ -81,7 +81,7 @@ void *node_descriptions = (void*) &descriptions;
 							}];
 		
 		// draw description
-		std::string desc = "NO DESCRIPTION FOUND";
+		std::string desc = "[custom node type]";
 		auto it = descriptions.find(nd["type"].str_value());
 		if (it != descriptions.end()) desc = it->second;
 		NSString *desc_s = [NSString stringWithFormat:@"%s", desc.c_str()];

@@ -577,13 +577,17 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 				unknown_node_types.push_back(ntype);
 			}
 			else {
-				nodes_diatom_ptrs.push_back(new Diatom(i.second));
+				Diatom *copy = new Diatom(n);
+				(*copy)["minChildren"] = node_definition["minChildren"];
+				(*copy)["maxChildren"] = node_definition["maxChildren"];
+				nodes_diatom_ptrs.push_back(copy);
 				
-				// If the node in the tree has properties that are not defined in the node definition,
+				// If the node has properties that are not defined in the node definition,
 				// alert the user
 				for (auto &j : n.descendants())
-					if (node_definition[j.first].isNil())
-						unknown_node_properties.push_back(ntype + std::string("/") + j.first);
+					if (j.first != "posX" && j.first != "posY")
+						if (node_definition[j.first].isNil())
+							unknown_node_properties.push_back(ntype + std::string("/") + j.first);
 			}
 		}
 		
@@ -646,9 +650,6 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
     for (auto &def : document_nodeDefs)
         if (def["type"].str_value() == type) {
             Diatom new_node = def;
-            if (def["minChildren"].isNumber())
-                new_node["minChildren"] = def["minChildren"],
-                new_node["maxChildren"] = def["maxChildren"];
             return new_node;
         }
     
