@@ -45,5 +45,4 @@ void walk(std::vector<Wrapper> &vec,
 	fDerec();
 }
 
-
 #endif

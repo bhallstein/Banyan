@@ -68,18 +68,158 @@
 
 @interface Document () {
 	std::vector<Wrapper> nodes;
+	Wrapper *selectedNode;
 }
 
-@property IBOutlet ScrollingTreeView *scrollingTreeView;
-@property IBOutlet NSScrollView *nodeSelectorView;
-@property BuiltInNodeListView *nodeListView;
+@property IBOutlet ScrollingTreeView *view_scrollingTree;
+@property IBOutlet NSScrollView *view_nodeListContainer;
+@property BuiltInNodeListView *view_nodeList;
+@property IBOutlet NSScrollView *view_nodeOptions;
+
+@property IBOutlet NSTextField *panel_label_nodeType;
+@property IBOutlet NSTextField *panel_label_nodeDescr;
+@property IBOutlet NSTextField *panel_label_optionsHeader;
+@property IBOutlet NSBox *panel_hline_hdr;
+@property IBOutlet NSBox *panel_hline_opts;
+@property NSArray *panel_form_labels;
+@property NSArray *panel_form_controls;
 
 @end
 
 
 @implementation Document
 
--(instancetype)init { return [super init]; }
+-(instancetype)init {
+	if (self = [super init]) {
+		selectedNode = NULL;
+	}
+	return self;
+}
+
+-(void)awakeFromNib {
+	[self setSidePanelToEmpty];
+}
+
+// Opening & closing node options
+-(void)setSidePanelToEmpty {
+	self.panel_label_nodeType.stringValue = @"";
+	self.panel_label_nodeDescr.stringValue = @"";
+	self.panel_label_optionsHeader.hidden = YES;
+	self.panel_hline_hdr.hidden = YES;
+	self.panel_hline_opts.hidden = YES;
+	
+	for (id control in self.panel_form_controls) [control removeFromSuperview];
+	for (id label   in self.panel_form_labels)   [label removeFromSuperview];
+	self.panel_form_labels = nil;
+	self.panel_form_controls = nil;
+}
+NSString* nsstr(const std::string &s) {
+	return [NSString stringWithFormat:@"%s", s.c_str()];
+}
+NSString* nsstr(Diatom &d) {
+	return nsstr(d.str_value());
+}
+std::map<std::string, std::string>& getDescrs() {
+	return *(std::map<std::string, std::string>*)node_descriptions;
+}
+std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d) {
+	std::vector<std::pair<std::string, Diatom>> vec;
+	for (auto &i : d.descendants()) {
+		const auto &prop_name = i.first;
+		if (prop_name == "type" ||
+			prop_name == "maxChildren" ||
+			prop_name == "minChildren" ||
+			prop_name == "posX" ||
+			prop_name == "posY")
+			continue;
+		vec.push_back(make_pair(i.first, i.second));
+	}
+	return vec;
+}
+-(void)setSidePanelToFilledOut {
+	[self setSidePanelToEmpty];
+	
+	if (!selectedNode)
+		return;
+	
+	Diatom &d = selectedNode->d;
+	const auto &n_type = d["type"].str_value();
+	const auto &n_desc = getDescrs()[n_type];
+	
+	self.panel_label_nodeType.stringValue = nsstr(n_type);
+	self.panel_label_nodeDescr.stringValue = nsstr(n_desc);
+	self.panel_hline_hdr.hidden = NO;
+	
+	auto settables = settablePropertiesForNode(d);
+	if (settables.size() == 0)
+		return;
+	
+	self.panel_label_optionsHeader.hidden = NO;
+	self.panel_hline_opts.hidden = NO;
+	
+	NSMutableArray *temp_controls = [[NSMutableArray alloc] init];
+	NSMutableArray *temp_labels = [[NSMutableArray alloc] init];
+	
+	NSRect checkbox_frame = { 0, 0, 18, 18 };
+	NSRect label_frame = { 0, 0, 180, 17 };
+	NSRect control_frame = { 0, 0, 120, 19 };
+	float vOffset = 125.;
+	float hOffset_label = 8.;
+	float hOffset_control = 102.;
+	float vOffset_control_extra = 20.;
+	float vInc = 26.;
+	
+	int ind = 0;
+	for (auto &i : settables) {
+		float v = vOffset + ind * vInc;
+		label_frame.origin = { hOffset_label, v };
+		NSTextField *label = [[NSTextField alloc] initWithFrame:label_frame];
+		label.stringValue = nsstr(i.first);
+		label.font = [NSFont fontWithName:@"PTSans-Regular" size:13.];
+		label.textColor = [NSColor colorWithCalibratedRed:0.27 green:0.27 blue:0.26 alpha:1.0];
+		[label setBezeled:NO];
+		[temp_labels addObject:label];
+		[self.view_nodeOptions addSubview:label];
+		
+		if (i.second.type() == Diatom::Type::Bool) {
+			checkbox_frame.origin = { self.view_nodeOptions.frame.size.width - checkbox_frame.size.width - 14, v - 1 };
+			NSButton *checkbox = [[NSButton alloc] initWithFrame:checkbox_frame];
+			checkbox.target = self;
+			checkbox.action = @selector(formButtonClicked:);
+			[checkbox setButtonType:NSSwitchButton];
+			[temp_controls addObject:checkbox];
+			[self.view_nodeOptions addSubview:checkbox];
+		}
+		else {
+			control_frame.origin = { hOffset_control, v - 1 };
+			NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
+			control.font = [NSFont fontWithName:@"PTSans-Regular" size:11.];
+			control.delegate = self;
+			[temp_controls addObject:control];
+			[self.view_nodeOptions addSubview:control];
+		}
+		++ind;
+	}
+	
+	self.panel_form_controls = [NSArray arrayWithArray:temp_controls];
+	self.panel_form_labels = [NSArray arrayWithArray:temp_labels];
+	
+	// Need to make a form
+	//  -- lay out label and text field / check box.
+	//  -- save these in an array
+	//  -- each input should also map to a property name
+	//  -- so when text changed, simply update the property of the
+	//     selected node
+	
+}
+-(void)controlTextDidChange:(NSNotification *)notif {
+	NSLog(@"ctrl text change: %@", [notif.object stringValue]);
+}
+-(void)formButtonClicked:(NSButton*)button {
+	NSLog(@"%ld", (long)button.state);
+}
+
+
 +(BOOL)autosavesInPlace { return NO; }
 -(NSString *)windowNibName { return @"Document"; }
 -(void*)getNodes { return &nodes; }
@@ -153,8 +293,8 @@
 -(void)windowControllerDidLoadNib:(NSWindowController *)aController {
 	[super windowControllerDidLoadNib:aController];
 	
-	self.nodeListView = [[BuiltInNodeListView alloc] initWithFrame:self.nodeSelectorView.frame];
-	[self.nodeSelectorView setDocumentView:self.nodeListView];
+	self.view_nodeList = [[BuiltInNodeListView alloc] initWithFrame:self.view_nodeListContainer.frame];
+	[self.view_nodeListContainer setDocumentView:self.view_nodeList];
 }
 
 
@@ -198,6 +338,13 @@
 	[self detachNodeFromTree:A];
 	auto it = ch.begin() + i;
 	ch.insert(it, index_in_vec(nodes, A));
+}
+
+
+-(void)setSelectedNode:(Wrapper*)n {
+	selectedNode = n;
+	if (n) [self setSidePanelToFilledOut];
+	else   [self setSidePanelToEmpty];
 }
 
 

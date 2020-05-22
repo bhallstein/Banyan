@@ -11,3 +11,5 @@
 @interface BuiltInNodeListView : NSView <NSDraggingSource, NSPasteboardItemDataProvider>
 
 @end
+
+extern void *node_descriptions;

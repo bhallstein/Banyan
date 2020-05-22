@@ -13,7 +13,7 @@
 
 class Wrapper;
 
-@interface Document : NSDocument
+@interface Document : NSDocument <NSTextFieldDelegate>
 
 -(void*)getNodes;
 -(Wrapper*)topNode;
@@ -27,6 +27,8 @@ class Wrapper;
 -(BOOL)nodeIsOrphan:(Wrapper*)n;
 -(BOOL)node:(Wrapper*)A isAncestorOf:(Wrapper*)B;
 -(Wrapper*)parentOfNode:(Wrapper*)n;
+
+-(void)setSelectedNode:(Wrapper*)n;
 
 @end
 

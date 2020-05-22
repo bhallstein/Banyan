@@ -34,13 +34,15 @@
 -(AppDelegate*)appDelegate { return (AppDelegate*)[NSApplication sharedApplication].delegate; }
 
 const std::map<std::string, std::string> descriptions = {
-	{ "Inverter", "Inverts its descendant's status" },
-	{ "Repeater", "Call its descendant N times" },
+	{ "Inverter",  "Inverts its descendant's status" },
+	{ "Repeater",  "Calls its descendant N times" },
 	{ "Succeeder", "Always returns success" },
-	{ "Sequence", "Call its descendants in order" },
-	{ "Selector", "Call descendants until one succeeds" },
-	{ "While", "Call a node while another succeeds" }
+	{ "Sequence",  "Calls its descendants in order" },
+	{ "Selector",  "Calls descendants until one succeeds" },
+	{ "While",     "Calls a node while another succeeds" }
 };
+
+void *node_descriptions = (void*) &descriptions;
 
 -(BOOL)isFlipped { return YES; }
 

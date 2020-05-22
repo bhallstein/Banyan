@@ -13,6 +13,4 @@ class Wrapper;
 
 @interface ScrollingTreeView : NSView
 
-//-(void)layOutAsTree:(Wrapper*)topNode;
-
 @end

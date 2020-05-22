@@ -11,13 +11,6 @@
 #import "Wrapper.h"
 #import "GraphPaperView.h"
 
-/*
-  Todo:
-    - Manage an in-flight connection
-    - Get part of clicked node (to perform different actions)
-    - Highlight nodes with wrong number of children in red
-*/
-
 
 @interface ScrollingTreeView () {
 	NSSize  scale;
@@ -494,13 +487,14 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 
 -(void)mouseDown:(NSEvent *)ev {
 	NSPoint p = [self convertedPointForEvent:ev];
-	printf("mouseDown: %.1f,%.1f\n", p.x, p.y);
-	
 	Wrapper *w = [self findNodeAtPosition:p];
 	int child_ind;
 	
 	if (w) {
-		selectedNode = w;
+		if (selectedNode != w) {
+			selectedNode = w;
+			[self.doc setSelectedNode:w];
+		}
 		
 		if (isOverParentConnector(w, p)) {
 
@@ -569,6 +563,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	else {
 		selectedNode = NULL;
+		[self.doc setSelectedNode:NULL];
 		[self endMouseDrag];
 	}
 	
@@ -719,7 +714,6 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	
 	// Re-add it
 	[self.doc makeNode:from childOf:hov atIndex:over_cnctr];
-	
 }
 
 -(void)endDrag_ConnectionFromParent:(NSEvent*)ev {
