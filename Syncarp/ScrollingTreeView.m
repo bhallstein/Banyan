@@ -187,51 +187,76 @@ static const NSSize unitSize = {1.0, 1.0};
 	laidOutNodes = true;
 }
 
-
-void drawNode(int x, int y, NSColor *base_col, bool selected, const char *str_name, bool leaf, NSPoint offset) {
-	x += offset.x;
-	y += offset.y;
+void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) {
+	Diatom &d = n->d;
 	
-	NSBezierPath *path = [NSBezierPath bezierPath];
-	[path appendBezierPathWithRoundedRect:NSMakeRect(x, y, node_width, node_width / node_aspect_ratio)
+	float x = d["posX"].number_value() + scroll.x;
+	float y = d["posY"].number_value() + scroll.y;
+	
+	// Make main shape
+	NSBezierPath *path_main = [NSBezierPath bezierPath];
+	[path_main appendBezierPathWithRoundedRect:NSMakeRect(x, y, node_width, node_width / node_aspect_ratio)
 								  xRadius:3.5
 								  yRadius:3.5];
-	[base_col set];
-	[path fill];
 	
-	// White overlay gradient (reflection)
+	// Make overlay gradient (reflection)
 	NSGradient *grad;
 	grad = [[NSGradient alloc] initWithColorsAndLocations:
 			[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.0], 0.0,
 			[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.3], 0.5,
 			[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.0], 0.51, nil];
-	[grad drawInBezierPath:path angle:90.0];
 	
-	// Black overlay gradient
-	grad = [[NSGradient alloc] initWithColorsAndLocations:
-			[NSColor colorWithDeviceRed:0.0 green:0.0 blue:0.0 alpha:0.0], 0.0,
-			[NSColor colorWithDeviceRed:0.0 green:0.0 blue:0.0 alpha:0.2], 1.0, nil];
-	[grad drawInBezierPath:path angle:90.0];
+	// Get fill colour
+	NSColor *col_fill = [NSColor grayColor];
+	auto it = node_colours.find(d["type"].str_value());
+	if (it != node_colours.end()) col_fill = it->second;
 	
-	if (selected)  [[NSColor colorWithDeviceRed:0.19 green:0.97 blue:1.00 alpha:1.0] set], [path setLineWidth:3.0];
-	else           [[NSColor colorWithDeviceRed:0.48 green:0.48 blue:0.48 alpha:1.0] set], [path setLineWidth:1.4];
-	[path stroke];
+	// Get stroke colour & width
+	NSColor *col_stroke = [NSColor colorWithDeviceRed:0.48 green:0.48 blue:0.48 alpha:1.0];
+	[path_main setLineWidth:1.0];
+	if (selected) {
+		col_stroke = [NSColor colorWithDeviceRed:0.19 green:0.97 blue:1.00 alpha:1.0];
+		[path_main setLineWidth:4.0];
+	}
 	
+	// Attachment circle – parent
+	NSBezierPath *path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(x+node_parent_circle_offset_x,
+																				     y+node_parent_circle_offset_y,
+																				     node_circle_size, node_circle_size)];
 	// Name
-	NSString *name = [NSString stringWithFormat:@"%s", str_name];
+	NSString *name = [NSString stringWithFormat:@"%s", d["type"].str_value().c_str()];
+	NSShadow *shadow = [[NSShadow alloc] init];
+	[shadow setShadowBlurRadius:1.0f];
+	[shadow setShadowColor:[NSColor darkGrayColor]];
+	[shadow setShadowOffset:CGSizeMake(0, -1.0f)];
+	
+	
+	/*** Draw ***/
+	[col_stroke set];
+	[path_main stroke];
+	
+	[col_fill set];
+	[path_main fill];
+	[grad drawInBezierPath:path_main angle:90.0];
+	
 	[name drawAtPoint:NSMakePoint(x+15, y+3)
 	   withAttributes:@{
 						NSFontAttributeName: [NSFont fontWithName:@"PTSans-Bold" size:13.0],
-						NSForegroundColorAttributeName: [NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.9]
+						NSForegroundColorAttributeName: [NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.9],
+						NSStrokeWidthAttributeName: @-1.0,
 						}];
 	
-	// Attachment circle - parent
-	NSBezierPath *circle_path = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(x+node_parent_circle_offset_x,
-																				  y+node_parent_circle_offset_y,
-																				node_circle_size, node_circle_size)];
 	[[NSColor whiteColor] set];
-	[circle_path fill];
+	[path_ac_parent fill];
+	
+	for (int i=0; i < n->children.size(); ++i) {
+		path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(x + node_parent_circle_offset_x + i*node_cnxn_circle_xoffset,
+																		   y + node_height() - 9,
+																		   node_circle_size, node_circle_size)];
+		[path_ac_parent fill];
+	}
 }
+
 
 NSPoint attachmentCoord_Parent_forNode(Wrapper *n, NSPoint scroll) {
 	float x = n->d["posX"].number_value();
@@ -248,8 +273,8 @@ NSPoint attachmentCoord_Child_forNode(Wrapper *n, NSPoint scroll, int childIndex
 	float y = n->d["posY"].number_value();
 	
 	return (NSPoint) {
-		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset,
-		y + node_height() - 9
+		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
+		y + node_height() - 9 + node_circle_size*0.5
 	};
 }
 
@@ -267,40 +292,6 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
 	[path stroke];
 }
 
-void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int childInd) {
-	x1 += offset.x;
-	x2 += offset.x;
-	y1 += offset.y;
-	y2 += offset.y;
-	
-	NSBezierPath *path = [NSBezierPath bezierPath];
-	
-	float node_height = node_width / node_aspect_ratio;
-	
-	float startX = x1 + node_parent_circle_offset_x + node_circle_size*0.5;
-	float startY = y1 + node_parent_circle_offset_y + node_circle_size*0.5;
-	
-	float endX = x2 + node_parent_circle_offset_x + childInd*node_cnxn_circle_xoffset;
-	float endY = y2 + node_height - 9;
-	
-	NSBezierPath *circle_path = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(endX-node_circle_size*0.5,
-																				  endY-node_circle_size*0.5,
-																				  node_circle_size, node_circle_size)];
-	[[NSColor whiteColor] set];
-	[circle_path fill];
-	
-	[path moveToPoint:NSMakePoint(startX, startY)];
-	
-	[path curveToPoint:NSMakePoint(endX, endY)
-		 controlPoint1:NSMakePoint(startX, (startY+endY)*0.5)
-		 controlPoint2:NSMakePoint(endX, (startY+endY)*0.5)];
-	
-	[[NSColor lightGrayColor] set];
-	[path setLineWidth:3.0];
-	[path setLineCapStyle:NSRoundLineCapStyle];
-	[path stroke];
-}
-
 -(void)drawRect:(NSRect)dirtyRect {
 	[super drawRect:dirtyRect];
 	
@@ -311,17 +302,9 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	for (auto &i : *self.nodes) {
 		if (i.destroyed) continue;
 		
-		// Draw node
-		const std::string &type = i.d["type"].str_value();
-		NSColor *col = [NSColor grayColor];
-		auto it = node_colours.find(type);
-		if (it != node_colours.end()) col = it->second;
+		drawNode(&i, scroll, &i == selectedNode, false, false);
 		
-		float posX = i.d["posX"].number_value();
-		float posY = i.d["posY"].number_value();
-		drawNode(posX, posY, col, &i == selectedNode, type.c_str(), false, scroll);
-		
-		// Also save its child connections
+		// Also save node’s child connections
 		int c_ind = 0;
 		for (auto c : i.children) {
 			auto &nc = self.nodes->at(c);
@@ -332,8 +315,6 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	
 	for (int i=0, n = (int)cnxns.size(); i < n; i += 2)
 		drawConnection(cnxns[i], cnxns[i+1]);
-//		drawLineBetweenNodes(<#int x1#>, <#int y1#>, <#int x2#>, <#int y2#>, <#NSPoint offset#>, <#int childInd#>)
-//		drawLineBetweenNodes(cnxns[i+2], cnxns[i+3], cnxns[i], cnxns[i+1], scroll, cnxns[i+4]);
 	
 	// Also draw in-flight connection, if present
 	if (inFlightConnection.type == InFlightConnection::FromChild)
@@ -401,12 +382,6 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	
 	if (w) {
 		selectedNode = w;
-
-		// If mouse is over a connection point:
-		//  - if a connection exists, edit it by setting the node at the
-		//    other end as active, and setting this connection as in-flight
-		//  - if no connection exists, set this node as active, and this
-		//    connection as in-flight
 		
 		if ([self isOverNodeParentConnector:w point:p]) {
 
@@ -424,9 +399,8 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 			// node
 			else {
 				Wrapper *parent = [self.doc parentOfNode:selectedNode];
-				if (!parent) {
+				if (!parent)
 					NSLog(@"Oh dear - expected to find a parent node!");
-				}
 				inFlightConnection = {
 					InFlightConnection::FromParent,
 					parent,
@@ -447,13 +421,18 @@ void drawLineBetweenNodes(int x1, int y1, int x2, int y2, NSPoint offset, int ch
 	}
 	
 	DISP;
-
 }
 -(void)mouseUp:(NSEvent *)ev {
-	if (dragLoop == MoveNode)
-		[self endMouseDrag];
-	else if (dragLoop == ConnectionFromChild)
-		[self endMouseDrag];
+	[self endMouseDrag];
+	if (dragLoop == MoveNode) {
+		
+	}
+	else if (dragLoop == ConnectionFromChild) {
+		
+	}
+	else if (dragLoop == ConnectionFromParent) {
+		
+	}
 }
 -(void)keyDown:(NSEvent *)ev {
 	unsigned int x = [ev.characters characterAtIndex:0];
