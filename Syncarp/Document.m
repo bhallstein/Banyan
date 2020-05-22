@@ -98,6 +98,13 @@
 -(BOOL)nodeIsOrphan:(Wrapper*)n {
 	return [self nodeIsOrphan_byIndex:index_in_vec(nodes, n)];
 }
+-(BOOL)node:(Wrapper*)A isAncestorOf:(Wrapper*)B {
+	while ((B = [self parentOfNode:B]))
+		if (B == A)
+			return true;
+	return false;
+}
+
 -(Wrapper*)parentOfNode:(Wrapper*)n {
 	int ni = index_in_vec(nodes, n);
 	

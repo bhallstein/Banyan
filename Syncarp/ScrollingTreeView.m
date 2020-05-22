@@ -674,6 +674,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 		if (hov_parent && hoveredNode != inFlightConnection.toNode_prev)
 			ifc_forbidden = true;
 		
+		else if ([self.doc node:hoveredNode isAncestorOf:inFlightConnection.fromNode])
+			ifc_forbidden = true;
 	}
 	
 	DISP;
@@ -699,15 +701,25 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	
 	// If not over a node, and there exists a previous connected child,
 	// detach it
-	if (!hoveredNode && inFlightConnection.toNode_prev) {
-		[self.doc detachNodeFromTree:inFlightConnection.toNode_prev];
+	if (!hoveredNode) {
+		if (inFlightConnection.toNode_prev)
+			[self.doc detachNodeFromTree:inFlightConnection.toNode_prev];
 		return;
 	}
+	
+	// If over a target, but the target is an ancestor of the current node,
+	// do nothing
+	if ([self.doc node:hoveredNode isAncestorOf:inFlightConnection.fromNode])
+		return;
 	
 	// Over a valid node -- make the connection
 	[self.doc makeNode:hoveredNode
 			   childOf:inFlightConnection.fromNode
 			   atIndex:inFlightConnection.index_of_child_in_parent_children];
+	
+	// If there was a previous connection, unmake it
+	if (inFlightConnection.toNode_prev)
+		[self.doc detachNodeFromTree:inFlightConnection.toNode_prev];
 }
 
 

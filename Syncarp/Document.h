@@ -25,6 +25,7 @@ class Wrapper;
 -(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B atIndex:(int)i;
 
 -(BOOL)nodeIsOrphan:(Wrapper*)n;
+-(BOOL)node:(Wrapper*)A isAncestorOf:(Wrapper*)B;
 -(Wrapper*)parentOfNode:(Wrapper*)n;
 
 @end
