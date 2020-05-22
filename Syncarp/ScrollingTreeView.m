@@ -166,10 +166,12 @@ BOOL isOverParentConnector(Wrapper *n, NSPoint p) {
 		p.y <= coord.y + node_circle_size*0.5 + forgivingness;
 }
 
-int isOverChildConnector(Wrapper *n, NSPoint p) {
+int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightConnection *cnxn) {
 	float v_forgivingness = 14.0;
 	
-	int n_points = (int)n->children.size() + 1;
+	int n_points = (int)n->children.size();
+	if (shouldDrawExtraChildConnector(n, hoveredNode, cnxn))
+		n_points += 1;
 	float nodeX = n->d["posX"].number_value();
 	float nodeY = n->d["posY"].number_value();
 	
@@ -238,7 +240,21 @@ NSPoint attachmentCoord_Child_forNode(Wrapper *n, int childIndex) {
 	};
 }
 
-void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) {
+bool shouldDrawExtraChildConnector(Wrapper *n, Wrapper *hoveredNode, InFlightConnection *cx) {
+	Diatom &maxCh = n->d["maxChildren"];
+	if (!maxCh.isNil() && maxCh.number_value() != -1 && maxCh.number_value() <= n->children.size())
+		return false;
+	
+	if (n == hoveredNode &&
+		!(cx->type == InFlightConnection::FromChild && cx->toNode_prev == hoveredNode) &&
+		!(cx->type == InFlightConnection::FromParent))
+		return true;
+	else if (cx->type == InFlightConnection::FromParent && n == cx->fromNode)
+		return true;
+	return false;
+}
+
+void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, bool draw_extra_child_connector) {
 	Diatom &d = n->d;
 	
 	float x = d["posX"].number_value() + scroll.x;
@@ -305,7 +321,8 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) 
 	[path_ac_parent fill];
 	
 	int n_children_to_draw = (int)n->children.size();
-	if (hover) n_children_to_draw += 1;
+	if (draw_extra_child_connector) n_children_to_draw += 1;
+	
 	for (int i=0; i < n_children_to_draw; ++i) {
 		NSPoint p = attachmentCoord_Child_forNode(n, i);
 		p = NSPointAdd(p, scroll);
@@ -353,7 +370,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	for (auto &i : *self.nodes) {
 		if (i.destroyed) continue;
 		
-		drawNode(&i, scroll, &i == selectedNode, &i == hoveredNode, false);
+		bool draw_extra_cnxn = shouldDrawExtraChildConnector(&i, hoveredNode, &inFlightConnection);
+		drawNode(&i, scroll, &i == selectedNode, &i == hoveredNode, false, draw_extra_cnxn);
 		
 		// Also save node’s child connections
 		int c_ind = 0;
@@ -478,7 +496,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			}
 		}
 		
-		else if ((child_ind = isOverChildConnector(w, p)) != -1) {
+		else if ((child_ind = isOverChildConnector(w, p, hoveredNode, &inFlightConnection)) != -1) {
 			
 			// If this is a *new* child connection...
 			if (child_ind >= w->children.size()) {
@@ -586,7 +604,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	hoveredNode = [self findNodeAtPosition:p];
 	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
 	
-		int hovered_child_ind = isOverChildConnector(hoveredNode, p);
+		int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
 		if (hovered_child_ind > -1)
 			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
 		
