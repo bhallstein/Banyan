@@ -156,8 +156,9 @@ static const NSSize unitSize = {1.0, 1.0};
 	
 	return n;
 }
--(BOOL)isOverNodeParentConnector:(Wrapper*)n point:(NSPoint)p {
-	int forgivingness = 4;
+
+BOOL isOverParentConnector(Wrapper *n, NSPoint p) {
+	float forgivingness = 4.0;
 	NSPoint coord = attachmentCoord_Parent_forNode(n);
 	return
 		p.x >  coord.x - node_circle_size*0.5 - forgivingness &&
@@ -165,16 +166,24 @@ static const NSSize unitSize = {1.0, 1.0};
 		p.y >  coord.y - node_circle_size*0.5 - forgivingness && - forgivingness &&
 		p.y <= coord.y + node_circle_size*0.5 + forgivingness;
 }
--(int)isOverNodeChildConnector:(Wrapper*)n point:(NSPoint)p {
-	int forgivingness = 4;
-	NSPoint coord = attachmentCoord_Parent_forNode(n);
-	return
-	p.x >  coord.x - node_circle_size*0.5 - forgivingness &&
-	p.x <= coord.x + node_circle_size*0.5 + forgivingness &&
-	p.y >  coord.y - node_circle_size*0.5 - forgivingness && - forgivingness &&
-	p.y <= coord.y + node_circle_size*0.5 + forgivingness;
-}
 
+int isOverChildConnector(Wrapper *n, NSPoint p) {
+	float v_forgivingness = 14.0;
+	
+	int n_points = (int)n->children.size() + 1;
+	float nodeX = n->d["posX"].number_value();
+	float nodeY = n->d["posY"].number_value();
+	
+	float box_l = nodeX + node_parent_circle_offset_x;
+	float box_r = box_l + n_points*node_cnxn_circle_xoffset;
+	float box_t = nodeY + node_height() - node_child_circle_offset_y - v_forgivingness;
+	float box_b = box_t + node_circle_size + v_forgivingness;
+	
+	if (p.x < box_l || p.x >= box_r || p.y < box_t || p.y >= box_b)
+		return -1;
+	
+	return (p.x - box_l) / (box_r - box_l) * n_points;
+}
 
 
 -(void)layOutTree {
@@ -228,26 +237,6 @@ NSPoint attachmentCoord_Child_forNode(Wrapper *n, int childIndex) {
 		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
 		y + node_height() - node_child_circle_offset_y
 	};
-}
-
-int getChildIndex_forCoordinate_overNode(NSPoint p, Wrapper *n) {
-	// The attachment points form a box from the first attachmentcoord to 1+(the final one)
-
-	float attachment_forgivingness = 14.0;
-	
-	int n_points = (int)n->children.size() + 1;
-	float nodeX = n->d["posX"].number_value();
-	float nodeY = n->d["posY"].number_value();
-	
-	float box_l = nodeX + node_parent_circle_offset_x - node_circle_size*0.5 - node_cnxn_circle_xoffset*0.5;
-	float box_r = box_l + n_points*node_cnxn_circle_xoffset + node_cnxn_circle_xoffset*0.5;
-	float box_t = nodeY + node_height() - node_child_circle_offset_y - attachment_forgivingness;
-	float box_b = box_t + node_circle_size + attachment_forgivingness;
-	
-	if (p.x < box_l || p.x >= box_r || p.y < box_t || p.y >= box_b)
-		return -1;
-	
-	return (p.x - box_l)/(box_r - box_l) * n_points; // / node_cnxn_circle_xoffset;
 }
 
 void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) {
@@ -452,11 +441,12 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	printf("mouseDown: %.1f,%.1f\n", p.x, p.y);
 	
 	Wrapper *w = [self findNodeAtPosition:p];
+	int child_ind;
 	
 	if (w) {
 		selectedNode = w;
 		
-		if ([self isOverNodeParentConnector:w point:p]) {
+		if (isOverParentConnector(w, p)) {
 
 			// If an orphan, create a new connection from the selected node
 			if ([self.doc nodeIsOrphan:selectedNode]) {
@@ -486,7 +476,33 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			}
 		}
 		
-//		else if ([self  isOv])
+		else if ((child_ind = isOverChildConnector(w, p)) != -1) {
+			
+			// If this is a new child connection...
+			if (child_ind >= w->children.size()) {
+				inFlightConnection = {
+					InFlightConnection::FromParent,
+					w,
+					NULL,
+					p,
+					child_ind
+				};
+				[self startMouseDragAt:p type:ConnectionFromParent];
+			}
+			
+			// If not...
+			else {
+				inFlightConnection = {
+					InFlightConnection::FromParent,
+					w,
+					&self.nodes->at(w->children[child_ind]),
+					p,
+					child_ind
+				};
+				[self startMouseDragAt:p type:ConnectionFromParent];
+			}
+			
+		}
 		
 		else {
 			[self startMouseDragAt:p type:MoveNode];
@@ -513,10 +529,6 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 }
 -(void)mouseMoved:(NSEvent*)ev {
 	hoveredNode = [self findNodeAtPosition:[self convertedPointForEvent:ev]];
-	if (hoveredNode) {
-		int blah = getChildIndex_forCoordinate_overNode([self convertedPointForEvent:ev], hoveredNode);
-		NSLog(@"%d", blah);
-	}
 	
 	DISP;
 }
