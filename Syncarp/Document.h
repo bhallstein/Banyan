@@ -9,6 +9,7 @@
 #import <Cocoa/Cocoa.h>
 
 #define DISP [self setNeedsDisplay:YES]
+#define index_in_vec(vec, n) int(n - &vec[0])
 
 class Wrapper;
 
@@ -20,7 +21,7 @@ class Wrapper;
 -(void)detachNodeFromTree:(Wrapper*)n;
 -(void)destroyNode:(Wrapper*)n;
 
--(void)addNodeOfType:(NSString*)t at:(NSPoint)p;
+-(Wrapper*)addNodeOfType:(NSString*)t at:(NSPoint)p;
 -(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B;
 
 -(BOOL)nodeIsOrphan:(Wrapper*)n;

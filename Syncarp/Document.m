@@ -85,11 +85,6 @@
 -(void*)getNodes { return &nodes; }
 -(AppDelegate*)appDelegate { return (AppDelegate*)[NSApplication sharedApplication].delegate; }
 
-template<class T>
-int indexOfNode(std::vector<T> &vec, T *t) {
-	return int(t - &vec[0]);
-}
-
 -(BOOL)nodeIsOrphan_byIndex:(int)i {
 	const Wrapper &n = nodes[i];
 	for (const auto &m : nodes) {
@@ -101,10 +96,10 @@ int indexOfNode(std::vector<T> &vec, T *t) {
 	return true;
 }
 -(BOOL)nodeIsOrphan:(Wrapper*)n {
-	return [self nodeIsOrphan_byIndex:indexOfNode(nodes, n)];
+	return [self nodeIsOrphan_byIndex:index_in_vec(nodes, n)];
 }
 -(Wrapper*)parentOfNode:(Wrapper*)n {
-	int ni = indexOfNode(nodes, n);
+	int ni = index_in_vec(nodes, n);
 	
 	for (auto &i : nodes)
 		for (auto j : i.children)
@@ -157,7 +152,7 @@ int indexOfNode(std::vector<T> &vec, T *t) {
 
 
 -(void)detachNodeFromTree:(Wrapper*)n {
-	int ind = indexOfNode(nodes, n);
+	int ind = index_in_vec(nodes, n);
 	assert(ind >= 0 && ind < nodes.size());
 	for (auto &i : nodes) {
 		std::vector<int> ch_new;
@@ -175,7 +170,7 @@ int indexOfNode(std::vector<T> &vec, T *t) {
 -(void)addNode:(Wrapper*)n {
 	nodes.push_back(*n);
 }
--(void)addNodeOfType:(NSString*)type at:(NSPoint)p {
+-(Wrapper*)addNodeOfType:(NSString*)type at:(NSPoint)p {
 	const char *t = [type UTF8String];
 	Diatom new_node = [self.appDelegate getNodeWithType:t];
 	new_node["posX"] = p.x;
@@ -187,10 +182,11 @@ int indexOfNode(std::vector<T> &vec, T *t) {
 		false
 	};
 	nodes.push_back(w);
+	return &nodes.back();
 }
 -(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B {
 	[self detachNodeFromTree:A];
-	B->children.push_back(indexOfNode(nodes, A));
+	B->children.push_back(index_in_vec(nodes, A));
 }
 
 
@@ -227,7 +223,7 @@ int indexOfNode(std::vector<T> &vec, T *t) {
 	walk(nodes, *top, [&](Wrapper &w) {
 		nodes_diatom_ptrs.push_back(new Diatom(w.d));
 		children_nodeinds.push_back(w.children);
-		int index_in_nodes = indexOfNode(nodes, &w);
+		int index_in_nodes = index_in_vec(nodes, &w);
 		int index_in_diatoms = (int) nodes_diatom_ptrs.size() - 1;
 		index_translation_map[index_in_nodes] = index_in_diatoms;
 		

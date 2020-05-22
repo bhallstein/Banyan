@@ -31,15 +31,13 @@ void walk(std::vector<Wrapper> &vec, Wrapper &n, Functor f) {
 }
 
 template<class F1, class F2, class F3>
-void walk(
-		  std::vector<Wrapper> &vec,
+void walk(std::vector<Wrapper> &vec,
 		  Wrapper &n,
 		  F1 f,
 		  F2 fRec,
 		  F3 fDerec,
 		  Wrapper *parent = NULL,
-		  int childIndex = -1
-		  ) {
+		  int childIndex = -1) {
 	f(n, parent, childIndex);
 	fRec();
 	int c = 0;

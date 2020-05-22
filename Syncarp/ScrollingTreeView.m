@@ -27,11 +27,14 @@
 	
 	Wrapper *selectedNode;
 	Wrapper *highlightedNode;
+	Wrapper *hoveredNode;
 	
 	struct InFlightConnection {
 		enum ConnectionType { None, FromChild, FromParent } type;
 		Wrapper *fromNode;
+		Wrapper *toNode_prev;
 		NSPoint currentPosition;
+		int index_of_child_in_parent_children;
 	} inFlightConnection;
 	
 	enum DragLoop { None, MoveNode, ConnectionFromParent, ConnectionFromChild } dragLoop;
@@ -50,8 +53,10 @@ const float node_aspect_ratio = 1.6;
 const float node_width = 110;
 
 const float node_circle_size = 5;
+const NSPoint node_half_circle_size = (NSPoint) { node_circle_size*0.5, node_circle_size*0.5};
 const float node_parent_circle_offset_x = 6;
 const float node_parent_circle_offset_y = 9;
+const float node_child_circle_offset_y = 9;
 const float node_cnxn_circle_xoffset = 8;
 
 const float nodeHSpacing = 70.0;
@@ -70,7 +75,7 @@ const std::map<std::string, NSColor*> node_colours = {
 float node_height() {
 	return node_width/node_aspect_ratio;
 }
-
+#define NSPointAdd(p1, p2) ((NSPoint) { p1.x + p2.x, p1.y + p2.y })
 
 @implementation ScrollingTreeView
 static const NSSize unitSize = {1.0, 1.0};
@@ -78,6 +83,14 @@ static const NSSize unitSize = {1.0, 1.0};
 -(void)awakeFromNib {
 	[self.window makeFirstResponder:self];
 	[self registerForDraggedTypes:@[NSPasteboardTypeString]];
+	
+	NSTrackingAreaOptions tr_options =
+		NSTrackingActiveAlways | NSTrackingInVisibleRect |
+		NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved;
+	[self addTrackingArea:[[NSTrackingArea alloc] initWithRect:[self bounds]
+													   options:tr_options
+														 owner:self
+													  userInfo:nil]];
 }
 
 -(NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
@@ -96,7 +109,7 @@ static const NSSize unitSize = {1.0, 1.0};
 		p.x -= node_width / 2;
 		p.y -= node_height() / 2;
 		
-		[self.doc addNodeOfType:type at:p];
+		hoveredNode = [self.doc addNodeOfType:type at:p];
 		DISP;
 	}
 	
@@ -140,16 +153,28 @@ static const NSSize unitSize = {1.0, 1.0};
 				p.x < x + node_width &&
 				p.y < y + node_height()) n = &w;
 		}
+	
 	return n;
 }
--(BOOL)isOverNodeParentConnector:(Wrapper*)w point:(NSPoint)p {
+-(BOOL)isOverNodeParentConnector:(Wrapper*)n point:(NSPoint)p {
 	int forgivingness = 4;
+	NSPoint coord = attachmentCoord_Parent_forNode(n);
 	return
-		p.x >  w->d["posX"].number_value() + node_parent_circle_offset_x - forgivingness &&
-		p.x <= w->d["posX"].number_value() + node_parent_circle_offset_x + node_circle_size + forgivingness &&
-		p.y >  w->d["posY"].number_value() + node_parent_circle_offset_y - forgivingness &&
-		p.y <= w->d["posY"].number_value() + node_parent_circle_offset_y + node_circle_size + forgivingness;
+		p.x >  coord.x - node_circle_size*0.5 - forgivingness &&
+		p.x <= coord.x + node_circle_size*0.5 + forgivingness &&
+		p.y >  coord.y - node_circle_size*0.5 - forgivingness && - forgivingness &&
+		p.y <= coord.y + node_circle_size*0.5 + forgivingness;
 }
+-(int)isOverNodeChildConnector:(Wrapper*)n point:(NSPoint)p {
+	int forgivingness = 4;
+	NSPoint coord = attachmentCoord_Parent_forNode(n);
+	return
+	p.x >  coord.x - node_circle_size*0.5 - forgivingness &&
+	p.x <= coord.x + node_circle_size*0.5 + forgivingness &&
+	p.y >  coord.y - node_circle_size*0.5 - forgivingness && - forgivingness &&
+	p.y <= coord.y + node_circle_size*0.5 + forgivingness;
+}
+
 
 
 -(void)layOutTree {
@@ -176,15 +201,53 @@ static const NSSize unitSize = {1.0, 1.0};
 			n.d["posY"] = posY;
 		};
 	
-	walk(
-		 *self.nodes,
+	walk(*self.nodes,
 		 *topNode,
 		 fLayout,
 		 [&]() { ++recursionLevel; },
-		 [&]() { --recursionLevel; }
-		 );
+		 [&]() { --recursionLevel; });
 	
 	laidOutNodes = true;
+}
+
+NSPoint attachmentCoord_Parent_forNode(Wrapper *n) {
+	float x = n->d["posX"].number_value();
+	float y = n->d["posY"].number_value();
+	
+	return (NSPoint) {
+		x + node_parent_circle_offset_x + node_circle_size*0.5,
+		y + node_parent_circle_offset_y + node_circle_size*0.5
+	};
+}
+
+NSPoint attachmentCoord_Child_forNode(Wrapper *n, int childIndex) {
+	float x = n->d["posX"].number_value();
+	float y = n->d["posY"].number_value();
+	
+	return (NSPoint) {
+		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
+		y + node_height() - node_child_circle_offset_y
+	};
+}
+
+int getChildIndex_forCoordinate_overNode(NSPoint p, Wrapper *n) {
+	// The attachment points form a box from the first attachmentcoord to 1+(the final one)
+
+	float attachment_forgivingness = 14.0;
+	
+	int n_points = (int)n->children.size() + 1;
+	float nodeX = n->d["posX"].number_value();
+	float nodeY = n->d["posY"].number_value();
+	
+	float box_l = nodeX + node_parent_circle_offset_x - node_circle_size*0.5 - node_cnxn_circle_xoffset*0.5;
+	float box_r = box_l + n_points*node_cnxn_circle_xoffset + node_cnxn_circle_xoffset*0.5;
+	float box_t = nodeY + node_height() - node_child_circle_offset_y - attachment_forgivingness;
+	float box_b = box_t + node_circle_size + attachment_forgivingness;
+	
+	if (p.x < box_l || p.x >= box_r || p.y < box_t || p.y >= box_b)
+		return -1;
+	
+	return (p.x - box_l)/(box_r - box_l) * n_points; // / node_cnxn_circle_xoffset;
 }
 
 void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) {
@@ -220,9 +283,13 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) 
 	}
 	
 	// Attachment circle – parent
-	NSBezierPath *path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(x+node_parent_circle_offset_x,
-																				     y+node_parent_circle_offset_y,
-																				     node_circle_size, node_circle_size)];
+	NSPoint pt_pcircle = attachmentCoord_Parent_forNode(n);
+	pt_pcircle = NSPointAdd(pt_pcircle, scroll);
+	pt_pcircle = NSPointAdd(pt_pcircle, -node_half_circle_size);
+	NSBezierPath *path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(pt_pcircle.x, pt_pcircle.y,
+																					 node_circle_size, node_circle_size)];
+	
+	
 	// Name
 	NSString *name = [NSString stringWithFormat:@"%s", d["type"].str_value().c_str()];
 	NSShadow *shadow = [[NSShadow alloc] init];
@@ -249,37 +316,22 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf) 
 	[[NSColor whiteColor] set];
 	[path_ac_parent fill];
 	
-	for (int i=0; i < n->children.size(); ++i) {
-		path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(x + node_parent_circle_offset_x + i*node_cnxn_circle_xoffset,
-																		   y + node_height() - 9,
-																		   node_circle_size, node_circle_size)];
+	int n_children_to_draw = (int)n->children.size();
+	if (hover) n_children_to_draw += 1;
+	for (int i=0; i < n_children_to_draw; ++i) {
+		NSPoint p = attachmentCoord_Child_forNode(n, i);
+		p = NSPointAdd(p, scroll);
+		p = NSPointAdd(p, -node_half_circle_size);
+		path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(p.x, p.y, node_circle_size, node_circle_size)];
 		[path_ac_parent fill];
 	}
 }
 
-
-NSPoint attachmentCoord_Parent_forNode(Wrapper *n, NSPoint scroll) {
-	float x = n->d["posX"].number_value();
-	float y = n->d["posY"].number_value();
-	
-	return (NSPoint) {
-		x + node_parent_circle_offset_x + node_circle_size*0.5,
-		y + node_parent_circle_offset_y + node_circle_size*0.5
-	};
-}
-
-NSPoint attachmentCoord_Child_forNode(Wrapper *n, NSPoint scroll, int childIndex) {
-	float x = n->d["posX"].number_value();
-	float y = n->d["posY"].number_value();
-	
-	return (NSPoint) {
-		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
-		y + node_height() - 9 + node_circle_size*0.5
-	};
-}
-
-void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
+void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scroll, bool inFlight = false) {
 	NSBezierPath *path = [NSBezierPath bezierPath];
+	
+	child_cnxn_pos  = NSPointAdd(child_cnxn_pos, scroll);
+	parent_cnxn_pos = NSPointAdd(parent_cnxn_pos, scroll);
 	
 	[path moveToPoint:child_cnxn_pos];
 	[path curveToPoint:parent_cnxn_pos
@@ -289,7 +341,19 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
 	[[NSColor lightGrayColor] set];
 	[path setLineWidth:3.0];
 	[path setLineCapStyle:NSRoundLineCapStyle];
+	if (inFlight) {
+		CGFloat pattern[] = { 8.0, 8.0 };
+		[path setLineDash:pattern count:2 phase:0];
+	}
 	[path stroke];
+}
+
+int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
+	int n_index = index_in_vec(nodes, n);
+	for (int i=0; i < p->children.size(); ++i)
+		if (p->children[i] == n_index)
+			return i;
+	return -1;
 }
 
 -(void)drawRect:(NSRect)dirtyRect {
@@ -298,34 +362,43 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
 	if (!laidOutNodes) [self layOutTree];
 	
 	std::vector<NSPoint> cnxns;
-	
 	for (auto &i : *self.nodes) {
 		if (i.destroyed) continue;
 		
-		drawNode(&i, scroll, &i == selectedNode, false, false);
+		drawNode(&i, scroll, &i == selectedNode, &i == hoveredNode, false);
 		
 		// Also save node’s child connections
 		int c_ind = 0;
 		for (auto c : i.children) {
 			auto &nc = self.nodes->at(c);
-			cnxns.push_back(attachmentCoord_Parent_forNode(&nc, scroll));
-			cnxns.push_back(attachmentCoord_Child_forNode(&i, scroll, c_ind++));
+			if (inFlightConnection.type == InFlightConnection::FromParent &&
+				inFlightConnection.fromNode == &i &&
+				inFlightConnection.toNode_prev == &nc) {
+				c_ind++;
+				continue;
+			}
+			cnxns.push_back(attachmentCoord_Parent_forNode(&nc));
+			cnxns.push_back(attachmentCoord_Child_forNode(&i, c_ind++));
 		}
 	}
 	
 	for (int i=0, n = (int)cnxns.size(); i < n; i += 2)
-		drawConnection(cnxns[i], cnxns[i+1]);
+		drawConnection(cnxns[i], cnxns[i+1], scroll);
 	
 	// Also draw in-flight connection, if present
 	if (inFlightConnection.type == InFlightConnection::FromChild)
 		drawConnection(
-			attachmentCoord_Parent_forNode(inFlightConnection.fromNode, scroll),
-			inFlightConnection.currentPosition
+			attachmentCoord_Parent_forNode(inFlightConnection.fromNode),
+			inFlightConnection.currentPosition,
+			scroll,
+			true
 		);
 	if (inFlightConnection.type == InFlightConnection::FromParent)
 		drawConnection(
-			attachmentCoord_Child_forNode(inFlightConnection.fromNode, scroll, 0),
-			inFlightConnection.currentPosition
+			attachmentCoord_Child_forNode(inFlightConnection.fromNode, inFlightConnection.index_of_child_in_parent_children),
+			inFlightConnection.currentPosition,
+			scroll,
+			true
 		);
 }
 
@@ -390,13 +463,14 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
 				inFlightConnection = {
 					InFlightConnection::FromChild,
 					selectedNode,
-					p
+					NULL,
+					p,
+					0
 				};
 				[self startMouseDragAt:p type:ConnectionFromChild];
 			}
 			
-			// If not an orphan, modify the child connection from the parent
-			// node
+			// If not an orphan, set connection from parent node
 			else {
 				Wrapper *parent = [self.doc parentOfNode:selectedNode];
 				if (!parent)
@@ -404,13 +478,16 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
 				inFlightConnection = {
 					InFlightConnection::FromParent,
 					parent,
-					p
+					selectedNode,
+					p,
+					indexInChildren(parent, selectedNode, *self.nodes)
 				};
 				[self startMouseDragAt:p type:ConnectionFromParent];
 			}
 		}
 		
-		// Otherwise, the drag will reposition the selected Node
+//		else if ([self  isOv])
+		
 		else {
 			[self startMouseDragAt:p type:MoveNode];
 		}
@@ -433,6 +510,15 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos) {
 	else if (dragLoop == ConnectionFromParent) {
 		
 	}
+}
+-(void)mouseMoved:(NSEvent*)ev {
+	hoveredNode = [self findNodeAtPosition:[self convertedPointForEvent:ev]];
+	if (hoveredNode) {
+		int blah = getChildIndex_forCoordinate_overNode([self convertedPointForEvent:ev], hoveredNode);
+		NSLog(@"%d", blah);
+	}
+	
+	DISP;
 }
 -(void)keyDown:(NSEvent *)ev {
 	unsigned int x = [ev.characters characterAtIndex:0];
