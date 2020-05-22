@@ -575,9 +575,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	DISP;
 }
 -(void)mouseUp:(NSEvent *)ev {
-	if (inFlightConnection.type == InFlightConnection::FromChild) {
-		
-	}
+	if (inFlightConnection.type == InFlightConnection::FromChild)
+		[self endDrag_ConnectionFromChild:ev];
 	else if (inFlightConnection.type == InFlightConnection::FromParent)
 		[self endDrag_ConnectionFromParent:ev];
 
@@ -645,14 +644,17 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	
 	hoveredNode = [self findNodeAtPosition:p];
 	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
-	
 		int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
 		if (hovered_child_ind > -1) {
-			ifc_attached = true;
-			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
-			inFlightConnection.temporary_index_of_child_in_parent_children = hovered_child_ind;
+			if ([self.doc node:inFlightConnection.fromNode isAncestorOf:hoveredNode])
+				ifc_forbidden = true;
+			
+			else {
+				ifc_attached = true;
+				inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
+				inFlightConnection.temporary_index_of_child_in_parent_children = hovered_child_ind;
+			}
 		}
-		
 	}
 	
 	DISP;
@@ -682,44 +684,67 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 }
 
 
--(void)endDrag_ConnectionFromParent:(NSEvent*)ev {
-	NSPoint p = [self convertCurrentMouseLocation];
-	
+-(void)endDrag_ConnectionFromChild:(NSEvent*)ev {
+	NSPoint p = [self convertedPointForEvent:ev];
 	hoveredNode = [self findNodeAtPosition:p];
+	Wrapper *hov = hoveredNode,
+			*from = inFlightConnection.fromNode,
+			*to_prev = inFlightConnection.toNode_prev;
+	int orig_ind = inFlightConnection.index_of_child_in_parent_children;
 	
-	// If over a node, but not a connector, do nothing
-	if (hoveredNode && !isOverParentConnector(hoveredNode, p))
-		return;
-	
-	// If over the same node as was connected previously, do nothing
-	if (hoveredNode && hoveredNode == inFlightConnection.toNode_prev)
-		return;
-	
-	// If over a target, but the target already has a parent node, do nothing
-	if ([self.doc parentOfNode:hoveredNode] != NULL)
-		return;
-	
-	// If not over a node, and there exists a previous connected child,
-	// detach it
-	if (!hoveredNode) {
-		if (inFlightConnection.toNode_prev)
-			[self.doc detachNodeFromTree:inFlightConnection.toNode_prev];
+	// If not over a node, and a previous parent exists, detach
+	if (!hov) {
+		if (to_prev) [self.doc detachNodeFromTree:from];
 		return;
 	}
 	
-	// If over a target, but the target is an ancestor of the current node,
-	// do nothing
-	if ([self.doc node:hoveredNode isAncestorOf:inFlightConnection.fromNode])
+	int over_cnctr = isOverChildConnector(hov, p, hov, &inFlightConnection);
+	
+	// Do nothing if:
+	if (over_cnctr == -1                           ||   // over a node, but not a connector
+		(hov == to_prev && over_cnctr == orig_ind) ||   // over the same node and connector as before
+		[self.doc node:from isAncestorOf:hov]) {        // over a target, but we are an ancestor of that target
 		return;
+	}
+	
+	// Detach the node
+	[self.doc detachNodeFromTree:from];
+	
+	// Re-add it
+	[self.doc makeNode:from childOf:hov atIndex:over_cnctr];
+	
+}
+
+-(void)endDrag_ConnectionFromParent:(NSEvent*)ev {
+	NSPoint p = [self convertedPointForEvent:ev];
+	hoveredNode = [self findNodeAtPosition:p];
+	Wrapper *hov = hoveredNode,
+			*from = inFlightConnection.fromNode,
+			*to_prev = inFlightConnection.toNode_prev;
+	
+	// If not over a node, and a previously connected child exists,
+	// detach it
+	if (!hov) {
+		if (to_prev) [self.doc detachNodeFromTree:to_prev];
+		return;
+	}
+	
+	// Do nothing if:
+	if (!isOverParentConnector(hov, p)       ||     // over a node, but not a connector
+		hov == to_prev                       ||     // over the same node as was connected previously
+		[self.doc parentOfNode:hov] != NULL  ||     // over a target, but the target already has a parent node
+		[self.doc node:hov isAncestorOf:from]) {	    // over a target, but the target is an ancestor of the current node
+		return;
+	}
 	
 	// Over a valid node -- make the connection
-	[self.doc makeNode:hoveredNode
-			   childOf:inFlightConnection.fromNode
+	[self.doc makeNode:hov
+			   childOf:from
 			   atIndex:inFlightConnection.index_of_child_in_parent_children];
 	
 	// If there was a previous connection, unmake it
-	if (inFlightConnection.toNode_prev)
-		[self.doc detachNodeFromTree:inFlightConnection.toNode_prev];
+	if (to_prev)
+		[self.doc detachNodeFromTree:to_prev];
 }
 
 
