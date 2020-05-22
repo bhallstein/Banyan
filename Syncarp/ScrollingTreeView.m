@@ -633,11 +633,15 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	NSPoint p = [self convertCurrentMouseLocation];
 	inFlightConnection.currentPosition = p;
 	
+	ifc_attached = false;
+	ifc_forbidden = false;
+	
 	hoveredNode = [self findNodeAtPosition:p];
 	if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
 	
 		int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
 		if (hovered_child_ind > -1) {
+			ifc_attached = true;
 			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
 			inFlightConnection.temporary_index_of_child_in_parent_children = hovered_child_ind;
 		}
