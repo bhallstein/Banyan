@@ -68,6 +68,7 @@
 
 @interface Document () {
 	std::vector<Wrapper> nodes;
+	std::map<void*, Diatom*> form_ctrl_to_settable_property_map;
 	Wrapper *selectedNode;
 }
 
@@ -112,6 +113,8 @@
 	for (id label   in self.panel_form_labels)   [label removeFromSuperview];
 	self.panel_form_labels = nil;
 	self.panel_form_controls = nil;
+	
+	form_ctrl_to_settable_property_map.clear();
 }
 NSString* nsstr(const std::string &s) {
 	return [NSString stringWithFormat:@"%s", s.c_str()];
@@ -122,17 +125,18 @@ NSString* nsstr(Diatom &d) {
 std::map<std::string, std::string>& getDescrs() {
 	return *(std::map<std::string, std::string>*)node_descriptions;
 }
-std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d) {
-	std::vector<std::pair<std::string, Diatom>> vec;
+std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d) {
+	std::vector<std::pair<std::string, Diatom*>> vec;
 	for (auto &i : d.descendants()) {
 		const auto &prop_name = i.first;
 		if (prop_name == "type" ||
 			prop_name == "maxChildren" ||
 			prop_name == "minChildren" ||
 			prop_name == "posX" ||
-			prop_name == "posY")
+			prop_name == "posY" ||
+			prop_name == "original_type")
 			continue;
-		vec.push_back(make_pair(i.first, i.second));
+		vec.push_back(make_pair(i.first, &i.second));
 	}
 	return vec;
 }
@@ -144,7 +148,9 @@ std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d)
 	
 	Diatom &d = selectedNode->d;
 	const auto &n_type = d["type"].str_value();
-	const auto &n_desc = getDescrs()[n_type];
+	auto n_desc = getDescrs()[n_type];
+	if (n_type == "Unknown")
+		n_desc = std::string("Type '") + d["original_type"].str_value() + std::string("' is not loaded");
 	
 	self.panel_label_nodeType.stringValue = nsstr(n_type);
 	self.panel_label_nodeDescr.stringValue = nsstr(n_desc);
@@ -166,12 +172,14 @@ std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d)
 	float vOffset = 125.;
 	float hOffset_label = 8.;
 	float hOffset_control = 102.;
-	float vOffset_control_extra = 20.;
 	float vInc = 26.;
 	
 	int ind = 0;
 	for (auto &i : settables) {
+		Diatom &d = *i.second;
 		float v = vOffset + ind * vInc;
+		
+		// Create label
 		label_frame.origin = { hOffset_label, v };
 		NSTextField *label = [[NSTextField alloc] initWithFrame:label_frame];
 		label.stringValue = nsstr(i.first);
@@ -181,42 +189,50 @@ std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d)
 		[temp_labels addObject:label];
 		[self.view_nodeOptions addSubview:label];
 		
-		if (i.second.type() == Diatom::Type::Bool) {
+		if (d.isBool()) {
+			// Create checkbox
 			checkbox_frame.origin = { self.view_nodeOptions.frame.size.width - checkbox_frame.size.width - 14, v - 1 };
 			NSButton *checkbox = [[NSButton alloc] initWithFrame:checkbox_frame];
 			checkbox.target = self;
 			checkbox.action = @selector(formButtonClicked:);
+			if (d.bool_value())
+				checkbox.state = NSOnState;
 			[checkbox setButtonType:NSSwitchButton];
 			[temp_controls addObject:checkbox];
 			[self.view_nodeOptions addSubview:checkbox];
+			form_ctrl_to_settable_property_map[(__bridge void*)checkbox] = i.second;
 		}
 		else {
+			// Create string input
 			control_frame.origin = { hOffset_control, v - 1 };
 			NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
 			control.font = [NSFont fontWithName:@"PTSans-Regular" size:11.];
 			control.delegate = self;
+			if (d.isString())
+				control.stringValue = nsstr(d);
+			else
+				control.doubleValue = d.number_value();
 			[temp_controls addObject:control];
 			[self.view_nodeOptions addSubview:control];
+			
+			form_ctrl_to_settable_property_map[(__bridge void*)control] = i.second;
 		}
 		++ind;
 	}
 	
 	self.panel_form_controls = [NSArray arrayWithArray:temp_controls];
 	self.panel_form_labels = [NSArray arrayWithArray:temp_labels];
-	
-	// Need to make a form
-	//  -- lay out label and text field / check box.
-	//  -- save these in an array
-	//  -- each input should also map to a property name
-	//  -- so when text changed, simply update the property of the
-	//     selected node
-	
 }
 -(void)controlTextDidChange:(NSNotification *)notif {
-	NSLog(@"ctrl text change: %@", [notif.object stringValue]);
+	Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)notif.object]);
+	if (d.isString())
+		d = [[notif.object stringValue] UTF8String];
+	else
+		d = [[notif.object stringValue] doubleValue];
 }
 -(void)formButtonClicked:(NSButton*)button {
-	NSLog(@"%ld", (long)button.state);
+	Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)button]);
+	d = (bool) button.state;
 }
 
 
@@ -479,8 +495,8 @@ std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d)
 			
 			const std::string &ntype = i.second["type"].str_value();
 			
-			Diatom d = [self.appDelegate getNodeWithType:ntype.c_str()];
-			if (d.isNil()) {
+			Diatom node_definition = [self.appDelegate getNodeWithType:ntype.c_str()];
+			if (node_definition.isNil()) {
 				Diatom stand_in;
 				stand_in["type"] = "Unknown";
 				stand_in["original_type"] = ntype;
@@ -489,7 +505,7 @@ std::vector<std::pair<std::string, Diatom>> settablePropertiesForNode(Diatom &d)
 				unknown_node_types.push_back(ntype);
 			}
 			else
-				nodes_diatom_ptrs.push_back(new Diatom(d));
+				nodes_diatom_ptrs.push_back(new Diatom(i.second));
 		}
 		
 		// Load the tree, referring to the nodes list
