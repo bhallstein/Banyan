@@ -451,6 +451,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	Diatom d = diatomFromString([nsstr UTF8String]);
 	
 	std::vector<std::string> unknown_node_types;
+	std::vector<std::string> unknown_node_properties;
 	
 	// Checks
 	{
@@ -493,6 +494,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 			// If the node is in the registry, add its min/max children as properties
 			// If not, add a dummy node
 			
+			Diatom n = i.second;
 			const std::string &ntype = i.second["type"].str_value();
 			
 			Diatom node_definition = [self.appDelegate getNodeWithType:ntype.c_str()];
@@ -504,8 +506,15 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 				nodes_diatom_ptrs.push_back(new Diatom(stand_in));
 				unknown_node_types.push_back(ntype);
 			}
-			else
+			else {
 				nodes_diatom_ptrs.push_back(new Diatom(i.second));
+				
+				// If the node in the tree has properties that are not defined in the node definition,
+				// alert the user
+				for (auto &j : n.descendants())
+					if (node_definition[j.first].isNil())
+						unknown_node_properties.push_back(ntype + std::string("/") + j.first);
+			}
 		}
 		
 		// Load the tree, referring to the nodes list
@@ -552,6 +561,10 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	if (unknown_node_types.size() > 0) {
 		// Show a kind of warning and let user select replacement definition
 		// files
+	}
+	if (unknown_node_properties.size() > 0) {
+		for (auto &s : unknown_node_properties)
+			NSLog(@"Unknown node properties: %s", s.c_str());
 	}
 	
 	return YES;

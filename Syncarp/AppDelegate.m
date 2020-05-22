@@ -70,7 +70,7 @@ void putUpError(NSString *title, NSString *detail) {
 			else if (!d["nodeDef"]["type"].isString()) [failed addObject:file];
 			else {
 				auto defs = (std::vector<Diatom>*)weakSelf.builtInNodes;
-				defs->push_back(d);
+				defs->push_back(d["nodeDef"]);
 			}
 		}
 		

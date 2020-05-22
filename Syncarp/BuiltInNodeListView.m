@@ -115,7 +115,6 @@ void *node_descriptions = (void*) &descriptions;
 	[self cacheDisplayInRect:self.bounds toBitmapImageRep:rep];
 	
 	NSRect r = NSMakeRect(0, 53. + indexOfSelectedNode*54. - 53., self.bounds.size.width, 53.);
-	
 	CGImageRef cgImg = CGImageCreateWithImageInRect(rep.CGImage, NSRectToCGRect(r));
 	NSBitmapImageRep *rep2 = [[NSBitmapImageRep alloc] initWithCGImage:cgImg];
 	CGImageRelease(cgImg);
@@ -143,7 +142,6 @@ void *node_descriptions = (void*) &descriptions;
 	[dragItem setDraggingFrame:draggingRect contents:self.dragImage];
 	
 	self.dragSession = [self beginDraggingSessionWithItems:@[dragItem] event:ev source:self];
-	
 }
 -(void)mouseUp:(NSEvent*)ev {
 	indexOfSelectedNode = -1;
