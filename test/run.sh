@@ -1,5 +1,4 @@
-clang++ -std=c++11     -g                        \
-  register-test-nodes.cpp                        \
+clang++ -std=c++11                               \
   ../GenericTree/Diatom/Diatomize/Diatomize.cpp  \
   test.cpp                                       \
   && ./a.out
