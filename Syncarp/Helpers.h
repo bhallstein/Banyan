@@ -20,3 +20,4 @@ void putUpError(NSString *title, NSString *detail);
   [[[self window] windowController] document])
 
 #endif
+

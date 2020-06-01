@@ -9,7 +9,6 @@
 #import "ScrollingTreeView.h"
 #import "Document.h"
 #import "Wrapper.h"
-#import "GraphPaperView.h"
 #include "Helpers.h"
 #include <map>
 
@@ -40,8 +39,6 @@
 	NSPoint dragInitial;
 }
 
-@property IBOutlet GraphPaperView *graphPaperView;
-
 @end
 
 
@@ -61,13 +58,13 @@ const float nodeHSpacing = 70.0;
 const float nodeVSpacing = 90.0;
 
 const std::map<std::string, NSColor*> node_colours = {
-	{ "Inverter",  [NSColor purpleColor] },
-	{ "Repeater",  [NSColor greenColor] },
-	{ "Selector",  [NSColor orangeColor] },
-	{ "Sequence",  [NSColor yellowColor] },
-	{ "Succeeder", [NSColor blackColor] },
-	{ "While",     [NSColor lightGrayColor] },
-	{ "Unknown",   [NSColor redColor] }
+	{ "Inverter",  [NSColor systemRedColor]    },
+	{ "Repeater",  [NSColor systemPurpleColor] },
+	{ "Selector",  [NSColor systemOrangeColor] },
+	{ "Sequence",  [NSColor systemTealColor]   },
+	{ "Succeeder", [NSColor systemGreenColor]  },
+	{ "While",     [NSColor systemBrownColor]  },
+	{ "Unknown",   [NSColor systemGrayColor]   },
 };
 
 float node_height() {
@@ -111,7 +108,7 @@ static const NSSize unitSize = {1.0, 1.0};
 		p.x -= node_width / 2;
 		p.y -= node_height() / 2;
 		
-		hoveredNode = [DOC addNodeOfType:type at:p];
+		hoveredNode = [DOCW addNodeOfType:type at:p];
 		DISP;
 	}
 	
@@ -188,28 +185,29 @@ int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightCo
 
 
 -(void)layOutTree {
-	Wrapper *topNode = DOC.topNode;
-	if (!topNode) return;
+	Wrapper *topNode = DOCW.topNode;
+	if (!topNode) {
+		return;
+	}
 	
 	int recursionLevel = 0;
-	auto fLayout =
-		[&](Wrapper &n, Wrapper *parent, int childIndex) {
-			if (n.hasPosition()) return;
-			if (!parent) {
-				n.d["posX"] = self.bounds.size.width*0.5 - node_width*0.5;
-				n.d["posY"] = 20.0;
-				return;
-			}
-			
-			float parX = parent->d["posX"].value__number;
-			float parY = parent->d["posY"].value__number;
-			
-			double posX = parX - 40 + childIndex*nodeHSpacing;
-			double posY = parY + nodeVSpacing + childIndex*4;
-			
-			n.d["posX"] = posX;
-			n.d["posY"] = posY;
-		};
+	auto fLayout = [&](Wrapper &n, Wrapper *parent, int childIndex) {
+		if (n.hasPosition()) return;
+		if (!parent) {
+			n.d["posX"] = self.bounds.size.width*0.5 - node_width*0.5;
+			n.d["posY"] = 20.0;
+			return;
+		}
+
+		float parX = parent->d["posX"].value__number;
+		float parY = parent->d["posY"].value__number;
+
+		double posX = parX - 40 + childIndex*nodeHSpacing;
+		double posY = parY + nodeVSpacing + childIndex*4;
+
+		n.d["posX"] = posX;
+		n.d["posY"] = posY;
+	};
 	
 	walk(*self.nodes,
 		 *topNode,
@@ -268,27 +266,19 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 	[path_main appendBezierPathWithRoundedRect:NSMakeRect(x, y, node_width, node_width / node_aspect_ratio)
 								  xRadius:3.5
 								  yRadius:3.5];
-	
-	// Make overlay gradient (reflection)
-	NSGradient *grad;
-	grad = [[NSGradient alloc] initWithColorsAndLocations:
-			[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.0], 0.0,
-			[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.3], 0.5,
-			[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.0], 0.51, nil];
-	
-	// Get fill colour
-	NSColor *col_fill = [NSColor grayColor];
+
+
+	// Get node-specific colour
+	NSColor *col__node = [NSColor blackColor];
 	auto it = node_colours.find(d["type"].value__string);
-	if (it != node_colours.end()) col_fill = it->second;
-	
-	// Get stroke colour & width
-	NSColor *col_stroke = [NSColor colorWithDeviceRed:0.48 green:0.48 blue:0.48 alpha:1.0];
-	[path_main setLineWidth:1.0];
-	if (selected) {
-		col_stroke = [NSColor colorWithDeviceRed:0.19 green:0.97 blue:1.00 alpha:1.0];
-		[path_main setLineWidth:4.0];
+	if (it != node_colours.end()) {
+		col__node = it->second;
 	}
-	
+	if (selected) {
+		col__node = [NSColor systemBlueColor];
+	}
+
+
 	// Attachment circle – parent
 	NSPoint pt_pcircle = attachmentCoord_Parent_forNode(n);
 	pt_pcircle = NSPointAdd(pt_pcircle, scroll);
@@ -305,22 +295,22 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 	[shadow setShadowOffset:CGSizeMake(0, -1.0f)];
 	
 	
-	/*** Draw ***/
-	[col_stroke set];
-	[path_main stroke];
-	
-	[col_fill set];
+	// Draw
+	[[NSColor whiteColor] set];
 	[path_main fill];
-	[grad drawInBezierPath:path_main angle:90.0];
-	
+
+	[col__node set];
+	[path_main setLineWidth:(selected ? 2.5 : 1.5)];
+	[path_main stroke];
+
 	[name drawAtPoint:NSMakePoint(x+15, y+3)
 	   withAttributes:@{
-						NSFontAttributeName: [NSFont systemFontOfSize:13.],
-						NSForegroundColorAttributeName: [NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.9],
+						NSFontAttributeName: [NSFont systemFontOfSize:12. weight:NSFontWeightBold],
+						NSForegroundColorAttributeName: [NSColor blackColor],
 						NSStrokeWidthAttributeName: @-1.0,
 						}];
 	
-	[[NSColor whiteColor] set];
+	[[NSColor blackColor] set];
 	[path_ac_parent fill];
 	
 	int n_children_to_draw = (int)n->children.size();
@@ -370,7 +360,9 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 -(void)drawRect:(NSRect)dirtyRect {
 	[super drawRect:dirtyRect];
 	
-	if (!laidOutNodes) [self layOutTree];
+	if (!laidOutNodes) {
+		[self layOutTree];
+	}
 	
 	std::vector<NSPoint> cnxns;
 	for (auto &i : *self.nodes) {
@@ -400,13 +392,16 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 				
 				if (temp_cnxn_ind != -1) {
 					if (inFlightConnection.toNode_prev == &i) {
-						if (orig_cnxn_ind < c_ind && temp_cnxn_ind >= c_ind)
+						if (orig_cnxn_ind < c_ind && temp_cnxn_ind >= c_ind) {
 							--ind;
-						if (orig_cnxn_ind > c_ind && temp_cnxn_ind <= c_ind)
+						}
+						if (orig_cnxn_ind > c_ind && temp_cnxn_ind <= c_ind) {
 							++ind;
+						}
 					}
-					else if (c_ind >= temp_cnxn_ind)
+					else if (c_ind >= temp_cnxn_ind) {
 						++ind;
+					}
 				}
 			}
 			cnxns.push_back(attachmentCoord_Parent_forNode(&nc));
@@ -415,11 +410,12 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 		}
 	}
 	
-	for (int i=0, n = (int)cnxns.size(); i < n; i += 2)
+	for (int i=0, n = (int)cnxns.size(); i < n; i += 2) {
 		drawConnection(cnxns[i], cnxns[i+1], scroll, false);
+	}
 	
 	// Also draw in-flight connection, if present
-	if (inFlightConnection.type == InFlightConnection::FromChild)
+	if (inFlightConnection.type == InFlightConnection::FromChild) {
 		drawConnection(
 			attachmentCoord_Parent_forNode(inFlightConnection.fromNode),
 			inFlightConnection.currentPosition,
@@ -428,7 +424,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			ifc_forbidden,
 			ifc_attached
 		);
-	if (inFlightConnection.type == InFlightConnection::FromParent)
+	}
+	if (inFlightConnection.type == InFlightConnection::FromParent) {
 		drawConnection(
 			attachmentCoord_Child_forNode(inFlightConnection.fromNode, inFlightConnection.index_of_child_in_parent_children),
 			inFlightConnection.currentPosition,
@@ -437,6 +434,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			ifc_forbidden,
 			ifc_attached
 		);
+	}
 }
 
 -(BOOL)isFlipped {
@@ -444,7 +442,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 }
 
 
-// Scrolly things
+// Scroll
+// ---------------------------
 
 -(void)magnifyWithEvent:(NSEvent *)event {
 	float scaleFactor = (1.0 + event.magnification);
@@ -459,7 +458,6 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	
 	NSSize sc = NSMakeSize(newScale, newScale);
 	[self setScale:sc];
-	[self.graphPaperView setScale:sc];
 }
 -(void)scrollWheel:(NSEvent *)event {
 	float coeff = 4.0;
@@ -492,13 +490,13 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	if (w) {
 		if (selectedNode != w) {
 			selectedNode = w;
-			[DOC setSelectedNode:w];
+			[DOCW setSelectedNode:w];
 		}
 		
 		if (isOverParentConnector(w, p)) {
 
 			// If an orphan, create a new connection from the selected node
-			if ([DOC nodeIsOrphan:selectedNode]) {
+			if ([DOCW nodeIsOrphan:selectedNode]) {
 				inFlightConnection = {
 					InFlightConnection::FromChild,
 					selectedNode,
@@ -511,7 +509,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			
 			// If not an orphan, set connection from parent node
 			else {
-				Wrapper *parent = [DOC parentOfNode:selectedNode];
+				Wrapper *parent = [DOCW parentOfNode:selectedNode];
 				if (!parent)
 					NSLog(@"Oh dear - expected to find a parent node!");
 				inFlightConnection = {
@@ -562,7 +560,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	else {
 		selectedNode = NULL;
-		[DOC setSelectedNode:NULL];
+		[DOCW setSelectedNode:NULL];
 		[self endMouseDrag];
 	}
 	
@@ -582,13 +580,12 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	DISP;
 }
 -(void)keyDown:(NSEvent *)ev {
-	unsigned int x = [ev.characters characterAtIndex:0];
-	
-	// Delete
-	if (x == 8 || x == 127)
-		if (selectedNode)
-			[DOC destroyNode:selectedNode];
-	
+	unsigned int c = [ev.characters characterAtIndex:0];
+
+	if (selectedNode && (c == 8 || c == 127)) {
+		[DOCW destroyNode:selectedNode];
+	}
+
 	DISP;
 }
 
@@ -604,10 +601,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 }
 -(void)endMouseDrag {
 	[dragTimer invalidate];
-	
 	inFlightConnection.type = InFlightConnection::None;
-	
-	
 	DISP;
 }
 

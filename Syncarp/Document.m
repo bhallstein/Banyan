@@ -13,7 +13,7 @@
 #include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
 #include "Banyan/Banyan.h"
 #include "Wrapper.h"
-#include "BuiltInNodeListView.h"
+#include "NodeListView.h"
 #include "NodeLoaderWinCtrlr.h"
 #include "NodeDefFile.h"
 #include <map>
@@ -76,25 +76,23 @@
 	std::map<void*, Diatom*> form_ctrl_to_settable_property_map;
 	Wrapper *selectedNode;
     
-    std::vector<Diatom> document_nodeDefs;
+	std::vector<Diatom> document_nodeDefs;
+	std::vector<NodeDefFile> definition_files;
     
-    std::vector<NodeDefFile> definition_files;
-    
-    BOOL should_initially_show_loader_window;
+	BOOL should_initially_show_loader_window;
 }
 
-@property IBOutlet ScrollingTreeView *view_scrollingTree;
-@property IBOutlet NSScrollView *view_nodeListContainer;
-@property BuiltInNodeListView *view_nodeList;
-@property IBOutlet NSScrollView *view_nodeOptions;
+@property IBOutlet ScrollingTreeView *view__scrollingTree;
+@property IBOutlet NSScrollView *view__nodeOptions;
+@property IBOutlet NSScrollView *view__nodeListContainer;
+@property NodeListView *view__nodeList;
 
-@property IBOutlet NSTextField *panel_label_nodeType;
-@property IBOutlet NSTextField *panel_label_nodeDescr;
-@property IBOutlet NSTextField *panel_label_optionsHeader;
-@property IBOutlet NSBox *panel_hline_hdr;
-@property IBOutlet NSBox *panel_hline_opts;
-@property NSArray *panel_form_labels;
-@property NSArray *panel_form_controls;
+@property IBOutlet NSTextField *label__nodeType;
+@property IBOutlet NSTextField *label__nodeDescr;
+@property IBOutlet NSTextField *label__optionsHeader;
+
+@property NSArray *form_labels;
+@property NSArray *form_controls;
 
 @property (strong, nonatomic) NodeLoaderWinCtrlr *nodeLoaderWC;
 
@@ -120,9 +118,9 @@
 -(void)windowControllerDidLoadNib:(NSWindowController *)aController {
     [super windowControllerDidLoadNib:aController];
     
-    if (!self.view_nodeList) {
-        self.view_nodeList = [[BuiltInNodeListView alloc] initWithFrame:self.view_nodeListContainer.frame];
-        [self.view_nodeListContainer setDocumentView:self.view_nodeList];
+    if (!self.view__nodeList) {
+        self.view__nodeList = [[NodeListView alloc] initWithFrame:self.view__nodeListContainer.frame];
+        [self.view__nodeListContainer setDocumentView:self.view__nodeList];
     }
     
     if (!self.nodeLoaderWC) {
@@ -155,16 +153,18 @@
 
 // Opening & closing node options
 -(void)setSidePanelToEmpty {
-	self.panel_label_nodeType.stringValue = @"";
-	self.panel_label_nodeDescr.stringValue = @"";
-	self.panel_label_optionsHeader.hidden = YES;
-	self.panel_hline_hdr.hidden = YES;
-	self.panel_hline_opts.hidden = YES;
+	self.label__nodeType.stringValue = @"";
+	self.label__nodeDescr.stringValue = @"";
+	self.label__optionsHeader.hidden = YES;
 	
-	for (id control in self.panel_form_controls) [control removeFromSuperview];
-	for (id label   in self.panel_form_labels)   [label removeFromSuperview];
-	self.panel_form_labels = nil;
-	self.panel_form_controls = nil;
+	for (id control in self.form_controls) {
+		[control removeFromSuperview];
+	}
+	for (id label in self.form_labels) {
+		[label removeFromSuperview];
+	}
+	self.form_labels = nil;
+	self.form_controls = nil;
 	
 	form_ctrl_to_settable_property_map.clear();
 }
@@ -180,13 +180,13 @@ std::map<std::string, std::string>& getDescrs() {
 std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d) {
 	std::vector<std::pair<std::string, Diatom*>> vec;
 	d.each([&](std::string &prop_name, Diatom &d) {
-		if (prop_name != "type" &&
-			prop_name != "maxChildren" &&
-			prop_name != "minChildren" &&
-			prop_name != "posX" &&
-			prop_name != "posY" &&
-			prop_name != "original_type")
-		{
+		bool is_built_in_prop = (prop_name == "type" ||
+								 prop_name == "maxChildren" ||
+								 prop_name == "minChildren" ||
+								 prop_name == "posX" ||
+								 prop_name == "posY" ||
+								 prop_name == "original_type");
+		if (!is_built_in_prop) {
 			vec.push_back(make_pair(prop_name, &d));
 		}
 	});
@@ -194,36 +194,34 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 }
 -(void)setSidePanelToFilledOut {
 	[self setSidePanelToEmpty];
-	
-	if (!selectedNode)
+	if (!selectedNode) {
 		return;
+	}
 	
-	Diatom &d = selectedNode->d;
-	const auto &n_type = d["type"].value__string;
+	Diatom d = selectedNode->d;
+	std::string n_type = d["type"].value__string;
 	auto n_desc = getDescrs()[n_type];
 	if (n_type == "Unknown") {
 		n_desc = std::string("Warning: type '") + d["original_type"].value__string + std::string("' is not loaded");
 	}
 	
-	self.panel_label_nodeType.stringValue = nsstr(n_type);
-	self.panel_label_nodeDescr.stringValue = nsstr(n_desc);
-	self.panel_hline_hdr.hidden = NO;
+	self.label__nodeType.stringValue = nsstr(n_type);
+	self.label__nodeDescr.stringValue = nsstr(n_desc);
 	
 	auto settables = settablePropertiesForNode(d);
 	if (settables.size() == 0) {
 		return;
 	}
 	
-	self.panel_label_optionsHeader.hidden = NO;
-	self.panel_hline_opts.hidden = NO;
+	self.label__optionsHeader.hidden = NO;
 	
 	NSMutableArray *temp_controls = [[NSMutableArray alloc] init];
 	NSMutableArray *temp_labels = [[NSMutableArray alloc] init];
 	
 	NSRect checkbox_frame = { 0, 0, 18, 18 };
-	NSRect label_frame = { 0, 0, 180, 17 };
+	NSRect label__frame = { 0, 0, 180, 17 };
 	NSRect control_frame = { 0, 0, 120, 19 };
-	float vOffset = 125.;
+	float vOffset = 138.;
 	float hOffset_label = 8.;
 	float hOffset_control = 102.;
 	float vInc = 26.;
@@ -234,18 +232,18 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		float v = vOffset + ind * vInc;
 		
 		// Create label
-		label_frame.origin = { hOffset_label, v };
-		NSTextField *label = [[NSTextField alloc] initWithFrame:label_frame];
+		label__frame.origin = { hOffset_label, v };
+		NSTextField *label = [[NSTextField alloc] initWithFrame:label__frame];
 		label.stringValue = nsstr(i.first);
-		label.font = [NSFont systemFontOfSize:13.]; //[NSFont fontWithName:@"PTSans-Regular" size:13.];
+		label.font = [NSFont systemFontOfSize:13.];
 		label.textColor = [NSColor colorWithCalibratedRed:0.27 green:0.27 blue:0.26 alpha:1.0];
 		[label setBezeled:NO];
 		[temp_labels addObject:label];
-		[self.view_nodeOptions addSubview:label];
+		[self.view__nodeOptions addSubview:label];
 		
 		if (d.is_bool()) {
 			// Create checkbox
-			checkbox_frame.origin = { self.view_nodeOptions.frame.size.width - checkbox_frame.size.width - 14, v - 1 };
+			checkbox_frame.origin = { self.view__nodeOptions.frame.size.width - checkbox_frame.size.width - 14, v - 1 };
 			NSButton *checkbox = [[NSButton alloc] initWithFrame:checkbox_frame];
 			checkbox.target = self;
 			checkbox.action = @selector(formButtonClicked:);
@@ -254,14 +252,14 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 			}
 			[checkbox setButtonType:NSSwitchButton];
 			[temp_controls addObject:checkbox];
-			[self.view_nodeOptions addSubview:checkbox];
+			[self.view__nodeOptions addSubview:checkbox];
 			form_ctrl_to_settable_property_map[(__bridge void*)checkbox] = i.second;
 		}
 		else if (d.is_string() || d.is_number()) {
 			// Create string input
 			control_frame.origin = { hOffset_control, v - 1 };
 			NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
-			control.font = [NSFont systemFontOfSize:13.]; //[NSFont fontWithName:@"PTSans-Regular" size:11.];
+			control.font = [NSFont systemFontOfSize:13.];
 			control.delegate = self;
 			if (d.is_string()) {
 				control.stringValue = nsstr(d);
@@ -270,7 +268,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 				control.doubleValue = d.value__number;
 			}
 			[temp_controls addObject:control];
-			[self.view_nodeOptions addSubview:control];
+			[self.view__nodeOptions addSubview:control];
 			form_ctrl_to_settable_property_map[(__bridge void*)control] = i.second;
 		}
 		else {
@@ -279,8 +277,8 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		++ind;
 	}
 	
-	self.panel_form_controls = [NSArray arrayWithArray:temp_controls];
-	self.panel_form_labels = [NSArray arrayWithArray:temp_labels];
+	self.form_controls = [NSArray arrayWithArray:temp_controls];
+	self.form_labels = [NSArray arrayWithArray:temp_labels];
 }
 -(void)controlTextDidChange:(NSNotification *)notif {
 	Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)notif.object]);
@@ -432,8 +430,12 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 
 -(void)setSelectedNode:(Wrapper*)n {
 	selectedNode = n;
-	if (n) [self setSidePanelToFilledOut];
-	else   [self setSidePanelToEmpty];
+	if (n) {
+		[self setSidePanelToFilledOut];
+	}
+	else {
+		[self setSidePanelToEmpty];
+	}
 }
 
 
@@ -540,8 +542,7 @@ std::string read_file(std::string filename) {
 		return NO;
 	}
 
-	auto s = read_file([nsstr UTF8String]);
-	auto result = diatom__unserialize(s);
+	auto result = diatom__unserialize([nsstr UTF8String]);
 	Diatom d = Diatom{Diatom::Type::Empty};
 	
 	std::vector<std::string> unknown_node_types;
@@ -561,17 +562,17 @@ std::string read_file(std::string filename) {
 		// Check has required parts
 		if (!d["treeDef"].is_table()) {
 			*outError = [NSError errorWithDomain:@"" code:0
-																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"treeDef\" object." }];
+																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The file did not contain a \"treeDef\" object." }];
 			return NO;
 		}
 		if (!d["treeDef"]["nodes"].is_table()) {
 			*outError = [NSError errorWithDomain:@"" code:0
-																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"nodes\" object." }];
+																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The file did not contain a \"nodes\" object." }];
 			return NO;
 		}
 		if (!d["treeDef"]["tree"].is_table()) {
 			*outError = [NSError errorWithDomain:@"" code:0
-																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"valid tree\" object." }];
+																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The file did not contain a \"valid tree\" object." }];
 			return NO;
 		}
 	}
@@ -733,19 +734,32 @@ std::string read_file(std::string filename) {
     auto defs = (std::vector<Diatom>*) self.nodeDefs;
     defs->push_back(def);
 }
--(BOOL)addNodeDef_FromFile:(NSString*)path {
-	definition_files.push_back({ [path UTF8String], false });
 
-	auto s = read_file([path UTF8String]);
+-(BOOL)addNodeDef_FromFile:(NSString*)path {
+	std::string path_str([path UTF8String]);
+
+	auto s = read_file(path_str);
 	auto result = diatom__unserialize(s);
 	auto &d = result.d;
 
-	if (!(result.success && d.is_table() && d["nodeDef"].is_table() && d["nodeDef"]["type"].is_string())) {
+	if (!result.success) {
+		definition_files.push_back({ path_str, false, result.error_string });
 		return NO;
 	}
-    
-	definition_files.back().succeeded = true;
+
+	if (!d.is_table()) {
+		definition_files.push_back({ path_str, false, "file does not contain a table" });
+		return NO;
+	}
+
+	if (!(d["nodeDef"].is_table() && d["nodeDef"]["type"].is_string())) {
+		definition_files.push_back({ path_str, false, "file does not have a 'nodeDef' table with a 'type' property" });
+		return NO;
+	}
+
+	definition_files.push_back({ path_str, true });
 	[self addNodeDef:d["nodeDef"]];
+
 	return YES;
 }
 
@@ -753,7 +767,6 @@ std::string read_file(std::string filename) {
 	// Load dropped nodes as Diatoms
 	__unsafe_unretained typeof(self) weakSelf = self;
 	[self.nodeLoaderWC setCB:^(NSArray *files) {
-		// - Get list of .diatom files containing node definitions
 		// - Load each file into a Diatom object
 		//    - If any fail, add to errors
 		// - Ensure each has the required properties:
@@ -765,13 +778,13 @@ std::string read_file(std::string filename) {
 		NSMutableArray *failed = [NSMutableArray array];
         
 		for (NSString *file in files) {
-			BOOL res = [weakSelf addNodeDef_FromFile:file];
-			if (!res) {
+			BOOL result = [weakSelf addNodeDef_FromFile:file];
+			if (!result) {
 				[failed addObject:file];
 			}
 		}
 
-		[weakSelf.view_nodeList setNeedsDisplay:YES];
+		[weakSelf.view__nodeList setNeedsDisplay:YES];
 
 		if ([failed count] != 0) {
 			NSMutableString *errFilesList = [[NSMutableString alloc] init];

@@ -2,7 +2,7 @@
 //  Document view for scrollview of built in nodes
 //
 
-#import "BuiltInNodeListView.h"
+#import "NodeListView.h"
 #import "Document.h"
 #import "AppDelegate.h"
 #include "Banyan/GenericTree/Diatom/Diatom.h"
@@ -12,7 +12,12 @@
 
 #define COL(r, g, b) [NSColor colorWithDeviceRed:r/255. green:g/255. blue:b/255. alpha:1]
 
-@interface BuiltInNodeListView () {
+
+float start_offset = 38;
+float h_node = 54.;
+
+
+@interface NodeListView () {
 	int indexOfSelectedNode;
 }
 
@@ -23,7 +28,7 @@
 @end
 
 
-@implementation BuiltInNodeListView
+@implementation NodeListView
 
 -(instancetype)initWithFrame:(NSRect)frameRect {
 	if (self = [super initWithFrame:frameRect]) {
@@ -55,9 +60,15 @@ void *node_descriptions = (void*) &descriptions;
 	auto defs = (std::vector<Diatom>*) DOCW.getAllNodeDefs;
 	if (!defs) return;
 	
-	float y = 0;
+	float y = start_offset;
 	float w = self.frame.size.width;
-	float h = 54.0 * defs->size();
+	float h_total = h_node * defs->size() + start_offset;
+
+	[@"AVAILABLE NODES:" drawAtPoint:NSMakePoint(10, 18)
+					  withAttributes:@{
+						  NSFontAttributeName: [NSFont systemFontOfSize:11. weight:NSFontWeightBold],
+						  NSForegroundColorAttributeName: [NSColor systemGrayColor],
+					  }];
 	
 	int i = 0;
 	for (auto &nd : *defs) {
@@ -74,26 +85,15 @@ void *node_descriptions = (void*) &descriptions;
 		
 		// draw name
 		NSString *name = [NSString stringWithFormat:@"%s", nd["type"].value__string.c_str()];
-		[name drawAtPoint:NSMakePoint(10.5, y+7)
+		[name drawAtPoint:NSMakePoint(10.5, y + h_node/2 - 12.)
 		   withAttributes:@{
 			   NSFontAttributeName: [NSFont systemFontOfSize:13. weight:NSFontWeightBold],
 			   NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
 		   }];
 		
-		// draw description
-		std::string desc = "[custom node type]";
-		auto it = descriptions.find(nd["type"].value__string);
-		if (it != descriptions.end()) desc = it->second;
-		NSString *desc_s = [NSString stringWithFormat:@"%s", desc.c_str()];
-		[desc_s drawAtPoint:NSMakePoint(10, y+26)
-			 withAttributes:@{
-				 NSFontAttributeName: [NSFont systemFontOfSize:13.], //[NSFont fontWithName:@"PTSans-Regular" size:13.0],
-				 NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
-			 }];
-		
 		// draw horizontal line
 		if (&nd != &defs->back()) {
-			NSRect lineRect = NSMakeRect(0, y + 53, w, 1);
+			NSRect lineRect = NSMakeRect(0, y + h_node - 1, w, 1);
 			[[NSColor colorWithDeviceRed:0.9 green:0.9 blue:0.9 alpha:1] set];
 			NSRectFill(lineRect);
 		}
@@ -102,23 +102,22 @@ void *node_descriptions = (void*) &descriptions;
 	}
 	
     free(defs);
-	[self setFrameSize:NSMakeSize(w, h-1)];
+	[self setFrameSize:NSMakeSize(w, h_total-1)];
 }
 
 -(void)mouseDown:(NSEvent*)ev {
 	NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-	int ind = p.y / 54;
+	int ind = (p.y - start_offset) / h_node;
 	indexOfSelectedNode = ind;
 	
 	DISP;
 }
 -(void)mouseDragged:(NSEvent*)ev {
-	
 	// Get image
 	NSBitmapImageRep *rep = [self bitmapImageRepForCachingDisplayInRect:self.bounds];
 	[self cacheDisplayInRect:self.bounds toBitmapImageRep:rep];
 	
-	NSRect r = NSMakeRect(0, 53. + indexOfSelectedNode*54. - 53., self.bounds.size.width, 53.);
+	NSRect r = NSMakeRect(0, start_offset + indexOfSelectedNode*h_node, self.bounds.size.width, h_node - 1);
 	CGImageRef cgImg = CGImageCreateWithImageInRect(rep.CGImage, NSRectToCGRect(r));
 	NSBitmapImageRep *rep2 = [[NSBitmapImageRep alloc] initWithCGImage:cgImg];
 	CGImageRelease(cgImg);
@@ -127,7 +126,7 @@ void *node_descriptions = (void*) &descriptions;
 	[self.dragImage addRepresentation:rep2];
 	
 	// Get string data
-	auto nodeDefs = (std::vector<Diatom>*) DOC.getAllNodeDefs;
+	auto nodeDefs = (std::vector<Diatom>*) DOCW.getAllNodeDefs;
 	NSString *str = [NSString stringWithFormat:@"%s", (*nodeDefs)[indexOfSelectedNode]["type"].value__string.c_str()];
 	self.dragData = [str dataUsingEncoding:NSUTF8StringEncoding];
     free(nodeDefs);

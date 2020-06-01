@@ -12,8 +12,9 @@
 #include <string>
 
 struct NodeDefFile {
-    std::string path;
-    bool succeeded;
+	std::string path;
+	bool succeeded;
+	std::string error_string;
 };
 
 #endif

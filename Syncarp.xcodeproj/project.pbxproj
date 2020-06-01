@@ -12,7 +12,7 @@
 		B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = B583FACF1BBA755F00EDD446 /* Helpers.m */; };
 		B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */; };
 		B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */; };
-		E152C3B11B13C62900D58FC0 /* BuiltInNodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */; };
+		E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* NodeListView.m */; };
 		E1CB18621AC057B000E7B579 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18611AC057B000E7B579 /* main.m */; };
 		E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1CB18691AC057B000E7B579 /* Images.xcassets */; };
 		E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18821AC057C800E7B579 /* AppDelegate.m */; };
@@ -21,7 +21,6 @@
 		E1CB188D1AC057EE00E7B579 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188C1AC057EE00E7B579 /* MainMenu.xib */; };
 		E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */; };
 		E1CB18C81AC07BF600E7B579 /* bg_tile.png in Resources */ = {isa = PBXBuildFile; fileRef = E1CB18C71AC07BF600E7B579 /* bg_tile.png */; };
-		E1CB18CB1AC2FF8300E7B579 /* GraphPaperView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18CA1AC2FF8300E7B579 /* GraphPaperView.m */; };
 		E1CB18D01AC4987E00E7B579 /* DragDestView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18CF1AC4987E00E7B579 /* DragDestView.m */; };
 /* End PBXBuildFile section */
 
@@ -55,8 +54,8 @@
 		B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeLoaderWinCtrlr.h; sourceTree = "<group>"; };
 		B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeLoaderWinCtrlr.m; sourceTree = "<group>"; };
 		B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NodeLoaderWinCtrlr.xib; sourceTree = "<group>"; };
-		E152C3AF1B13C62900D58FC0 /* BuiltInNodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BuiltInNodeListView.h; sourceTree = "<group>"; };
-		E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = BuiltInNodeListView.m; sourceTree = "<group>"; };
+		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
+		E152C3B01B13C62900D58FC0 /* NodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.m; sourceTree = "<group>"; };
 		E1835C591B0B99AA00815694 /* Wrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Wrapper.h; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1CB185D1AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -73,8 +72,6 @@
 		E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingTreeView.h; sourceTree = "<group>"; };
 		E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = ScrollingTreeView.m; sourceTree = "<group>"; };
 		E1CB18C71AC07BF600E7B579 /* bg_tile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bg_tile.png; sourceTree = "<group>"; };
-		E1CB18C91AC2FF8300E7B579 /* GraphPaperView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphPaperView.h; sourceTree = "<group>"; };
-		E1CB18CA1AC2FF8300E7B579 /* GraphPaperView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GraphPaperView.m; sourceTree = "<group>"; };
 		E1CB18CE1AC4987E00E7B579 /* DragDestView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragDestView.h; sourceTree = "<group>"; };
 		E1CB18CF1AC4987E00E7B579 /* DragDestView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DragDestView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -161,12 +158,10 @@
 		B5D2A5491BB867900049F357 /* Main doc window views */ = {
 			isa = PBXGroup;
 			children = (
-				E152C3AF1B13C62900D58FC0 /* BuiltInNodeListView.h */,
-				E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */,
+				E152C3AF1B13C62900D58FC0 /* NodeListView.h */,
+				E152C3B01B13C62900D58FC0 /* NodeListView.m */,
 				E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */,
 				E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */,
-				E1CB18C91AC2FF8300E7B579 /* GraphPaperView.h */,
-				E1CB18CA1AC2FF8300E7B579 /* GraphPaperView.m */,
 			);
 			name = "Main doc window views";
 			sourceTree = "<group>";
@@ -332,8 +327,7 @@
 				E1CB18621AC057B000E7B579 /* main.m in Sources */,
 				E1CB18D01AC4987E00E7B579 /* DragDestView.m in Sources */,
 				B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */,
-				E152C3B11B13C62900D58FC0 /* BuiltInNodeListView.m in Sources */,
-				E1CB18CB1AC2FF8300E7B579 /* GraphPaperView.m in Sources */,
+				E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */,
 				E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

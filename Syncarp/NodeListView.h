@@ -1,5 +1,5 @@
 //
-//  BuiltInNodeListView.h
+//  NodeListView.h
 //  Syncarp
 //
 //  Created by Ben on 25/05/2015.
@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface BuiltInNodeListView : NSView <NSDraggingSource, NSPasteboardItemDataProvider>
+@interface NodeListView : NSView <NSDraggingSource, NSPasteboardItemDataProvider>
 
 @end
 
