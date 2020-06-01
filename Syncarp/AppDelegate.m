@@ -8,9 +8,8 @@
 
 #import "AppDelegate.h"
 #import "DragDestView.h"
-#include "Banyan.h"
-#include "Diatom.h"
-#include "Diatom-Storage.h"
+#include "Banyan/Banyan.h"
+#include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
 #include "Document.h"
 
 @interface AppDelegate () {
@@ -47,12 +46,12 @@
 
 -(Diatom)getNodeWithType:(const char *)type {
 	for (auto &def : *nodeDefs)
-		if (def["type"].str_value() == type) {
+		if (def["type"].value__string == type) {
 			Diatom new_node = def;
 			return new_node;
 		}
 	
-	return Diatom::NilObject();
+	return Diatom{Diatom::Type::Empty};
 }
 
 

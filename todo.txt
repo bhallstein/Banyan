@@ -1,0 +1,26 @@
+
+Syncarp: todo
+-------------
+
+
+✓ When getting the child ind for a hovered parent node during child-to-parent connecting,
+  need to check the parent's max children.
+
+✓ Reorder child connection points in hovered parent while dragging FromChild
+
+✓ Highlight the inflight connection a diff colour when it’s hooking onto a potential child connector.
+✓ And/Or: a red red colour when it's hooking onto a connector that has a connection already
+
+✓ From-parent connector drag ending
+✓ From-child connector drag ending
+
+✓ Editing node settable properties
+- Improve colours
+
+- Saving & loading paths to definitions
+  - A window where they can be loaded (dropped)
+  - This window should also be able to show warnings:
+	- Node definitions not found
+	- Properties for node in tree not defined in loaded node definition
+	
+

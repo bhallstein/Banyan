@@ -9,7 +9,7 @@
 #ifndef __Wrapper_h
 #define __Wrapper_h
 
-#include "Diatom.h"
+#include "Banyan/GenericTree/Diatom/Diatom.h"
 #include <vector>
 
 struct Wrapper {
@@ -20,7 +20,7 @@ struct Wrapper {
 	bool hasPosition() {
 		Diatom &x = d["posX"];
 		Diatom &y = d["posY"];
-		return x.isNumber() && y.isNumber();
+		return x.is_number() && y.is_number();
 	}
 };
 

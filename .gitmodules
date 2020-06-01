@@ -1,0 +1,3 @@
+[submodule "Syncarp/Banyan"]
+	path = Syncarp/Banyan
+	url = git@github.com:bhallstein/Banyan.git

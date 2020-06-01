@@ -5,7 +5,7 @@
 #import "BuiltInNodeListView.h"
 #import "Document.h"
 #import "AppDelegate.h"
-#include "Diatom.h"
+#include "Banyan/GenericTree/Diatom/Diatom.h"
 #include "Helpers.h"
 #include <vector>
 #include <map>
@@ -73,23 +73,23 @@ void *node_descriptions = (void*) &descriptions;
 		}
 		
 		// draw name
-		NSString *name = [NSString stringWithFormat:@"%s", nd["type"].str_value().c_str()];
+		NSString *name = [NSString stringWithFormat:@"%s", nd["type"].value__string.c_str()];
 		[name drawAtPoint:NSMakePoint(10.5, y+7)
 		   withAttributes:@{
-							NSFontAttributeName: [NSFont fontWithName:@"PTSans-Bold" size:14.0],
-							NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
-							}];
+			   NSFontAttributeName: [NSFont systemFontOfSize:13. weight:NSFontWeightBold],
+			   NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
+		   }];
 		
 		// draw description
 		std::string desc = "[custom node type]";
-		auto it = descriptions.find(nd["type"].str_value());
+		auto it = descriptions.find(nd["type"].value__string);
 		if (it != descriptions.end()) desc = it->second;
 		NSString *desc_s = [NSString stringWithFormat:@"%s", desc.c_str()];
 		[desc_s drawAtPoint:NSMakePoint(10, y+26)
 			 withAttributes:@{
-							  NSFontAttributeName: [NSFont fontWithName:@"PTSans-Regular" size:13.0],
-							  NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
-							  }];
+				 NSFontAttributeName: [NSFont systemFontOfSize:13.], //[NSFont fontWithName:@"PTSans-Regular" size:13.0],
+				 NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
+			 }];
 		
 		// draw horizontal line
 		if (&nd != &defs->back()) {
@@ -128,7 +128,7 @@ void *node_descriptions = (void*) &descriptions;
 	
 	// Get string data
 	auto nodeDefs = (std::vector<Diatom>*) DOC.getAllNodeDefs;
-	NSString *str = [NSString stringWithFormat:@"%s", (*nodeDefs)[indexOfSelectedNode]["type"].str_value().c_str()];
+	NSString *str = [NSString stringWithFormat:@"%s", (*nodeDefs)[indexOfSelectedNode]["type"].value__string.c_str()];
 	self.dragData = [str dataUsingEncoding:NSUTF8StringEncoding];
     free(nodeDefs);
 	

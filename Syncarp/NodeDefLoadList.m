@@ -5,7 +5,7 @@
 #import "NodeDefLoadList.h"
 #import "Document.h"
 #import "AppDelegate.h"
-#include "Diatom.h"
+#include "Banyan/GenericTree/Diatom/Diatom.h"
 #include "NodeDefFile.h"
 #include "Helpers.h"
 #include <vector>
@@ -34,7 +34,9 @@
     return [self initWithFrame:f];
 }
 
--(AppDelegate*)appDelegate { return (AppDelegate*)[NSApplication sharedApplication].delegate; }
+-(AppDelegate*)appDelegate {
+	return (AppDelegate*)[NSApplication sharedApplication].delegate;
+}
 
 -(BOOL)isFlipped { return YES; }
 
@@ -54,15 +56,15 @@
     float text_yline = 22;
     float text_yinitial = 10;
     NSDictionary *attribs_bold = @{
-                                  NSFontAttributeName: [NSFont fontWithName:@"PTSans-Bold" size:14.0],
+                                  NSFontAttributeName: [NSFont systemFontOfSize:14.],
                                   NSForegroundColorAttributeName: [NSColor blackColor]
                                   };
     NSDictionary *attribs_reg = @{
-                                 NSFontAttributeName: [NSFont fontWithName:@"PTSans-Regular" size:14.0],
+                                 NSFontAttributeName: [NSFont systemFontOfSize:14.],
                                  NSForegroundColorAttributeName: [NSColor blackColor]
                                  };
     NSDictionary *attribs_err = @{
-                                  NSFontAttributeName: [NSFont fontWithName:@"PTSans-Regular" size:14.0],
+                                  NSFontAttributeName: [NSFont systemFontOfSize:14.],
                                   NSForegroundColorAttributeName: [NSColor redColor]
                                   };
     

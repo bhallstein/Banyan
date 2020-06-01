@@ -8,13 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */ = {isa = PBXBuildFile; fileRef = B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */; };
+		B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B555B4AE247E62BC005351CB /* Diatomize.cpp */; };
 		B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = B583FACF1BBA755F00EDD446 /* Helpers.m */; };
-		B5B07FE61BB8020B00C0D631 /* Diatom-Storage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5B07FDA1BB8020B00C0D631 /* Diatom-Storage.cpp */; };
-		B5B07FE71BB8020B00C0D631 /* Diatom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5B07FDC1BB8020B00C0D631 /* Diatom.cpp */; };
 		B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */; };
 		B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */; };
 		E152C3B11B13C62900D58FC0 /* BuiltInNodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */; };
-		E1835C561B05369A00815694 /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1835C501B05369A00815694 /* Diatomize.cpp */; };
 		E1CB18621AC057B000E7B579 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18611AC057B000E7B579 /* main.m */; };
 		E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1CB18691AC057B000E7B579 /* Images.xcassets */; };
 		E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18821AC057C800E7B579 /* AppDelegate.m */; };
@@ -28,39 +26,37 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B51B20601D29B5BA00350A33 /* ChunkVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChunkVector.h; sourceTree = "<group>"; };
-		B51B20641D29B5D900350A33 /* StackAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator.h; sourceTree = "<group>"; };
-		B51B20651D29B5D900350A33 /* StackAllocator_Poppable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Poppable.h; sourceTree = "<group>"; };
-		B51B20661D29B5D900350A33 /* StackAllocator_PoppableAndStretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_PoppableAndStretchy.h; sourceTree = "<group>"; };
-		B51B20671D29B5D900350A33 /* StackAllocator_Stretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Stretchy.h; sourceTree = "<group>"; };
 		B547365D1BC08F82001E4F32 /* NodeDefLoadList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeDefLoadList.h; sourceTree = "<group>"; };
 		B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeDefLoadList.m; sourceTree = "<group>"; };
+		B555B49B247E62BC005351CB /* Banyan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Banyan.h; sourceTree = "<group>"; };
+		B555B49E247E62BC005351CB /* TreeInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeInstance.h; sourceTree = "<group>"; };
+		B555B49F247E62BC005351CB /* TreeDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeDefinition.h; sourceTree = "<group>"; };
+		B555B4AD247E62BC005351CB /* Diatomize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diatomize.h; sourceTree = "<group>"; };
+		B555B4AE247E62BC005351CB /* Diatomize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Diatomize.cpp; sourceTree = "<group>"; };
+		B555B4B0247E62BC005351CB /* Diatom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diatom.h; sourceTree = "<group>"; };
+		B555B4B1247E62BC005351CB /* DiatomSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DiatomSerialization.h; sourceTree = "<group>"; };
+		B555B4B8247E62BC005351CB /* GenericTree_Referential.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTree_Referential.h; sourceTree = "<group>"; };
+		B555B4BA247E62BC005351CB /* GenericTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTree.h; sourceTree = "<group>"; };
+		B555B4BC247E62BC005351CB /* StackAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator.h; sourceTree = "<group>"; };
+		B555B4C1247E62BC005351CB /* StackAllocator_Poppable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Poppable.h; sourceTree = "<group>"; };
+		B555B4C3247E62BC005351CB /* StackAllocator_Stretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Stretchy.h; sourceTree = "<group>"; };
+		B555B4C4247E62BC005351CB /* StackAllocator_PoppableAndStretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_PoppableAndStretchy.h; sourceTree = "<group>"; };
+		B555B4C6247E62BC005351CB /* Node_While.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_While.h; sourceTree = "<group>"; };
+		B555B4C7247E62BC005351CB /* Node_Selector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Selector.h; sourceTree = "<group>"; };
+		B555B4C8247E62BC005351CB /* Node_Succeeder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Succeeder.h; sourceTree = "<group>"; };
+		B555B4C9247E62BC005351CB /* Node_Inverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Inverter.h; sourceTree = "<group>"; };
+		B555B4CA247E62BC005351CB /* NodeBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeBase.h; sourceTree = "<group>"; };
+		B555B4CB247E62BC005351CB /* Node_Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Sequence.h; sourceTree = "<group>"; };
+		B555B4CC247E62BC005351CB /* NodeRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeRegistry.h; sourceTree = "<group>"; };
+		B555B4CD247E62BC005351CB /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
 		B576ED731BC14A0400C5413F /* NodeDefFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NodeDefFile.h; sourceTree = "<group>"; };
 		B583FACF1BBA755F00EDD446 /* Helpers.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Helpers.m; sourceTree = "<group>"; };
 		B583FAD11BBA756F00EDD446 /* Helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Helpers.h; sourceTree = "<group>"; };
-		B5B07FDA1BB8020B00C0D631 /* Diatom-Storage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Diatom-Storage.cpp"; sourceTree = "<group>"; };
-		B5B07FDB1BB8020B00C0D631 /* Diatom-Storage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Diatom-Storage.h"; sourceTree = "<group>"; };
-		B5B07FDC1BB8020B00C0D631 /* Diatom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Diatom.cpp; sourceTree = "<group>"; };
-		B5B07FDD1BB8020B00C0D631 /* Diatom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diatom.h; sourceTree = "<group>"; };
 		B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeLoaderWinCtrlr.h; sourceTree = "<group>"; };
 		B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeLoaderWinCtrlr.m; sourceTree = "<group>"; };
 		B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NodeLoaderWinCtrlr.xib; sourceTree = "<group>"; };
-		E14399C01B04C3D100FAEDA2 /* Banyan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Banyan.h; sourceTree = "<group>"; };
-		E14399C51B04C3D100FAEDA2 /* Node_Inverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Inverter.h; sourceTree = "<group>"; };
-		E14399C61B04C3D100FAEDA2 /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
-		E14399C71B04C3D100FAEDA2 /* Node_Selector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Selector.h; sourceTree = "<group>"; };
-		E14399C81B04C3D100FAEDA2 /* Node_Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Sequence.h; sourceTree = "<group>"; };
-		E14399C91B04C3D100FAEDA2 /* Node_Succeeder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Succeeder.h; sourceTree = "<group>"; };
-		E14399CA1B04C3D100FAEDA2 /* Node_While.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_While.h; sourceTree = "<group>"; };
-		E14399CB1B04C3D100FAEDA2 /* NodeBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeBase.h; sourceTree = "<group>"; };
-		E14399CC1B04C3D100FAEDA2 /* NodeRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeRegistry.h; sourceTree = "<group>"; };
-		E14399DE1B04C3D100FAEDA2 /* TreeDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeDef.h; sourceTree = "<group>"; };
-		E14399DF1B04C3D100FAEDA2 /* TreeInst.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeInst.h; sourceTree = "<group>"; };
-		E1439A141B04C4FD00FAEDA2 /* GenericTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTree.h; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* BuiltInNodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BuiltInNodeListView.h; sourceTree = "<group>"; };
 		E152C3B01B13C62900D58FC0 /* BuiltInNodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = BuiltInNodeListView.m; sourceTree = "<group>"; };
-		E1835C501B05369A00815694 /* Diatomize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Diatomize.cpp; sourceTree = "<group>"; };
-		E1835C511B05369A00815694 /* Diatomize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diatomize.h; sourceTree = "<group>"; };
 		E1835C591B0B99AA00815694 /* Wrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Wrapper.h; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1CB185D1AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -94,37 +90,72 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		B51B205F1D29B5BA00350A33 /* ChunkVector */ = {
+		B555B48B247E62BC005351CB /* Banyan */ = {
 			isa = PBXGroup;
 			children = (
-				B51B20601D29B5BA00350A33 /* ChunkVector.h */,
+				B555B49B247E62BC005351CB /* Banyan.h */,
+				B555B49E247E62BC005351CB /* TreeInstance.h */,
+				B555B49F247E62BC005351CB /* TreeDefinition.h */,
+				B555B4A0247E62BC005351CB /* GenericTree */,
+				B555B4BB247E62BC005351CB /* StackAllocators */,
+				B555B4C5247E62BC005351CB /* src */,
 			);
-			name = ChunkVector;
-			path = "../../../Google Drive/Dev/C++ Containers/ChunkVector";
+			path = Banyan;
 			sourceTree = "<group>";
 		};
-		B51B20631D29B5D900350A33 /* StackAllocators */ = {
+		B555B4A0247E62BC005351CB /* GenericTree */ = {
 			isa = PBXGroup;
 			children = (
-				B51B20641D29B5D900350A33 /* StackAllocator.h */,
-				B51B20651D29B5D900350A33 /* StackAllocator_Poppable.h */,
-				B51B20661D29B5D900350A33 /* StackAllocator_PoppableAndStretchy.h */,
-				B51B20671D29B5D900350A33 /* StackAllocator_Stretchy.h */,
+				B555B4A1247E62BC005351CB /* Diatom */,
+				B555B4B8247E62BC005351CB /* GenericTree_Referential.h */,
+				B555B4BA247E62BC005351CB /* GenericTree.h */,
 			);
-			name = StackAllocators;
-			path = "../../../Google Drive/Dev/C++ Containers/StackAllocators";
+			path = GenericTree;
 			sourceTree = "<group>";
 		};
-		B5B07FD51BB8020B00C0D631 /* Diatom */ = {
+		B555B4A1247E62BC005351CB /* Diatom */ = {
 			isa = PBXGroup;
 			children = (
-				B5B07FDA1BB8020B00C0D631 /* Diatom-Storage.cpp */,
-				B5B07FDB1BB8020B00C0D631 /* Diatom-Storage.h */,
-				B5B07FDC1BB8020B00C0D631 /* Diatom.cpp */,
-				B5B07FDD1BB8020B00C0D631 /* Diatom.h */,
+				B555B4A8247E62BC005351CB /* Diatomize */,
+				B555B4B0247E62BC005351CB /* Diatom.h */,
+				B555B4B1247E62BC005351CB /* DiatomSerialization.h */,
 			);
-			name = Diatom;
-			path = ../../Dev/Diatom;
+			path = Diatom;
+			sourceTree = "<group>";
+		};
+		B555B4A8247E62BC005351CB /* Diatomize */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4AD247E62BC005351CB /* Diatomize.h */,
+				B555B4AE247E62BC005351CB /* Diatomize.cpp */,
+			);
+			path = Diatomize;
+			sourceTree = "<group>";
+		};
+		B555B4BB247E62BC005351CB /* StackAllocators */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4BC247E62BC005351CB /* StackAllocator.h */,
+				B555B4C1247E62BC005351CB /* StackAllocator_Poppable.h */,
+				B555B4C3247E62BC005351CB /* StackAllocator_Stretchy.h */,
+				B555B4C4247E62BC005351CB /* StackAllocator_PoppableAndStretchy.h */,
+			);
+			path = StackAllocators;
+			sourceTree = "<group>";
+		};
+		B555B4C5247E62BC005351CB /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4C6247E62BC005351CB /* Node_While.h */,
+				B555B4C7247E62BC005351CB /* Node_Selector.h */,
+				B555B4C8247E62BC005351CB /* Node_Succeeder.h */,
+				B555B4C9247E62BC005351CB /* Node_Inverter.h */,
+				B555B4CA247E62BC005351CB /* NodeBase.h */,
+				B555B4CB247E62BC005351CB /* Node_Sequence.h */,
+				B555B4CC247E62BC005351CB /* NodeRegistry.h */,
+				B555B4CD247E62BC005351CB /* Node_Repeater.h */,
+			);
+			path = src;
 			sourceTree = "<group>";
 		};
 		B5D2A5491BB867900049F357 /* Main doc window views */ = {
@@ -152,44 +183,6 @@
 			name = "Node loader window";
 			sourceTree = "<group>";
 		};
-		E14399BE1B04C3D100FAEDA2 /* Banyan */ = {
-			isa = PBXGroup;
-			children = (
-				E14399C01B04C3D100FAEDA2 /* Banyan.h */,
-				E14399C51B04C3D100FAEDA2 /* Node_Inverter.h */,
-				E14399C61B04C3D100FAEDA2 /* Node_Repeater.h */,
-				E14399C71B04C3D100FAEDA2 /* Node_Selector.h */,
-				E14399C81B04C3D100FAEDA2 /* Node_Sequence.h */,
-				E14399C91B04C3D100FAEDA2 /* Node_Succeeder.h */,
-				E14399CA1B04C3D100FAEDA2 /* Node_While.h */,
-				E14399CB1B04C3D100FAEDA2 /* NodeBase.h */,
-				E14399CC1B04C3D100FAEDA2 /* NodeRegistry.h */,
-				E14399DE1B04C3D100FAEDA2 /* TreeDef.h */,
-				E14399DF1B04C3D100FAEDA2 /* TreeInst.h */,
-			);
-			name = Banyan;
-			path = ../../Dev/Banyan;
-			sourceTree = "<group>";
-		};
-		E1439A0F1B04C4FD00FAEDA2 /* GenericTree */ = {
-			isa = PBXGroup;
-			children = (
-				E1439A141B04C4FD00FAEDA2 /* GenericTree.h */,
-			);
-			name = GenericTree;
-			path = "../../../Google Drive/Dev/C++ Containers/GenericTree";
-			sourceTree = "<group>";
-		};
-		E1835C4D1B05369A00815694 /* Diatomize */ = {
-			isa = PBXGroup;
-			children = (
-				E1835C501B05369A00815694 /* Diatomize.cpp */,
-				E1835C511B05369A00815694 /* Diatomize.h */,
-			);
-			name = Diatomize;
-			path = ../../Dev/Diatomize;
-			sourceTree = "<group>";
-		};
 		E1CB18501AC057B000E7B579 = {
 			isa = PBXGroup;
 			children = (
@@ -215,6 +208,7 @@
 				E1CB18861AC057DA00E7B579 /* Document.h */,
 				E1CB18871AC057DA00E7B579 /* Document.m */,
 				E1CB188A1AC057E500E7B579 /* Document.xib */,
+				B555B48B247E62BC005351CB /* Banyan */,
 				B5D2A5491BB867900049F357 /* Main doc window views */,
 				B5D2A54F1BB867C80049F357 /* Node loader window */,
 				E1CB18CE1AC4987E00E7B579 /* DragDestView.h */,
@@ -223,12 +217,6 @@
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,
 				E1CB18C71AC07BF600E7B579 /* bg_tile.png */,
-				B5B07FD51BB8020B00C0D631 /* Diatom */,
-				E1835C4D1B05369A00815694 /* Diatomize */,
-				E1439A0F1B04C4FD00FAEDA2 /* GenericTree */,
-				B51B20631D29B5D900350A33 /* StackAllocators */,
-				B51B205F1D29B5BA00350A33 /* ChunkVector */,
-				E14399BE1B04C3D100FAEDA2 /* Banyan */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
 				B583FACF1BBA755F00EDD446 /* Helpers.m */,
 				B583FAD11BBA756F00EDD446 /* Helpers.h */,
@@ -302,6 +290,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -337,14 +326,12 @@
 			files = (
 				B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */,
 				E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */,
-				B5B07FE61BB8020B00C0D631 /* Diatom-Storage.cpp in Sources */,
 				B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */,
 				E1CB18891AC057DA00E7B579 /* Document.m in Sources */,
 				B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */,
 				E1CB18621AC057B000E7B579 /* main.m in Sources */,
-				B5B07FE71BB8020B00C0D631 /* Diatom.cpp in Sources */,
-				E1835C561B05369A00815694 /* Diatomize.cpp in Sources */,
 				E1CB18D01AC4987E00E7B579 /* DragDestView.m in Sources */,
+				B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */,
 				E152C3B11B13C62900D58FC0 /* BuiltInNodeListView.m in Sources */,
 				E1CB18CB1AC2FF8300E7B579 /* GraphPaperView.m in Sources */,
 				E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */,

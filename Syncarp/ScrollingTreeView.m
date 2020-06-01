@@ -146,8 +146,8 @@ static const NSSize unitSize = {1.0, 1.0};
 	Wrapper *n = NULL;
 	for (auto &w : *nodes)
 		if (!w.destroyed && w.hasPosition()) {
-			float x = w.d["posX"].number_value();
-			float y = w.d["posY"].number_value();
+			float x = w.d["posX"].value__number;
+			float y = w.d["posY"].value__number;
 			if (p.x >= x && p.y >= y &&
 				p.x < x + node_width &&
 				p.y < y + node_height()) n = &w;
@@ -172,8 +172,8 @@ int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightCo
 	int n_points = (int)n->children.size();
 	if (shouldDrawExtraChildConnector(n, hoveredNode, cnxn))
 		n_points += 1;
-	float nodeX = n->d["posX"].number_value();
-	float nodeY = n->d["posY"].number_value();
+	float nodeX = n->d["posX"].value__number;
+	float nodeY = n->d["posY"].value__number;
 	
 	float box_l = nodeX + node_parent_circle_offset_x;
 	float box_r = box_l + n_points*node_cnxn_circle_xoffset;
@@ -201,8 +201,8 @@ int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightCo
 				return;
 			}
 			
-			float parX = parent->d["posX"].number_value();
-			float parY = parent->d["posY"].number_value();
+			float parX = parent->d["posX"].value__number;
+			float parY = parent->d["posY"].value__number;
 			
 			double posX = parX - 40 + childIndex*nodeHSpacing;
 			double posY = parY + nodeVSpacing + childIndex*4;
@@ -221,8 +221,8 @@ int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightCo
 }
 
 NSPoint attachmentCoord_Parent_forNode(Wrapper *n) {
-	float x = n->d["posX"].number_value();
-	float y = n->d["posY"].number_value();
+	float x = n->d["posX"].value__number;
+	float y = n->d["posY"].value__number;
 	
 	return (NSPoint) {
 		x + node_parent_circle_offset_x + node_circle_size*0.5,
@@ -231,8 +231,8 @@ NSPoint attachmentCoord_Parent_forNode(Wrapper *n) {
 }
 
 NSPoint attachmentCoord_Child_forNode(Wrapper *n, int childIndex) {
-	float x = n->d["posX"].number_value();
-	float y = n->d["posY"].number_value();
+	float x = n->d["posX"].value__number;
+	float y = n->d["posY"].value__number;
 	
 	return (NSPoint) {
 		x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
@@ -242,7 +242,7 @@ NSPoint attachmentCoord_Child_forNode(Wrapper *n, int childIndex) {
 
 bool shouldDrawExtraChildConnector(Wrapper *n, Wrapper *hoveredNode, InFlightConnection *cx) {
 	Diatom &maxCh = n->d["maxChildren"];
-	if (!maxCh.isNil() && maxCh.number_value() != -1 && maxCh.number_value() <= n->children.size())
+	if (!maxCh.is_empty() && maxCh.value__number != -1 && maxCh.value__number <= n->children.size())
 		return false;
 	
 	if (cx->type == InFlightConnection::FromParent && n == cx->fromNode)
@@ -260,8 +260,8 @@ bool shouldDrawExtraChildConnector(Wrapper *n, Wrapper *hoveredNode, InFlightCon
 void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, bool draw_extra_child_connector) {
 	Diatom &d = n->d;
 	
-	float x = d["posX"].number_value() + scroll.x;
-	float y = d["posY"].number_value() + scroll.y;
+	float x = d["posX"].value__number + scroll.x;
+	float y = d["posY"].value__number + scroll.y;
 	
 	// Make main shape
 	NSBezierPath *path_main = [NSBezierPath bezierPath];
@@ -278,7 +278,7 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 	
 	// Get fill colour
 	NSColor *col_fill = [NSColor grayColor];
-	auto it = node_colours.find(d["type"].str_value());
+	auto it = node_colours.find(d["type"].value__string);
 	if (it != node_colours.end()) col_fill = it->second;
 	
 	// Get stroke colour & width
@@ -298,7 +298,7 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 	
 	
 	// Name
-	NSString *name = [NSString stringWithFormat:@"%s", d["type"].str_value().c_str()];
+	NSString *name = [NSString stringWithFormat:@"%s", d["type"].value__string.c_str()];
 	NSShadow *shadow = [[NSShadow alloc] init];
 	[shadow setShadowBlurRadius:1.0f];
 	[shadow setShadowColor:[NSColor darkGrayColor]];
@@ -315,7 +315,7 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 	
 	[name drawAtPoint:NSMakePoint(x+15, y+3)
 	   withAttributes:@{
-						NSFontAttributeName: [NSFont fontWithName:@"PTSans-Bold" size:13.0],
+						NSFontAttributeName: [NSFont systemFontOfSize:13.],
 						NSForegroundColorAttributeName: [NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:0.9],
 						NSStrokeWidthAttributeName: @-1.0,
 						}];
@@ -624,8 +624,8 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 		p.y - dragInitial.y
 	};
 	dragInitial = p;
-	selectedNode->d["posX"] = selectedNode->d["posX"].number_value() + delta.x;
-	selectedNode->d["posY"] = selectedNode->d["posY"].number_value() + delta.y;
+	selectedNode->d["posX"] = selectedNode->d["posX"].value__number + delta.x;
+	selectedNode->d["posY"] = selectedNode->d["posY"].value__number + delta.y;
 	
 	DISP;
 }
@@ -645,7 +645,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 			inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
 			
 			// Forbidden if:
-			int hov_max_children = hoveredNode->d["maxChildren"].number_value();
+			int hov_max_children = hoveredNode->d["maxChildren"].value__number;
 			if (parent_of_from != hoveredNode &&                                        // the hovered not isn't the existing parent, and
 				([DOC node:inFlightConnection.fromNode isAncestorOf:hoveredNode] ||     // (from node is ancestor of hovered node, or
 				hov_max_children == hoveredNode->children.size())) {                    //  hovered node at capacity)
@@ -700,7 +700,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
 	}
 	
 	int over_cnctr = isOverChildConnector(hov, p, hov, &inFlightConnection);
-	int hov_max_ch = hov->d["maxChildren"].number_value();
+	int hov_max_ch = hov->d["maxChildren"].value__number;
 	
 	// Do nothing if:
 	if (over_cnctr == -1                           ||   // over a node, but not a connector

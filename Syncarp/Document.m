@@ -6,19 +6,18 @@
 //  Copyright (c) 2015 Ben. All rights reserved.
 //
 
-#import "Document.h"
-#include "Diatom.h"
-#include "Diatom-Storage.h"
-#include "Banyan.h"
-#import "ScrollingTreeView.h"
 #import "AppDelegate.h"
+#import "Document.h"
+#import "ScrollingTreeView.h"
 #import "Helpers.h"
-#include "Helpers.h"
+#include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
+#include "Banyan/Banyan.h"
 #include "Wrapper.h"
 #include "BuiltInNodeListView.h"
 #include "NodeLoaderWinCtrlr.h"
 #include "NodeDefFile.h"
 #include <map>
+#include <fstream>
 
 /*
    ✓ Create wrapper struct for Diatom, with vector of children
@@ -173,14 +172,14 @@ NSString* nsstr(const std::string &s) {
 	return [NSString stringWithFormat:@"%s", s.c_str()];
 }
 NSString* nsstr(Diatom &d) {
-	return nsstr(d.str_value());
+	return nsstr(d.value__string);
 }
 std::map<std::string, std::string>& getDescrs() {
 	return *(std::map<std::string, std::string>*)node_descriptions;
 }
 std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d) {
 	std::vector<std::pair<std::string, Diatom*>> vec;
-	d.each_descendant([&](std::string &prop_name, Diatom &d) {
+	d.each([&](std::string &prop_name, Diatom &d) {
 		if (prop_name != "type" &&
 			prop_name != "maxChildren" &&
 			prop_name != "minChildren" &&
@@ -200,18 +199,20 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		return;
 	
 	Diatom &d = selectedNode->d;
-	const auto &n_type = d["type"].str_value();
+	const auto &n_type = d["type"].value__string;
 	auto n_desc = getDescrs()[n_type];
-	if (n_type == "Unknown")
-		n_desc = std::string("Warning: type '") + d["original_type"].str_value() + std::string("' is not loaded");
+	if (n_type == "Unknown") {
+		n_desc = std::string("Warning: type '") + d["original_type"].value__string + std::string("' is not loaded");
+	}
 	
 	self.panel_label_nodeType.stringValue = nsstr(n_type);
 	self.panel_label_nodeDescr.stringValue = nsstr(n_desc);
 	self.panel_hline_hdr.hidden = NO;
 	
 	auto settables = settablePropertiesForNode(d);
-	if (settables.size() == 0)
+	if (settables.size() == 0) {
 		return;
+	}
 	
 	self.panel_label_optionsHeader.hidden = NO;
 	self.panel_hline_opts.hidden = NO;
@@ -236,33 +237,38 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		label_frame.origin = { hOffset_label, v };
 		NSTextField *label = [[NSTextField alloc] initWithFrame:label_frame];
 		label.stringValue = nsstr(i.first);
-		label.font = [NSFont fontWithName:@"PTSans-Regular" size:13.];
+		label.font = [NSFont systemFontOfSize:13.]; //[NSFont fontWithName:@"PTSans-Regular" size:13.];
 		label.textColor = [NSColor colorWithCalibratedRed:0.27 green:0.27 blue:0.26 alpha:1.0];
 		[label setBezeled:NO];
 		[temp_labels addObject:label];
 		[self.view_nodeOptions addSubview:label];
 		
-		if (d.isBool()) {
+		if (d.is_bool()) {
 			// Create checkbox
 			checkbox_frame.origin = { self.view_nodeOptions.frame.size.width - checkbox_frame.size.width - 14, v - 1 };
 			NSButton *checkbox = [[NSButton alloc] initWithFrame:checkbox_frame];
 			checkbox.target = self;
 			checkbox.action = @selector(formButtonClicked:);
-			if (d.bool_value())
+			if (d.value__bool) {
 				checkbox.state = NSOnState;
+			}
 			[checkbox setButtonType:NSSwitchButton];
 			[temp_controls addObject:checkbox];
 			[self.view_nodeOptions addSubview:checkbox];
 			form_ctrl_to_settable_property_map[(__bridge void*)checkbox] = i.second;
 		}
-		else if (d.isString() || d.isNumber()) {
+		else if (d.is_string() || d.is_number()) {
 			// Create string input
 			control_frame.origin = { hOffset_control, v - 1 };
 			NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
-			control.font = [NSFont fontWithName:@"PTSans-Regular" size:11.];
+			control.font = [NSFont systemFontOfSize:13.]; //[NSFont fontWithName:@"PTSans-Regular" size:11.];
 			control.delegate = self;
-			if (d.isString()) control.stringValue = nsstr(d);
-			else              control.doubleValue = d.number_value();
+			if (d.is_string()) {
+				control.stringValue = nsstr(d);
+			}
+			else {
+				control.doubleValue = d.value__number;
+			}
 			[temp_controls addObject:control];
 			[self.view_nodeOptions addSubview:control];
 			form_ctrl_to_settable_property_map[(__bridge void*)control] = i.second;
@@ -278,10 +284,12 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 }
 -(void)controlTextDidChange:(NSNotification *)notif {
 	Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)notif.object]);
-	if (d.isString())
+	if (d.is_string()) {
 		d = [[notif.object stringValue] UTF8String];
-	else
+	}
+	else {
 		d = [[notif.object stringValue] doubleValue];
+	}
 }
 -(void)formButtonClicked:(NSButton*)button {
 	Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)button]);
@@ -297,10 +305,14 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 -(BOOL)nodeIsOrphan_byIndex:(int)i {
 	const Wrapper &n = nodes[i];
 	for (const auto &m : nodes) {
-		if (&n == &m) continue;
-		for (auto c : m.children)
-			if (c == i)
+		if (&n == &m) {
+			continue;
+		}
+		for (auto c : m.children) {
+			if (c == i) {
 				return false;
+			}
+		}
 	}
 	return true;
 }
@@ -308,19 +320,24 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	return [self nodeIsOrphan_byIndex:index_in_vec(nodes, n)];
 }
 -(BOOL)node:(Wrapper*)A isAncestorOf:(Wrapper*)B {
-	while ((B = [self parentOfNode:B]))
-		if (B == A)
+	while ((B = [self parentOfNode:B])) {
+		if (B == A) {
 			return true;
+		}
+	}
 	return false;
 }
 
 -(Wrapper*)parentOfNode:(Wrapper*)n {
 	int ni = index_in_vec(nodes, n);
 	
-	for (auto &i : nodes)
-		for (auto j : i.children)
-			if (j == ni)
+	for (auto &i : nodes) {
+		for (auto j : i.children) {
+			if (j == ni) {
 				return &i;
+			}
+		}
+	}
 	
 	return NULL;
 }
@@ -330,8 +347,8 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	int n_orphans = 0;
 	
 	for (auto &n : nodes) {
-		if (n.destroyed) continue;
-		if ([self nodeIsOrphan:&n]) ++n_orphans;
+		if (n.destroyed)            { continue; }
+		if ([self nodeIsOrphan:&n]) { ++n_orphans; }
 	}
 	
 	return n_orphans;
@@ -342,12 +359,20 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	
 	int i=0;
 	for (auto &n : nodes) {
-		if (n.destroyed) continue;
+		if (n.destroyed) {
+			continue;
+		}
 		
 		int n_parents = 0;
 		for (const auto &m : nodes) {
-			if (&n == &m) continue;
-			for (auto c : m.children) if (c == i) n_parents += 1;
+			if (&n == &m) {
+				continue;
+			}
+			for (auto c : m.children) {
+				if (c == i) {
+					n_parents += 1;
+				}
+			}
 		}
 		if (n_parents == 0) {
 			top = &n;
@@ -365,9 +390,11 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	assert(ind >= 0 && ind < nodes.size());
 	for (auto &i : nodes) {
 		std::vector<int> ch_new;
-		for (auto ch : i.children)
-			if (ch != ind)
+		for (auto ch : i.children) {
+			if (ch != ind) {
 				ch_new.push_back(ch);
+			}
+		}
 		i.children = ch_new;
 	}
 }
@@ -436,12 +463,12 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	// Repack the nodes into nodes_diatom_ptrs, and build a tree
 	Wrapper *top = [self topNode];
 	if (top == NULL) {
-        d["treeDef"] = Diatom();
+		d["treeDef"] = Diatom();
 		d["treeDef"]["nodes"] = Diatom();
 		d["treeDef"]["tree"] = Diatom();
 		d["treeDef"]["tree"]["tree"] = Diatom();
 		d["treeDef"]["tree"]["free_list"] = Diatom();
-		Str str = diatomToString(d);
+		Str str = diatom__serialize(d);
 		return [NSData dataWithBytes:str.c_str() length:str.size()];
 	}
 	
@@ -458,9 +485,10 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		index_translation_map[index_in_nodes] = index_in_diatoms;
 		
 		Diatom &d = *nodes_diatom_ptrs.back();		// Scrub extra Diatom fields
-		d["minChildren"] = Diatom::NilObject();
-		d["maxChildren"] = Diatom::NilObject();
+		d["minChildren"] = Diatom{Diatom::Type::Empty};
+		d["maxChildren"] = Diatom{Diatom::Type::Empty};
 	});
+
 	int i=0;
 	for (auto &ch_inds : children_nodeinds) {
 		if (i == 0)
@@ -477,7 +505,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
     d["treeDef"] = Diatom();
     
 	d["treeDef"]["tree"] = tree.toDiatom(nodes_diatom_ptrs);
-	std::string trstr = diatomToString(d);
+	std::string trstr = diatom__serialize(d);
 	
 	d["treeDef"]["nodes"] = Diatom();
 	for (int i=0; i < nodes_diatom_ptrs.size(); ++i) {
@@ -486,13 +514,21 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		delete n;
 	}
 	
-	std::string str = diatomToString(d);
+	std::string str = diatom__serialize(d);
 	
 	return [NSData dataWithBytes:str.c_str() length:str.size()];
 }
 
 
 // Loading treedef file
+
+std::string read_file(std::string filename) {
+	std::ifstream file_stream(filename);
+	return std::string(
+		(std::istreambuf_iterator<char>(file_stream)),
+		std::istreambuf_iterator<char>()
+	);
+}
 
 -(BOOL)readFromData:(NSData*)data ofType:(NSString*)typeName error:(NSError**)outError {
 	NSLog(@"readFromData");
@@ -503,8 +539,10 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 									userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: msg }];
 		return NO;
 	}
-	
-	Diatom d = diatomFromString([nsstr UTF8String]);
+
+	auto s = read_file([nsstr UTF8String]);
+	auto result = diatom__unserialize(s);
+	Diatom d = Diatom{Diatom::Type::Empty};
 	
 	std::vector<std::string> unknown_node_types;
 	std::vector<std::string> unknown_node_properties;
@@ -512,62 +550,64 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 	// Checks
 	{
 		// Check diatom loaded
-		if (d.isNil()) {
+		if (!result.success || result.d.is_empty()) {
 			*outError = [NSError errorWithDomain:@"" code:0
 										userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The file is not a valid .diatom file." }];
 			return NO;
 		}
-		
+
+		d = result.d;
+
 		// Check has required parts
-		if (!d["treeDef"].isTable()) {
-            *outError = [NSError errorWithDomain:@"" code:0
-                                        userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"treeDef\" object." }];
-            return NO;
+		if (!d["treeDef"].is_table()) {
+			*outError = [NSError errorWithDomain:@"" code:0
+																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"treeDef\" object." }];
+			return NO;
 		}
-		if (!d["treeDef"]["nodes"].isTable()) {
-            *outError = [NSError errorWithDomain:@"" code:0
-                                        userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"nodes\" object." }];
-            return NO;
+		if (!d["treeDef"]["nodes"].is_table()) {
+			*outError = [NSError errorWithDomain:@"" code:0
+																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"nodes\" object." }];
+			return NO;
 		}
-		if (!d["treeDef"]["tree"].isTable()) {
-            *outError = [NSError errorWithDomain:@"" code:0
-                                        userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"valid tree\" object." }];
-            return NO;
+		if (!d["treeDef"]["tree"].is_table()) {
+			*outError = [NSError errorWithDomain:@"" code:0
+																	userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: @"The .diatom file did not contain a \"valid tree\" object." }];
+			return NO;
 		}
 	}
     
     // Load document-level node definition files
-    {
-        if (d["definitionFiles"].isTable()) {
-			d["definitionFiles"].each_descendant([&](std::string &key, Diatom &d) {
-				NSString *file = [NSString stringWithFormat:@"%s", d.str_value().c_str()];
+	{
+		if (d["definitionFiles"].is_table()) {
+			d["definitionFiles"].each([&](std::string &key, Diatom &d) {
+				NSString *file = [NSString stringWithFormat:@"%s", d.value__string.c_str()];
 				[self addNodeDef_FromFile:file];
 			});
-        }
-        
-        // If there were failures, open the node loader window
-        for (auto &f : definition_files) {
-            if (!f.succeeded) {
-                putUpError(@"Node definition files missing",
-                           @"You should fix this by reconnecting them in the Node Loader window");
-                should_initially_show_loader_window = YES;
-                break;
-            }
-        }
-    }
+		}
+
+		// If there were failures, open the node loader window
+		for (auto &f : definition_files) {
+			if (!f.succeeded) {
+				putUpError(@"Node definition files missing",
+						   @"You should fix this by reconnecting them in the Node Loader window");
+				should_initially_show_loader_window = YES;
+				break;
+			}
+		}
+	}
     
 	
 	try {
 		std::vector<Diatom*> nodes_diatom_ptrs;
 		
 		// Load the nodes vector from treeDef.nodes
-		d["treeDef"]["nodes"].each_descendant([&](std::string &key, Diatom &n) {
+		d["treeDef"]["nodes"].each([&](std::string &key, Diatom &n) {
 			// If the node is in the registry, add its min/max children as properties
 			// If not, add a dummy node
-			const std::string &ntype = n["type"].str_value();
+			const std::string &ntype = n["type"].value__string;
 			
 			Diatom node_definition = [self getNodeWithType:ntype.c_str()];
-			if (node_definition.isNil()) {
+			if (node_definition.is_empty()) {
 				Diatom stand_in;
 				stand_in["type"] = "Unknown";
 				stand_in["original_type"] = ntype;
@@ -583,10 +623,12 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 				
 				// If the node has properties that are not defined in the node definition,
 				// alert the user
-				n.each_descendant([&](std::string &k, Diatom &d) {
-					if (k != "posX" && k != "posY")
-						if (node_definition[k].isNil())
+				n.each([&](std::string &k, Diatom &d) {
+					if (k != "posX" && k != "posY") {
+						if (node_definition[k].is_empty()) {
 							unknown_node_properties.push_back(ntype + std::string("/") + k);
+						}
+					}
 				});
 			}
 		});
@@ -604,8 +646,10 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 				nodes.push_back(n);
 				index_translation_map[index] = i++;
 				
-				printf("added node of type %s, indices %d->%d with children ", n.d["type"].str_value().c_str(), index, i-1);
-				for (int c : n.children) printf("%d ", c);
+				printf("added node of type %s, indices %d->%d with children ", n.d["type"].value__string.c_str(), index, i-1);
+				for (int c : n.children) {
+					printf("%d ", c);
+				}
 				printf("\n");
 			});
 			// Also convert all child indices to those in the new Diatoms vector
@@ -623,7 +667,9 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 		}
 		
 		// Destroy temporary vector
-		for (auto i : nodes_diatom_ptrs) delete i;
+		for (auto i : nodes_diatom_ptrs) {
+			delete i;
+		}
 	}
 	catch (const std::runtime_error &exc) {
 		NSString *msg = [NSString stringWithFormat:@"%s.", exc.what()];
@@ -638,8 +684,9 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
         should_initially_show_loader_window = YES;
 	}
 	if (unknown_node_properties.size() > 0) {
-		for (auto &s : unknown_node_properties)
+		for (auto &s : unknown_node_properties) {
 			NSLog(@"Unknown node properties: %s", s.c_str());
+		}
 	}
 	
 	return YES;
@@ -648,7 +695,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 
 -(Diatom)getNodeWithType:(const char *)type {
     for (auto &def : document_nodeDefs)
-        if (def["type"].str_value() == type) {
+        if (def["type"].value__string == type) {
             Diatom new_node = def;
             return new_node;
         }
@@ -663,17 +710,19 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 -(void*)getAllNodeDefs {
     std::vector<Diatom> *all = new std::vector<Diatom>;
     
-    for (auto &i : document_nodeDefs)
-        all->push_back(i);
+	for (auto &i : document_nodeDefs) {
+		all->push_back(i);
+	}
     
-    auto built_ins = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
-    if (built_ins) {
-        for (auto &i : *built_ins)
-            all->push_back(i);
-        // BROKEN?!!
-    }
+	auto built_ins = (std::vector<Diatom>*) self.appDelegate.builtInNodes;
+	if (built_ins) {
+		// BROKEN?!!
+		for (auto &i : *built_ins) {
+				all->push_back(i);
+		}
+	}
     
-    return all;
+	return all;
 }
 
 -(void*)getDefinitionFiles {
@@ -685,48 +734,55 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
     defs->push_back(def);
 }
 -(BOOL)addNodeDef_FromFile:(NSString*)path {
-    definition_files.push_back({ [path UTF8String], false });
+	definition_files.push_back({ [path UTF8String], false });
+
+	auto s = read_file([path UTF8String]);
+	auto result = diatom__unserialize(s);
+	auto &d = result.d;
+
+	if (!(result.success && d.is_table() && d["nodeDef"].is_table() && d["nodeDef"]["type"].is_string())) {
+		return NO;
+	}
     
-    Diatom d = diatomFromFile([path UTF8String]);
-    if (!d.isTable() || !d["nodeDef"].isTable() || !d["nodeDef"]["type"].isString())
-        return NO;
-    
-    definition_files.back().succeeded = true;
-    [self addNodeDef:d["nodeDef"]];
-    return YES;
+	definition_files.back().succeeded = true;
+	[self addNodeDef:d["nodeDef"]];
+	return YES;
 }
 
 -(void)setUpFileDropCallback {
-    // Load dropped nodes (as Diatoms)
-    __unsafe_unretained typeof(self) weakSelf = self;
-    [self.nodeLoaderWC setCB:^(NSArray *files) {
-        // - Get list of .diatom files containing node definitions
-        // - Load each file into a Diatom object
-        //    - If any fail, add to errors
-        // - Ensure each has the required properties:
-        //    - type
-        //    - any options w/ defaults
+	// Load dropped nodes as Diatoms
+	__unsafe_unretained typeof(self) weakSelf = self;
+	[self.nodeLoaderWC setCB:^(NSArray *files) {
+		// - Get list of .diatom files containing node definitions
+		// - Load each file into a Diatom object
+		//    - If any fail, add to errors
+		// - Ensure each has the required properties:
+		//    - type
+		//    - any options w/ defaults
         
-        [weakSelf.nodeLoaderWC disp];
+		[weakSelf.nodeLoaderWC disp];
         
-        NSMutableArray *failed = [NSMutableArray array];
+		NSMutableArray *failed = [NSMutableArray array];
         
-        for (NSString *file in files) {
-            BOOL res = [weakSelf addNodeDef_FromFile:file];
-            if (!res) [failed addObject:file];
-        }
-        
-        [weakSelf.view_nodeList setNeedsDisplay:YES];
-        
-        if ([failed count] != 0) {
-            NSMutableString *errFilesList = [[NSMutableString alloc] init];
-            for (int i=0; i < failed.count; ++i)
-                [errFilesList appendFormat:@"\n %@", failed[i]];
-            NSString *errStr = [NSString stringWithFormat:@"%@ %@",
-                                @"The following definition files were invalid:", errFilesList];
-            putUpError(@"Error loading node definitions", errStr);
-            return;
-        }
+		for (NSString *file in files) {
+			BOOL res = [weakSelf addNodeDef_FromFile:file];
+			if (!res) {
+				[failed addObject:file];
+			}
+		}
+
+		[weakSelf.view_nodeList setNeedsDisplay:YES];
+
+		if ([failed count] != 0) {
+			NSMutableString *errFilesList = [[NSMutableString alloc] init];
+			for (int i=0; i < failed.count; ++i) {
+				[errFilesList appendFormat:@"\n %@", failed[i]];
+			}
+			NSString *errStr = [NSString stringWithFormat:@"%@ %@",
+								@"The following definition files were invalid:", errFilesList];
+			putUpError(@"Error loading node definitions", errStr);
+			return;
+		}
     }];
 }
 
