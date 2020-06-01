@@ -28,103 +28,103 @@
 #include "src/NodeRegistry.h"
 
 #include <cstdint>
-#define __PSA_PSIZE_TYPE uint8_t	// It is highly unlikely our nodes will exceed 256 bytes
-#include "StackAllocators/StackAllocator_PoppableAndStretchy.h"
+#define __PSA_PSIZE_TYPE uint8_t  // It is highly unlikely our nodes will exceed 256 bytes
+#include "StackAllocators/StackAllocator_PopAndExpand.h"
 
 namespace Banyan {
 
-	class TreeInstance {
-	public:
-		TreeInstance(TreeDefinition *_bt, int _ident) :
-			bt(_bt),
-			identifier(_ident),
-			currentNode_gtInd(-1),
-			allocator(128)
-		{
+  class TreeInstance {
+  public:
+    TreeInstance(TreeDefinition *_bt, int _ident) :
+      bt(_bt),
+      identifier(_ident),
+      currentNode_gtInd(-1),
+      allocator(128)
+    {
 
-		}
-		~TreeInstance()
-		{
-			while (stack.size() > 0) popNode();
-		}
+    }
+    ~TreeInstance()
+    {
+      while (stack.size() > 0) popNode();
+    }
 
-		void begin() {
-			currentNode_gtInd = bt->indexOfTopNode();
+    void begin() {
+      currentNode_gtInd = bt->indexOfTopNode();
 
-			pushNode(currentNode_gtInd);
-			update();
-		}
+      pushNode(currentNode_gtInd);
+      update();
+    }
 
-		void update() {
-			NodeReturnStatus s = callNode(stack.back());
-			update(s);
-		}
+    void update() {
+      NodeReturnStatus s = callNode(stack.back());
+      update(s);
+    }
 
-		void update(NodeReturnStatus s) {
-			while (s.status != NodeReturnStatus::Running) {
-				if (s.status == NodeReturnStatus::Success || s.status == NodeReturnStatus::Failure) {
-					popNode();
-					if (stack.size() == 0) {
-						// printf("Stack size now zero\n");
-						// TODO: signal finishing to the user somehow
-						break;
-					}
-					s = stack.back()->resume(identifier, s);
-				}
-				else if (s.status == NodeReturnStatus::PushChild) {
-					pushNode(bt->childOfNode(currentNode_gtInd, s.child));
-					s = callNode(stack.back());
-				}
-			}
-		}
+    void update(NodeReturnStatus s) {
+      while (s.status != NodeReturnStatus::Running) {
+        if (s.status == NodeReturnStatus::Success || s.status == NodeReturnStatus::Failure) {
+          popNode();
+          if (stack.size() == 0) {
+            // printf("Stack size now zero\n");
+            // TODO: signal finishing to the user somehow
+            break;
+          }
+          s = stack.back()->resume(identifier, s);
+        }
+        else if (s.status == NodeReturnStatus::PushChild) {
+          pushNode(bt->childOfNode(currentNode_gtInd, s.child));
+          s = callNode(stack.back());
+        }
+      }
+    }
 
-		void end_running_state(NodeReturnStatus s) {
-//			popNode();
-			update(s);
-		}
+    void end_running_state(NodeReturnStatus s) {
+//      popNode();
+      update(s);
+    }
 
-		int stackSize() {
-			return (int) stack.size();
-		}
+    int stackSize() {
+      return (int) stack.size();
+    }
 
-	private:
+  private:
 
-		TreeDefinition *bt;
+    TreeDefinition *bt;
 
-		int identifier;
-		int currentNode_gtInd;	// The index of the node within the GenericTree
+    int identifier;
+    int currentNode_gtInd;  // The index of the node within the GenericTree
 
-		StackAllocator_PoppableAndStretchy allocator;
-		std::vector<NodeBase*> stack;
-			// Nodes are pushed/popped as we descend/ascend the tree
+    StackAllocator_PopAndExpand allocator;
+    std::vector<NodeBase*> stack;
+      // Nodes are pushed/popped as we descend/ascend the tree
 
-		NodeReturnStatus callNode(NodeBase *n) {
-			int nChildren = bt->nChildren(currentNode_gtInd);
-			return n->call(identifier, nChildren);
-		}
+    NodeReturnStatus callNode(NodeBase *n) {
+      int nChildren = bt->nChildren(currentNode_gtInd);
+      return n->call(identifier, nChildren);
+    }
 
-		void pushNode(int index) {
-			currentNode_gtInd = index;
+    void pushNode(int index) {
+      currentNode_gtInd = index;
 
-			NodeBase *source_node = bt->get(index);
-			NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
-			source_node->clone(n);
+      NodeBase *source_node = bt->get(index);
+      NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
+      source_node->clone(n);
 
-			stack.push_back(n);
-		}
+      stack.push_back(n);
+    }
 
-		void popNode() {
-			NodeBase *n = stack.back();
+    void popNode() {
+      NodeBase *n = stack.back();
 
-			n->~NodeBase();    // Manually call destructor (as placement new used in clone().)
-			stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
-			allocator.pop();
+      n->~NodeBase();    // Manually call destructor (as placement new used in clone().)
+      stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
+      allocator.pop();
 
-			currentNode_gtInd = bt->parentOfNode(currentNode_gtInd);
-			// NB - may be NOT_FOUND -- caller should check & decide what to do
-		}
+      currentNode_gtInd = bt->parentOfNode(currentNode_gtInd);
+      // NB - may be NOT_FOUND -- caller should check & decide what to do
+    }
 
-	};
+  };
 
 }
 

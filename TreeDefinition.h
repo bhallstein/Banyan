@@ -29,127 +29,129 @@
 
 namespace Banyan {
 
-	class TreeDefinition : public GenericTree<NodeBase> {
-		typedef GenericTree<NodeBase> super;
+  class TreeDefinition : public GenericTree<NodeBase> {
+    typedef GenericTree<NodeBase> super;
 
-	public:
+  public:
 
-		TreeDefinition() { registerBuiltins(); }
-		~TreeDefinition() { reset(); }
+    TreeDefinition() { registerBuiltins(); }
+    ~TreeDefinition() { reset(); }
 
-		void reset() {
-			for (auto &i : treedef_nodes) {
-				delete i;
-			}
-			treedef_nodes.clear();
-			super::reset();
-		}
+    void reset() {
+      for (auto &i : treedef_nodes) {
+        delete i;
+      }
+      treedef_nodes.clear();
+      super::reset();
+    }
 
-		static bool registerBuiltins() {
-			static bool loaded = false;
-			if (!loaded) {
-				NODE_DEFINITION(Repeater, Repeater);   // Decorators
-				NODE_DEFINITION(Inverter, Inverter);
-				NODE_DEFINITION(Succeeder, Succeeder);
+    static void registerBuiltins() {
+      static bool loaded = false;
+      if (!loaded) {
+        NODE_DEFINITION(Repeater, Repeater);   // Decorators
+        NODE_DEFINITION(Inverter, Inverter);
+        NODE_DEFINITION(Succeeder, Succeeder);
 
-				NODE_DEFINITION(Sequence, Sequence);	 // Composites
-				NODE_DEFINITION(Selector, Selector);
-				NODE_DEFINITION(While, While);
-			}
-			return (loaded = true);
-		}
+        NODE_DEFINITION(Sequence, Sequence);   // Composites
+        NODE_DEFINITION(Selector, Selector);
+        NODE_DEFINITION(While, While);
 
-		/*** Serialization ***/
+        loaded = true;
+      }
+    }
 
-		// The serialized form of the TreeDef is like so:
-		//    treedef:
-		//       nodes: { node, node, node },
-		//       tree:  [generictree serialized form]
 
-		Diatom toDiatom() {
-			Diatom treedef;
+    // Serialization
+    // ------------------------------------------
+    // The serialized form of the TreeDef is:
+    //    treedef:
+    //       nodes: { node, ... },
+    //       tree:  <generictree serialization>
 
-			treedef["nodes"] = Diatom();
-			int i = 0;
-			for (auto &n : treedef_nodes) {
-				treedef["nodes"][std::string("n") + std::to_string(i++)] = nodeToDiatom(n);
-			}
+    Diatom toDiatom() {
+      Diatom treedef;
 
-			treedef["tree"] = super::toDiatom(treedef_nodes);
+      treedef["nodes"] = Diatom();
+      int i = 0;
+      for (auto &n : treedef_nodes) {
+        treedef["nodes"][std::string("n") + std::to_string(i++)] = nodeToDiatom(n);
+      }
 
-			Diatom d;
-			d["treeDef"] = treedef;
-			return d;
-		}
+      treedef["tree"] = super::toDiatom(treedef_nodes);
 
-		void fromDiatom(Diatom &d) {
-			reset();
+      Diatom d;
+      d["treeDef"] = treedef;
+      return d;
+    }
 
-			_assert(d.is_table());
-			_assert(d["treeDef"].is_table());
-			_assert(d["treeDef"]["nodes"].is_table());
-			_assert(d["treeDef"]["tree"].is_table());
+    void fromDiatom(Diatom &d) {
+      reset();
 
-			Diatom d_tree  = d["treeDef"];
-			Diatom d_nodes = d_tree["nodes"];
-			Diatom d_gt    = d_tree["tree"];
+      _assert(d.is_table());
+      _assert(d["treeDef"].is_table());
+      _assert(d["treeDef"]["nodes"].is_table());
+      _assert(d["treeDef"]["tree"].is_table());
 
-			nodesFromDiatom(d_nodes);
-			super::fromDiatom(d_gt, treedef_nodes);
+      Diatom d_tree  = d["treeDef"];
+      Diatom d_nodes = d_tree["nodes"];
+      Diatom d_gt    = d_tree["tree"];
 
-			super::walk([&](NodeBase *n, int i) {
-				int n_children = nChildren(i);
-				ChildLimits limits = n->childLimits();
+      nodesFromDiatom(d_nodes);
+      super::fromDiatom(d_gt, treedef_nodes);
 
-				if ((limits.min != -1 && n_children < limits.min) || (limits.max != -1 && n_children > limits.max))
-					throw std::runtime_error(
-						std::string("Node of type ") + *n->type +
-						std::string(" has invalid # of children (") +
-						std::to_string(n_children) + std::string(" for ") +
-						std::to_string(limits.min) + std::string("-") + std::to_string(limits.max) +
-						std::string(")")
-					);
-			});
-		}
+      super::walk([&](NodeBase *n, int i) {
+        int n_children = nChildren(i);
+        ChildLimits limits = n->childLimits();
 
-	private:
-		std::vector<NodeBase*> treedef_nodes;
+        if ((limits.min != -1 && n_children < limits.min) || (limits.max != -1 && n_children > limits.max))
+          throw std::runtime_error(
+            std::string("Node of type ") + *n->type +
+            std::string(" has invalid # of children (") +
+            std::to_string(n_children) + std::string(" for ") +
+            std::to_string(limits.min) + std::string("-") + std::to_string(limits.max) +
+            std::string(")")
+          );
+      });
+    }
 
-		static Diatom nodeToDiatom(NodeBase *n) {
-			return diatomize(n->_getSD());
-		}
+  private:
+    std::vector<NodeBase*> treedef_nodes;
 
-		void nodesFromDiatom(Diatom &d_nodes) {
-			// For each node, instantiate into the vector by copying from the definitions
-			// vector, using the identifier
+    static Diatom nodeToDiatom(NodeBase *n) {
+      return diatomize(n->_getSD());
+    }
 
-			_assert(d_nodes.is_table());
+    void nodesFromDiatom(Diatom &d_nodes) {
+      // For each node, instantiate into the vector by copying from the definitions
+      // vector, using the identifier
 
-			d_nodes.each([&](std::string &key, Diatom &dn) {
-				std::string identifier = dn["type"].value__string;
+      _assert(d_nodes.is_table());
 
-				// Find existing NodeDef with the right identifier
-				NodeRegistry::Wrapper *nw_def = NULL;
-				for (auto &nw : NodeRegistry::definitions()) {
-					if (nw->identifier == identifier) {
-						nw_def = nw;
-					}
-				}
+      d_nodes.each([&](std::string &key, Diatom &dn) {
+        std::string identifier = dn["type"].value__string;
 
-				if (nw_def == NULL) {
-					throw std::runtime_error(
-						std::string("Couldn't find a node definition called '") + identifier + "'"
-					);
-				}
+        // Find existing NodeDef with the right identifier
+        NodeRegistry::Wrapper *nw_def = NULL;
+        for (auto &nw : NodeRegistry::definitions()) {
+          if (nw->identifier == identifier) {
+            nw_def = nw;
+          }
+        }
 
-				// Clone the node, then deserialize it
-				NodeBase *n = nw_def->node->clone();
-				antidiatomize(n->_getSD(), dn);
+        if (nw_def == NULL) {
+          throw std::runtime_error(
+            std::string("Couldn't find a node definition called '") + identifier + "'"
+          );
+        }
 
-				treedef_nodes.push_back(n);
-			});
-		}
-	};
+        // Clone the node, then deserialize it
+        NodeBase *n = nw_def->node->clone();
+        antidiatomize(n->_getSD(), dn);
+
+        treedef_nodes.push_back(n);
+      });
+    }
+  };
 
 }
 
