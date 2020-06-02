@@ -1,11 +1,3 @@
-//
-//  Helpers.m
-//  Syncarp
-//
-//  Created by Ben on 29/09/2015.
-//  Copyright © 2015 Ben. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import "Helpers.h"
 

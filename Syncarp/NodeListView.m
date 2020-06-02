@@ -1,7 +1,3 @@
-//
-//  Document view for scrollview of built in nodes
-//
-
 #import "NodeListView.h"
 #import "Document.h"
 #import "AppDelegate.h"

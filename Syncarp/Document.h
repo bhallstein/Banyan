@@ -1,11 +1,3 @@
-//
-//  Document.h
-//  Thingumy
-//
-//  Created by Ben on 19/03/2015.
-//  Copyright (c) 2015 Ben. All rights reserved.
-//
-
 #import <Cocoa/Cocoa.h>
 
 #define DISP [self setNeedsDisplay:YES]
