@@ -11,15 +11,9 @@
                 <outlet property="label__nodeDescr" destination="uA2-Eu-iXQ" id="qh7-kc-fLN"/>
                 <outlet property="label__nodeType" destination="i4h-lw-jye" id="MBR-E7-O27"/>
                 <outlet property="label__optionsHeader" destination="pj3-rJ-BBX" id="pJF-qG-EZc"/>
-                <outlet property="panel_label_nodeDescr" destination="uA2-Eu-iXQ" id="ZUz-Y2-ATe"/>
-                <outlet property="panel_label_nodeType" destination="i4h-lw-jye" id="mmD-aa-q0t"/>
-                <outlet property="panel_label_optionsHeader" destination="pj3-rJ-BBX" id="8vJ-7F-rV1"/>
                 <outlet property="view__nodeListContainer" destination="zkP-8K-11f" id="WHv-s8-TJ2"/>
                 <outlet property="view__nodeOptions" destination="HfD-Cz-pGO" id="ney-SM-0CC"/>
                 <outlet property="view__scrollingTree" destination="1k6-uY-BKU" id="96C-ar-QpC"/>
-                <outlet property="view_nodeListContainer" destination="zkP-8K-11f" id="psq-oU-LgY"/>
-                <outlet property="view_nodeOptions" destination="HfD-Cz-pGO" id="amO-d6-TLN"/>
-                <outlet property="view_scrollingTree" destination="1k6-uY-BKU" id="gkP-zm-LD5"/>
                 <outlet property="window" destination="xOd-HO-29H" id="JIz-fz-R2o"/>
             </connections>
         </customObject>

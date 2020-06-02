@@ -15,7 +15,7 @@ class Wrapper;
 
 @interface Document : NSDocument <NSTextFieldDelegate>
 
-@property (nonatomic) BOOL loaderIsOpen;
+@property (nonatomic) BOOL loaderWinOpen;
 
 -(void*)getNodes;
 -(Wrapper*)topNode;

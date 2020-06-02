@@ -16,7 +16,7 @@
   std::vector<Diatom> *nodeDefs;
 }
 
-@property IBOutlet NSMenuItem *menuitem_ShowNodeLoader;
+@property IBOutlet NSMenuItem *menu__show_node_loader;
 
 @end
 
@@ -29,8 +29,8 @@
 
 -(void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   nodeDefs = new std::vector<Diatom>;
-  self.menuitem_ShowNodeLoader.target = self;
-  self.menuitem_ShowNodeLoader.action = @selector(showLoader:);
+  self.menu__show_node_loader.target = self;
+  self.menu__show_node_loader.action = @selector(showLoader:);
 
   // Load built-in Nodes (as Diatoms)
   Banyan::TreeDefinition::registerBuiltins();
@@ -67,14 +67,14 @@
 -(BOOL)validateMenuItem:(NSMenuItem *)menuItem {
   Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
   if (doc) {
-    self.menuitem_ShowNodeLoader.state = doc.loaderIsOpen;
+    self.menu__show_node_loader.state = doc.loaderWinOpen;
   }
   return doc != nil;
 }
 
 -(void)showLoader:(id)sender {
   Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
-  doc.loaderIsOpen = !doc.loaderIsOpen;
+  doc.loaderWinOpen = !doc.loaderWinOpen;
 }
 
 @end

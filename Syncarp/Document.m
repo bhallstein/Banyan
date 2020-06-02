@@ -93,7 +93,7 @@
 -(instancetype)init {
   if (self = [super init]) {
     selectedNode = NULL;
-    _loaderIsOpen = NO;
+    _loaderWinOpen = NO;
     should_initially_show_loader_window = NO;
   }
   return self;
@@ -115,20 +115,21 @@
     self.nodeLoaderWC = [[NodeLoaderWinCtrlr alloc] initWithDoc:self];
     [self setUpFileDropCallback];
     if (should_initially_show_loader_window) {
-      [self setLoaderIsOpen:YES];
+      [self setLoaderWinOpen:YES];
       should_initially_show_loader_window = NO;
     }
   }
 }
 
 // Opening & closing the node def loader window
--(void)setLoaderIsOpen:(BOOL)loaderIsOpen {
-  if (_loaderIsOpen == loaderIsOpen)
+-(void)setLoaderWinOpen:(BOOL)loaderWinOpen {
+  if (_loaderWinOpen == loaderWinOpen) {
     return;
+  }
 
-  _loaderIsOpen = loaderIsOpen;
+  _loaderWinOpen = loaderWinOpen;
 
-  if (_loaderIsOpen) {
+  if (_loaderWinOpen) {
     [self.nodeLoaderWC showWindow:nil];
     [self.nodeLoaderWC.window makeKeyAndOrderFront:nil];
     [self addWindowController:self.nodeLoaderWC];
