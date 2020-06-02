@@ -17,7 +17,7 @@ typedef void (^DragTest_FileDropCallback)(NSArray*);
 @property NSString *textField_origStr;
 
 -(void)setFileDropCallback:(DragTest_FileDropCallback)cb;
-	// Callback should expect an NSArray of NSStrings (file paths)
+  // Callback should expect an NSArray of NSStrings (file paths)
 
 @end
 

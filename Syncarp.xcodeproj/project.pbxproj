@@ -155,27 +155,19 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		B5D2A5491BB867900049F357 /* Main doc window views */ = {
+		B5D2A5491BB867900049F357 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				E152C3AF1B13C62900D58FC0 /* NodeListView.h */,
 				E152C3B01B13C62900D58FC0 /* NodeListView.m */,
 				E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */,
 				E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */,
-			);
-			name = "Main doc window views";
-			sourceTree = "<group>";
-		};
-		B5D2A54F1BB867C80049F357 /* Node loader window */ = {
-			isa = PBXGroup;
-			children = (
 				B547365D1BC08F82001E4F32 /* NodeDefLoadList.h */,
 				B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */,
 				B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */,
 				B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */,
-				B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */,
 			);
-			name = "Node loader window";
+			name = Views;
 			sourceTree = "<group>";
 		};
 		E1CB18501AC057B000E7B579 = {
@@ -203,9 +195,9 @@
 				E1CB18861AC057DA00E7B579 /* Document.h */,
 				E1CB18871AC057DA00E7B579 /* Document.m */,
 				E1CB188A1AC057E500E7B579 /* Document.xib */,
+				B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */,
 				B555B48B247E62BC005351CB /* Banyan */,
-				B5D2A5491BB867900049F357 /* Main doc window views */,
-				B5D2A54F1BB867C80049F357 /* Node loader window */,
+				B5D2A5491BB867900049F357 /* Views */,
 				E1CB18CE1AC4987E00E7B579 /* DragDestView.h */,
 				E1CB18CF1AC4987E00E7B579 /* DragDestView.m */,
 				E1835C591B0B99AA00815694 /* Wrapper.h */,
