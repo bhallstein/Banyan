@@ -166,6 +166,8 @@
 				B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */,
 				B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */,
 				B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */,
+				E1CB18CE1AC4987E00E7B579 /* DragDestView.h */,
+				E1CB18CF1AC4987E00E7B579 /* DragDestView.m */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -198,8 +200,6 @@
 				B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */,
 				B555B48B247E62BC005351CB /* Banyan */,
 				B5D2A5491BB867900049F357 /* Views */,
-				E1CB18CE1AC4987E00E7B579 /* DragDestView.h */,
-				E1CB18CF1AC4987E00E7B579 /* DragDestView.m */,
 				E1835C591B0B99AA00815694 /* Wrapper.h */,
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,

@@ -42,12 +42,12 @@ float h_node = 54.;
 }
 
 const std::map<std::string, std::string> descriptions = {
-  { "Inverter",  "Inverts its descendant's status" },
-  { "Repeater",  "Calls its descendant N times" },
-  { "Succeeder", "Always returns success" },
-  { "Sequence",  "Calls its descendants in order" },
-  { "Selector",  "Calls descendants until one succeeds" },
-  { "While",     "Calls a node while another succeeds" }
+  { "Inverter",  "Inverts child's return status"     },
+  { "Repeater",  "Calls child N times"               },
+  { "Succeeder", "Always returns success"            },
+  { "Sequence",  "Calls children in order"           },
+  { "Selector",  "Calls children until one succeeds" },
+  { "While",     "Calls second while first succeeds" },
 };
 
 void *node_descriptions = (void*) &descriptions;

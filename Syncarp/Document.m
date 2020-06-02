@@ -173,7 +173,8 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
                              prop_name == "minChildren" ||
                              prop_name == "posX" ||
                              prop_name == "posY" ||
-                             prop_name == "original_type");
+                             prop_name == "original_type" ||
+                             prop_name == "description");
     if (!is_built_in_prop) {
       vec.push_back(make_pair(prop_name, &d));
     }
@@ -712,12 +713,17 @@ std::string read_file(std::string filename) {
 }
 
 -(void*)getDefinitionFiles {
-    return &definition_files;
+  return &definition_files;
 }
 
 -(void)addNodeDef:(Diatom)def {
-    auto defs = (std::vector<Diatom>*) self.nodeDefs;
-    defs->push_back(def);
+  auto defs = (std::vector<Diatom>*) self.nodeDefs;
+  defs->push_back(def);
+
+  // Add description if present
+  if (def["description"].is_string()) {
+    getDescrs()[def["type"].value__string] = def["description"].value__string;
+  }
 }
 
 -(BOOL)addNodeDef_FromFile:(NSString*)path {
@@ -777,11 +783,11 @@ std::string read_file(std::string filename) {
         [errFilesList appendFormat:@"\n %@", failed[i]];
       }
       NSString *errStr = [NSString stringWithFormat:@"%@ %@",
-                @"The following definition files were invalid:", errFilesList];
+                          @"The following definition files were invalid:", errFilesList];
       putUpError(@"Error loading node definitions", errStr);
       return;
     }
-    }];
+  }];
 }
 
 @end
