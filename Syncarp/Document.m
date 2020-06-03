@@ -668,7 +668,7 @@ std::string read_file(std::string filename) {
 
   if (unknown_node_types.size() > 0) {
         putUpError(@"Warning: unknown node types detected",
-                   @"You should load the requisite node definition files in the Node Loader window.");
+                   @"You should load the missing node definition files in the Node Loader window.");
         should_initially_show_loader_window = YES;
   }
   if (unknown_node_properties.size() > 0) {
@@ -735,21 +735,21 @@ std::string read_file(std::string filename) {
   auto &d = result.d;
 
   if (!result.success) {
-    definition_files.push_back({ path_str, false, result.error_string });
+    definition_files.push_back({ false, path_str, result.error_string });
     return NO;
   }
 
   if (!d.is_table()) {
-    definition_files.push_back({ path_str, false, "file does not contain a table" });
+    definition_files.push_back({ false, path_str, "file does not contain a table" });
     return NO;
   }
 
   if (!(d["nodeDef"].is_table() && d["nodeDef"]["type"].is_string())) {
-    definition_files.push_back({ path_str, false, "file does not have a 'nodeDef' table with a 'type' property" });
+    definition_files.push_back({ true, path_str, "file does not have a 'nodeDef' table with a 'type' property" });
     return NO;
   }
 
-  definition_files.push_back({ path_str, true });
+  definition_files.push_back({ true, path_str });
   [self addNodeDef:d["nodeDef"]];
 
   return YES;

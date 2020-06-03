@@ -4,8 +4,8 @@
 #include <string>
 
 struct NodeDefFile {
-  std::string path;
   bool succeeded;
+  std::string path;
   std::string error_string;
 };
 
