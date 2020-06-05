@@ -54,7 +54,9 @@ void *node_descriptions = (void*) &descriptions;
   [super drawRect:dirtyRect];
 
   auto defs = (std::vector<Diatom>*) DOCW.getAllNodeDefs;
-  if (!defs) return;
+  if (!defs) {
+    return;
+  }
 
   float y = start_offset;
   float w = self.frame.size.width;

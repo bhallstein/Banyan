@@ -61,7 +61,7 @@
 
 @interface Document () {
   std::vector<Wrapper> nodes;
-  std::map<void*, Diatom*> form_ctrl_to_settable_property_map;
+  std::map<void*, std::string> control_names;
   Wrapper *selectedNode;
 
   std::vector<Diatom> document_nodeDefs;
@@ -155,7 +155,7 @@
   self.form_labels = nil;
   self.form_controls = nil;
 
-  form_ctrl_to_settable_property_map.clear();
+  control_names.clear();
 }
 NSString* nsstr(const std::string &s) {
   return [NSString stringWithFormat:@"%s", s.c_str()];
@@ -208,21 +208,31 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
   NSMutableArray *temp_controls = [[NSMutableArray alloc] init];
   NSMutableArray *temp_labels = [[NSMutableArray alloc] init];
 
-  NSRect checkbox_frame = { 0, 0, 18, 18 };
-  NSRect label__frame = { 0, 0, 180, 17 };
-  NSRect control_frame = { 0, 0, 120, 19 };
-  float vOffset = 138.;
-  float hOffset_label = 8.;
-  float hOffset_control = 102.;
+  float view_width = self.view__nodeOptions.contentSize.width;
+  float x_padding = 12.;
+  float w_available = (view_width - 3 * x_padding);
+  float w_label   = w_available * 0.75;
+  float w_control = w_available * 0.25;
+  float x_control = x_padding + w_label + x_padding;
+
+  float checkbox_size = 18.;
+  float x_checkbox = view_width - x_padding - checkbox_size;
+
   float vInc = 26.;
+  float vOffset = 138.;
+  NSRect checkbox_frame = { x_checkbox, 0, checkbox_size, checkbox_size };
+  NSRect label__frame   = { 0, 0, w_label, 17 };
+  NSRect control_frame  = { 0, 0, w_control, 19 };
 
   int ind = 0;
   for (auto &i : settables) {
-    Diatom &d = *i.second;
+    std::string property_name = i.first;
+    Diatom d = *i.second;
+
     float v = vOffset + ind * vInc;
 
     // Create label
-    label__frame.origin = { hOffset_label, v };
+    label__frame.origin = { x_padding, v };
     NSTextField *label = [[NSTextField alloc] initWithFrame:label__frame];
     label.stringValue = nsstr(i.first);
     label.font = [NSFont systemFontOfSize:13.];
@@ -233,7 +243,7 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
 
     if (d.is_bool()) {
       // Create checkbox
-      checkbox_frame.origin = { self.view__nodeOptions.frame.size.width - checkbox_frame.size.width - 14, v - 1 };
+      checkbox_frame.origin.y = v - 1;
       NSButton *checkbox = [[NSButton alloc] initWithFrame:checkbox_frame];
       checkbox.target = self;
       checkbox.action = @selector(formButtonClicked:);
@@ -243,11 +253,14 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
       [checkbox setButtonType:NSSwitchButton];
       [temp_controls addObject:checkbox];
       [self.view__nodeOptions addSubview:checkbox];
-      form_ctrl_to_settable_property_map[(__bridge void*)checkbox] = i.second;
+
+      void* checkbox_ptr = (__bridge void*) checkbox;
+      control_names[checkbox_ptr] = property_name;
     }
+
     else if (d.is_string() || d.is_number()) {
       // Create string input
-      control_frame.origin = { hOffset_control, v - 1 };
+      control_frame.origin = { x_control, v - 1 };
       NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
       control.font = [NSFont systemFontOfSize:13.];
       control.delegate = self;
@@ -259,11 +272,15 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
       }
       [temp_controls addObject:control];
       [self.view__nodeOptions addSubview:control];
-      form_ctrl_to_settable_property_map[(__bridge void*)control] = i.second;
+
+      void* ctrl_pointer = (__bridge void*) control;
+      control_names[ctrl_pointer] = property_name;
     }
+
     else {
       // Consider displaying an error message
     }
+
     ++ind;
   }
 
@@ -271,17 +288,32 @@ std::vector<std::pair<std::string, Diatom*>> settablePropertiesForNode(Diatom &d
   self.form_labels = [NSArray arrayWithArray:temp_labels];
 }
 -(void)controlTextDidChange:(NSNotification *)notif {
-  Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)notif.object]);
-  if (d.is_string()) {
-    d = [[notif.object stringValue] UTF8String];
+  void* p = (__bridge void*) notif.object;
+  std::string property_name = control_names[p];
+
+  Diatom &prop = selectedNode->d[property_name];
+
+  if (prop.is_string()) {
+    prop.value__string = [[notif.object stringValue] UTF8String];
+  }
+  else if (prop.is_number()) {
+    prop.value__number = [[notif.object stringValue] doubleValue];
   }
   else {
-    d = [[notif.object stringValue] doubleValue];
+    putUpError(@"Incorrect property type",
+               @"The expected property of the selected node did not have the expected type. This is unexpected and serious.");
   }
 }
 -(void)formButtonClicked:(NSButton*)button {
-  Diatom &d = *(form_ctrl_to_settable_property_map[(__bridge void*)button]);
-  d = (bool) button.state;
+  void* p = (__bridge void*) button;
+  std::string property_name = control_names[p];
+
+  Diatom &prop = selectedNode->d[property_name];
+  if (!prop.is_bool()) {
+    putUpError(@"Incorrect property type",
+               @"The expected property of the selected node was not a boolean. This is unexpected and serious.");
+  }
+  prop.value__bool = button.state;
 }
 
 
