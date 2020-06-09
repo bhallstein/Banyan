@@ -30,7 +30,7 @@ namespace Banyan {
   };
 
 
-  typedef NodeReturnStatus (node_function)(int identifier);
+  typedef NodeReturnStatus (node_function)(size_t identifier);
 
 
   class NodeBase {

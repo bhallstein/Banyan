@@ -60,12 +60,12 @@ public:
 int fn_node_calls = 0;
 int fn_node_calls_2 = 0;
 
-Banyan::NodeReturnStatus node_fn(int identifier) {
+Banyan::NodeReturnStatus node_fn(size_t identifier) {
   fn_node_calls++;
   return { Banyan::NodeReturnStatus::Success };
 }
 
-Banyan::NodeReturnStatus node_fn_fails_eventually(int id) {
+Banyan::NodeReturnStatus node_fn_fails_eventually(size_t id) {
   if (fn_node_calls_2++ == 2) {
     return { Banyan::NodeReturnStatus::Failure };
   }
