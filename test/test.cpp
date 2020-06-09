@@ -107,10 +107,9 @@ Banyan::TreeDefinition load_tree(std::string filename) {
 
 void testTreeDef() {
   p_file_header("Treedef-serialization.cpp");
-  std::string file_str = read_file("trees/serialization.diatom");
-
-
   p_header("TreeDef serialization");
+
+  std::string file_str = read_file("trees/serialization.diatom");
   DiatomParseResult result = diatom__unserialize(file_str);
   if (!result.success) {
     std::cout << result.error_string << "\n";
@@ -132,7 +131,7 @@ void testTreeInst() {
 
   p_header("Repeater");
   {
-    auto bt = load_tree("trees/repeater.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/repeater.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     MockLeaf::reset();
     bt_inst.begin();
@@ -146,7 +145,7 @@ void testTreeInst() {
 
   p_header("Inverter");
   {
-    auto bt = load_tree("trees/inverter.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/inverter.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     MockLeaf::reset();
     bt_inst.begin();
@@ -160,7 +159,7 @@ void testTreeInst() {
 
   p_header("Succeeder");
   {
-    auto bt = load_tree("trees/succeeder.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/succeeder.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     MockLeaf::reset();
     bt_inst.begin();
@@ -174,7 +173,7 @@ void testTreeInst() {
 
   p_header("Sequence");
   {
-    auto bt = load_tree("trees/sequence.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/sequence.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     MockLeaf::reset();
     bt_inst.begin();
@@ -188,7 +187,7 @@ void testTreeInst() {
 
   p_header("Selector");
   {
-    auto bt = load_tree("trees/selector.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/selector.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
 
     MockLeaf::reset();
@@ -203,7 +202,7 @@ void testTreeInst() {
 
   p_header("Function nodes");
   {
-    auto bt = load_tree("trees/function.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/function.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     fn_node_calls = 0;
     fn_node_calls_2 = 0;
@@ -216,7 +215,7 @@ void testTreeInst() {
 
   p_header("While");
   {
-    auto bt = load_tree("trees/while.diatom");
+    Banyan::TreeDefinition bt = load_tree("trees/while.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     MockLeaf::reset();
     fn_node_calls = 0;

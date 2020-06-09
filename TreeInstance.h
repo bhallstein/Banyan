@@ -72,7 +72,7 @@ namespace Banyan {
           s = stack.back()->resume(identifier, s);
         }
         else if (s.status == NodeReturnStatus::PushChild) {
-          pushNode(bt->childOfNode(currentNode_gtInd, s.child));
+          pushNode(bt->indexForChild(currentNode_gtInd, s.child));
           s = callNode(stack.back());
         }
       }
@@ -106,7 +106,7 @@ namespace Banyan {
     void pushNode(int index) {
       currentNode_gtInd = index;
 
-      NodeBase *source_node = bt->get(index);
+      NodeBase *source_node = bt->getNode(index);
       NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
       source_node->clone(n);
 
@@ -120,7 +120,7 @@ namespace Banyan {
       stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
       allocator.pop();
 
-      currentNode_gtInd = bt->parentOfNode(currentNode_gtInd);
+      currentNode_gtInd = bt->parentIndex(currentNode_gtInd);
       // NB - may be NOT_FOUND -- caller should check & decide what to do
     }
 

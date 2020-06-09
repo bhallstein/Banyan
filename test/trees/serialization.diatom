@@ -14,16 +14,16 @@ treeDef:
   tree:
     tree:
       n0:
-        i__ext: 0
+        i: 0
         i__parent: 2
         i__children:
           n0: 1
       n1:
-        i__ext: 1
+        i: 1
         i__parent: 0
         i__children:
       n2:
-        i__ext: 2
+        i: 2
         i__parent: -1
         i__children:
           n0: 0

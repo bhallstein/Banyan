@@ -28,25 +28,25 @@ treeDef:
           n2: 3
           n3: 4
           n4: 5
-        i__ext: 0
+        i: 0
         i__parent: -1
       n1:
         i__children:
-        i__ext: 1
+        i: 1
         i__parent: 0
       n2:
         i__children:
-        i__ext: 2
+        i: 2
         i__parent: 0
       n3:
         i__children:
-        i__ext: 3
+        i: 3
         i__parent: 0
       n4:
         i__children:
-        i__ext: 4
+        i: 4
         i__parent: 0
       n5:
         i__children:
-        i__ext: 5
+        i: 5
         i__parent: 0

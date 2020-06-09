@@ -16,7 +16,7 @@
 #include "src/NodeRegistry.h"
 
 #define _GT_ENABLE_SERIALIZATION
-#include "GenericTree/GenericTree.h"
+#include "GenericTree/GenericTree_Nodeless.h"
 
 #include "src/Node_Repeater.h"
 #include "src/Node_Inverter.h"
@@ -29,11 +29,10 @@
 
 namespace Banyan {
 
-  class TreeDefinition : public GenericTree<NodeBase> {
-    typedef GenericTree<NodeBase> super;
+  class TreeDefinition : public GenericTree_Nodeless {
+    typedef GenericTree_Nodeless super;
 
   public:
-
     TreeDefinition() { registerBuiltins(); }
     ~TreeDefinition() { reset(); }
 
@@ -60,6 +59,9 @@ namespace Banyan {
       }
     }
 
+    NodeBase* getNode(int i) {
+      return treedef_nodes[i];
+    }
 
     // Serialization
     // ------------------------------------------
@@ -77,7 +79,7 @@ namespace Banyan {
         treedef["nodes"][std::string("n") + std::to_string(i++)] = nodeToDiatom(n);
       }
 
-      treedef["tree"] = super::toDiatom(treedef_nodes);
+      treedef["tree"] = super::toDiatom();
 
       Diatom d;
       d["treeDef"] = treedef;
@@ -97,9 +99,10 @@ namespace Banyan {
       Diatom d_gt    = d_tree["tree"];
 
       nodesFromDiatom(d_nodes);
-      super::fromDiatom(d_gt, treedef_nodes);
+      super::fromDiatom(d_gt);
 
-      super::walk([&](NodeBase *n, int i) {
+      super::walk([&](int i) {
+        NodeBase *n = treedef_nodes[i];
         int n_children = nChildren(i);
         ChildLimits limits = n->childLimits();
 
