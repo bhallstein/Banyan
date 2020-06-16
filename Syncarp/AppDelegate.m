@@ -5,7 +5,8 @@
 #include "Document.h"
 
 @interface AppDelegate () {
-  std::vector<Diatom> *nodeDefs;
+  std::vector<Diatom> nodeDefs;
+  std::map<std::string, std::string> nodeDescriptions;
 }
 
 @property IBOutlet NSMenuItem *menu__show_node_loader;
@@ -15,38 +16,29 @@
 
 @implementation AppDelegate
 
--(void*)builtInNodes {
-  return nodeDefs;
-}
-
 -(void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  nodeDefs = new std::vector<Diatom>;
   self.menu__show_node_loader.target = self;
   self.menu__show_node_loader.action = @selector(showLoader:);
 
   // Load built-in Nodes (as Diatoms)
   Banyan::TreeDefinition::registerBuiltins();
+  nodeDescriptions = {
+    { "Inverter",  "Inverts child's return status"     },
+    { "Repeater",  "Calls child N times"               },
+    { "Succeeder", "Always returns success"            },
+    { "Sequence",  "Calls children in order"           },
+    { "Selector",  "Calls children until one succeeds" },
+    { "While",     "Calls second while first succeeds" },
+  };
 
   for (auto &nw : Banyan::NodeRegistry::definitions()) {
     Banyan::NodeBase *n = nw->node;
     Diatom d = diatomize(n->_getSD());
-    d["minChildren"] = (double) nw->node->childLimits().min;
+    d["minChildren"] = (double) nw->node->childLimits().min;   // Todo: not do this
     d["maxChildren"] = (double) nw->node->childLimits().max;
-    nodeDefs->push_back(d);
+    nodeDefs.push_back(d);
   }
 }
-
--(Diatom)getNodeWithType:(const char *)type {
-  for (auto &def : *nodeDefs) {
-    if (def["type"].value__string == type) {
-      Diatom new_node = def;
-      return new_node;
-    }
-  }
-
-  return Diatom{Diatom::Type::Empty};
-}
-
 
 -(void)applicationWillTerminate:(NSNotification *)aNotification {
   // Insert code here to tear down your application
@@ -67,6 +59,14 @@
 -(void)showLoader:(id)sender {
   Document *doc = [[NSDocumentController sharedDocumentController] currentDocument];
   doc.loaderWinOpen = !doc.loaderWinOpen;
+}
+
+-(std::vector<Diatom>)builtinNodeDefs {
+  return nodeDefs;
+}
+
+-(std::map<std::string, std::string>&)descriptions {
+  return nodeDescriptions;
 }
 
 @end

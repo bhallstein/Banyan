@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */ = {isa = PBXBuildFile; fileRef = B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */; };
 		B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B555B4AE247E62BC005351CB /* Diatomize.cpp */; };
-		B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = B583FACF1BBA755F00EDD446 /* Helpers.m */; };
+		B593C6AB2493B5DA00B68102 /* Helpers.mm in Sources */ = {isa = PBXBuildFile; fileRef = B593C6AA2493B5DA00B68102 /* Helpers.mm */; };
 		B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */; };
 		B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */; };
 		E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* NodeListView.m */; };
@@ -48,14 +48,14 @@
 		B555B4CC247E62BC005351CB /* NodeRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeRegistry.h; sourceTree = "<group>"; };
 		B555B4CD247E62BC005351CB /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
 		B576ED731BC14A0400C5413F /* NodeDefFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NodeDefFile.h; sourceTree = "<group>"; };
-		B583FACF1BBA755F00EDD446 /* Helpers.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Helpers.m; sourceTree = "<group>"; };
 		B583FAD11BBA756F00EDD446 /* Helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Helpers.h; sourceTree = "<group>"; };
+		B593C6A92490063100B68102 /* GenericTree_Nodeless.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericTree_Nodeless.h; path = Syncarp/Banyan/GenericTree/GenericTree_Nodeless.h; sourceTree = SOURCE_ROOT; };
+		B593C6AA2493B5DA00B68102 /* Helpers.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Helpers.mm; sourceTree = "<group>"; };
 		B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeLoaderWinCtrlr.h; sourceTree = "<group>"; };
 		B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeLoaderWinCtrlr.m; sourceTree = "<group>"; };
 		B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NodeLoaderWinCtrlr.xib; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
 		E152C3B01B13C62900D58FC0 /* NodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.m; sourceTree = "<group>"; };
-		E1835C591B0B99AA00815694 /* Wrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Wrapper.h; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1CB185D1AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E1CB185E1AC057B000E7B579 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -102,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				B555B4A1247E62BC005351CB /* Diatom */,
+				B593C6A92490063100B68102 /* GenericTree_Nodeless.h */,
 				B555B4B8247E62BC005351CB /* GenericTree_Referential.h */,
 				B555B4BA247E62BC005351CB /* GenericTree.h */,
 			);
@@ -199,11 +200,10 @@
 				B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */,
 				B555B48B247E62BC005351CB /* Banyan */,
 				B5D2A5491BB867900049F357 /* Views */,
-				E1835C591B0B99AA00815694 /* Wrapper.h */,
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
-				B583FACF1BBA755F00EDD446 /* Helpers.m */,
 				B583FAD11BBA756F00EDD446 /* Helpers.h */,
+				B593C6AA2493B5DA00B68102 /* Helpers.mm */,
 				B576ED731BC14A0400C5413F /* NodeDefFile.h */,
 			);
 			path = Syncarp;
@@ -309,12 +309,12 @@
 			files = (
 				B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */,
 				E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */,
-				B583FAD01BBA755F00EDD446 /* Helpers.m in Sources */,
 				E1CB18891AC057DA00E7B579 /* Document.m in Sources */,
 				B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */,
 				E1CB18621AC057B000E7B579 /* main.m in Sources */,
 				E1CB18D01AC4987E00E7B579 /* DragDestView.m in Sources */,
 				B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */,
+				B593C6AB2493B5DA00B68102 /* Helpers.mm in Sources */,
 				E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */,
 				E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */,
 			);
@@ -408,6 +408,10 @@
 				INFOPLIST_FILE = Syncarp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-ferror-limit=0",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ben.am.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -421,6 +425,10 @@
 				INFOPLIST_FILE = Syncarp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-ferror-limit=0",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ben.am.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

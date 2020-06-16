@@ -1,33 +1,24 @@
 #import <Cocoa/Cocoa.h>
-
-#define DISP [self setNeedsDisplay:YES]
-#define index_in_vec(vec, n) int(n - &vec[0])
-
-class Wrapper;
+#include <vector>
+#include "Diatom.h"
+#include "Helpers.h"
 
 @interface Document : NSDocument <NSTextFieldDelegate>
 
 @property (nonatomic) BOOL loaderWinOpen;
+@property (nonatomic) UID selectedNode;
 
--(void*)getNodes;
--(Wrapper*)topNode;
+// Tree manipulation
+-(void)detach:(UID)n;
+-(Diatom)mkNodeOfType:(std::string)type atPos:(NSPoint)p;
+-(void)insert:(Diatom)n withParent:(UID)parent withIndex:(int)i;
+-(UID)nodeAtPoint:(NSPoint)p nodeWidth:(float)w nodeHeight:(float)h;
+-(std::vector<Diatom>&)getTree;
+-(Diatom&)getNode:(UID)uid;
 
--(void)detachNodeFromTree:(Wrapper*)n;
--(void)destroyNode:(Wrapper*)n;
-
--(Wrapper*)addNodeOfType:(NSString*)t at:(NSPoint)p;
--(void)makeNode:(Wrapper*)A childOf:(Wrapper*)B atIndex:(int)i;
-
--(BOOL)nodeIsOrphan:(Wrapper*)n;
--(BOOL)node:(Wrapper*)A isAncestorOf:(Wrapper*)B;
--(Wrapper*)parentOfNode:(Wrapper*)n;
-
--(void)setSelectedNode:(Wrapper*)n;
-
--(void*)getAllNodeDefs;
-    // The vector returned by this is dynamically allocated
-    // and must be freed by the caller
-
+// Node definitions
+-(std::vector<Diatom>)documentNodeDefs;
+-(std::vector<Diatom>)allNodeDefs;
 -(void*)getDefinitionFiles;
 
 @end

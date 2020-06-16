@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 
+#define DISP [self setNeedsDisplay:YES]
 #define COL(r, g, b) [NSColor colorWithDeviceRed:r/255. green:g/255. blue:b/255. alpha:1]
 
 
@@ -37,30 +38,16 @@ float h_node = 54.;
     return (AppDelegate*)[NSApplication sharedApplication].delegate;
 }
 
-const std::map<std::string, std::string> descriptions = {
-  { "Inverter",  "Inverts child's return status"     },
-  { "Repeater",  "Calls child N times"               },
-  { "Succeeder", "Always returns success"            },
-  { "Sequence",  "Calls children in order"           },
-  { "Selector",  "Calls children until one succeeds" },
-  { "While",     "Calls second while first succeeds" },
-};
-
-void *node_descriptions = (void*) &descriptions;
-
 -(BOOL)isFlipped { return YES; }
 
 -(void)drawRect:(NSRect)dirtyRect {
   [super drawRect:dirtyRect];
 
-  auto defs = (std::vector<Diatom>*) DOCW.getAllNodeDefs;
-  if (!defs) {
-    return;
-  }
+  auto defs = DOCW.allNodeDefs;
 
   float y = start_offset;
   float w = self.frame.size.width;
-  float h_total = h_node * defs->size() + start_offset;
+  float h_total = h_node * defs.size() + start_offset;
 
   [@"AVAILABLE NODES:" drawAtPoint:NSMakePoint(10, 18)
                     withAttributes:@{
@@ -69,7 +56,7 @@ void *node_descriptions = (void*) &descriptions;
                     }];
 
   int i = 0;
-  for (auto &nd : *defs) {
+  for (auto &nd : defs) {
     // If selected, draw blue gradienty background
     bool sel = false;
     if (indexOfSelectedNode == i++) {
@@ -90,7 +77,7 @@ void *node_descriptions = (void*) &descriptions;
        }];
 
     // draw horizontal line
-    if (&nd != &defs->back()) {
+    if (&nd != &defs.back()) {
       NSRect lineRect = NSMakeRect(0, y + h_node - 1, w, 1);
       [[NSColor colorWithDeviceRed:0.9 green:0.9 blue:0.9 alpha:1] set];
       NSRectFill(lineRect);
@@ -99,7 +86,6 @@ void *node_descriptions = (void*) &descriptions;
     y += 54;
   }
 
-  free(defs);
   [self setFrameSize:NSMakeSize(w, h_total-1)];
 }
 
@@ -124,10 +110,9 @@ void *node_descriptions = (void*) &descriptions;
   [self.dragImage addRepresentation:rep2];
 
   // Get string data
-  auto nodeDefs = (std::vector<Diatom>*) DOCW.getAllNodeDefs;
-  NSString *str = [NSString stringWithFormat:@"%s", (*nodeDefs)[indexOfSelectedNode]["type"].value__string.c_str()];
+  auto nodeDefs = DOCW.allNodeDefs;
+  NSString *str = [NSString stringWithFormat:@"%s", nodeDefs[indexOfSelectedNode]["type"].value__string.c_str()];
   self.dragData = [str dataUsingEncoding:NSUTF8StringEncoding];
-  free(nodeDefs);
 
   // Create pasteboard item
   NSPasteboardItem *pbitem = [NSPasteboardItem new];

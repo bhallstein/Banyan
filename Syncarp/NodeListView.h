@@ -4,5 +4,3 @@
 
 @end
 
-extern void *node_descriptions;
-

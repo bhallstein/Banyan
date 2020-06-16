@@ -1,28 +1,27 @@
 #import "ScrollingTreeView.h"
 #import "Document.h"
-#import "Wrapper.h"
 #include "Helpers.h"
+#include "Diatom.h"
 #include <map>
+#include <string>
 
 
 @interface ScrollingTreeView () {
   NSSize  scale;
   NSPoint scroll;
 
-  bool laidOutNodes;
-
-  Wrapper *selectedNode;
-  Wrapper *highlightedNode;
-  Wrapper *hoveredNode;
+  bool laidOut;
+  UID  hoveredNode;
 
   struct InFlightConnection {
     enum ConnectionType { None, FromChild, FromParent } type;
-    Wrapper *fromNode;
-    Wrapper *toNode_prev;
+    UID fromNode;
+    UID toNode_prev;
     NSPoint currentPosition;
-    int index_of_child_in_parent_children;
-    int temporary_index_of_child_in_parent_children;
-  } inFlightConnection;
+    int i__child;
+    int i__temporary;
+  };
+  InFlightConnection ifc;
 
   bool ifc_forbidden;
   bool ifc_attached;
@@ -34,7 +33,8 @@
 @end
 
 
-#pragma mark Node drawing constants
+// Drawing constants
+// -----------------------------------
 
 const float node_aspect_ratio = 1.6;
 const float node_width = 110;
@@ -62,7 +62,10 @@ const std::map<std::string, NSColor*> node_colours = {
 float node_height() {
   return node_width/node_aspect_ratio;
 }
-#define NSPointAdd(p1, p2) ((NSPoint) { p1.x + p2.x, p1.y + p2.y })
+
+NSPoint add_points(NSPoint p1, NSPoint p2) {
+  return NSPoint{ p1.x + p2.x, p1.y + p2.y };
+}
 
 @implementation ScrollingTreeView
 static const NSSize unitSize = {1.0, 1.0};
@@ -71,7 +74,9 @@ static const NSSize unitSize = {1.0, 1.0};
   [self.window makeFirstResponder:self];
   [self registerForDraggedTypes:@[NSPasteboardTypeString]];
 
+  hoveredNode = NotFound;
   ifc_forbidden = false;
+  ifc_attached = false;
 
   NSTrackingAreaOptions tr_options = (
     NSTrackingActiveAlways |
@@ -85,76 +90,57 @@ static const NSSize unitSize = {1.0, 1.0};
                                                     userInfo:nil]];
 }
 
--(NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
-  NSPasteboard *pb = [sender draggingPasteboard];
-  if ([pb.types containsObject:NSPasteboardTypeString]) {
-    return NSDragOperationCopy;
-  }
-
-  return NSDragOperationNone;
-}
--(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
-  NSPasteboard *pb = [sender draggingPasteboard];
-
-  if ([pb.types containsObject:NSPasteboardTypeString]) {
-    NSString *type = [pb stringForType:NSPasteboardTypeString];
-    NSPoint p = [self convertedPoint:[sender draggingLocation]];
-    p.x -= node_width / 2;
-    p.y -= node_height() / 2;
-
-    hoveredNode = [DOCW addNodeOfType:type at:p];
-    DISP;
-  }
-
+-(BOOL)acceptsFirstResponder {
   return YES;
 }
 
--(std::vector<Wrapper>*)nodes {
-  return (std::vector<Wrapper>*) DOCW.getNodes;
+-(BOOL)isFlipped {
+  return YES;
 }
+
+
+// Scale
+// ------------------------------------
 
 -(NSSize)scale {
   return [self convertSize:unitSize toView:nil];
 }
+
 -(void)setScale:(NSSize)newScale {
   [self resetScaling];
   [self scaleUnitSquareToSize:newScale];
   DISP;
 }
+
 -(void)resetScaling {
   [self scaleUnitSquareToSize:[self convertSize:unitSize fromView:nil]];
 }
 
--(BOOL)acceptsFirstResponder {
-  return YES;
+
+// Draw helpers
+// ------------------------------------
+
+NSPoint attachmentCoord_Parent_forNode(Diatom *n) {
+  float x = (*n)["posX"].value__number;
+  float y = (*n)["posY"].value__number;
+
+  return (NSPoint) {
+    x + node_parent_circle_offset_x + node_circle_size*0.5,
+    y + node_parent_circle_offset_y + node_circle_size*0.5
+  };
 }
 
+NSPoint attachmentCoord_Child_forNode(Diatom *n, int childIndex) {
+  float x = (*n)["posX"].value__number;
+  float y = (*n)["posY"].value__number;
 
--(Wrapper*)findNodeAtPosition:(NSPoint)p {
-  std::vector<Wrapper> *nodes = self.nodes;
-  if (!nodes) return NULL;
-
-  Wrapper *n = NULL;
-  for (auto &w : *nodes) {
-    if (!w.destroyed && w.hasPosition()) {
-      float x = w.d["posX"].value__number;
-      float y = w.d["posY"].value__number;
-      bool overlaps = (
-        p.x >= x &&
-        p.y >= y &&
-        p.x < x + node_width &&
-        p.y < y + node_height()
-      );
-      if (overlaps) {
-        n = &w;
-      }
-    }
-  }
-
-  return n;
+  return NSPoint{
+    x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
+    y + node_height() - node_child_circle_offset_y
+  };
 }
 
-BOOL isOverParentConnector(Wrapper *n, NSPoint p) {
+BOOL isOverParentConnector(Diatom *n, NSPoint p) {
   float forgivingness = 4.0;
   NSPoint coord = attachmentCoord_Parent_forNode(n);
   return (
@@ -165,14 +151,39 @@ BOOL isOverParentConnector(Wrapper *n, NSPoint p) {
   );
 }
 
-int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightConnection *cnxn) {
+bool shouldDrawExtraChildConnector(Diatom *n, UID uid__hovered_node, InFlightConnection ifc) {
+  Diatom max_children = (*n)["maxChildren"];
+  bool capacity_full = (
+    max_children.is_number() &&
+    max_children.value__number != -1 &&
+    n_children(n) >= max_children.value__number
+  );
+  if (capacity_full) {
+    return false;
+  }
+
+  UID uid = (*n)["uid"].value__number;
+
+  bool is_hovered                       = uid == uid__hovered_node;
+  bool just_hovering                    = is_hovered && ifc.type == InFlightConnection::None;
+  bool drawing_from_child_to_this_node  = is_hovered && ifc.type == InFlightConnection::FromChild && ifc.toNode_prev != uid;
+  bool drawing_from_this_node_as_parent = ifc.type == InFlightConnection::FromParent && ifc.fromNode == uid;
+
+  if (just_hovering)                    { return true; }
+  if (drawing_from_child_to_this_node)  { return true; }
+  if (drawing_from_this_node_as_parent) { return true; }
+  return false;
+}
+
+int childConnector(Diatom *n, NSPoint p, UID uid__hovered_node, InFlightConnection cnxn) {
   float v_forgivingness = 14.0;
 
   int n_points =
-    (int) n->children.size() +
-    (shouldDrawExtraChildConnector(n, hoveredNode, cnxn) ? 1 : 0);
-  float nodeX = n->d["posX"].value__number;
-  float nodeY = n->d["posY"].value__number;
+    n_children(n) +
+    (shouldDrawExtraChildConnector(n, uid__hovered_node, cnxn) ? 1 : 0);
+
+  float nodeX = (*n)["posX"].value__number;
+  float nodeY = (*n)["posY"].value__number;
 
   float box_l = nodeX + node_parent_circle_offset_x;
   float box_r = box_l + n_points*node_cnxn_circle_xoffset;
@@ -187,85 +198,55 @@ int isOverChildConnector(Wrapper *n, NSPoint p, Wrapper *hoveredNode, InFlightCo
 }
 
 
+// Calculate layout when not set
+// ------------------------------------
+
 -(void)layOutTree {
-  Wrapper *topNode = DOCW.topNode;
-  if (!topNode) {
-    return;
+  auto &tree = [DOCW getTree];
+
+  for (int i=0; i < tree.size(); ++i) {
+    Diatom &t = tree[i];
+
+    t.recurse([&](std::string name, Diatom &n) {
+      if (!is_node_diatom(&n)) {
+        return;
+      }
+      if (node_has_position(&n)) {
+        return;
+      }
+
+      UID uid = n["uid"].value__number;
+      UIDParentSearchResult uid__parent = find_node_parent(t, uid);
+
+      if (uid__parent.uid == NotFound) {
+        n["posX"] = self.bounds.size.width*0.5 - node_width*0.5 + i * 200.;
+        n["posY"] = 20.;
+      }
+
+      else {
+        Diatom parent = get_node(t, uid__parent.uid);
+        int i__child = (int) (parent.index_of(name) - parent.descendants.begin());
+
+        float x__parent = parent["posX"].value__number;
+        float y__parent = parent["posY"].value__number;
+
+        double x = x__parent - 40 + i__child * nodeHSpacing;
+        double y = y__parent + nodeVSpacing + i__child * 4;
+
+        n["posX"] = x;
+        n["posY"] = y;
+      }
+    });
   }
 
-  int recursionLevel = 0;
-  auto fLayout = [&](Wrapper &n, Wrapper *parent, int childIndex) {
-    if (n.hasPosition()) return;
-    if (!parent) {
-      n.d["posX"] = self.bounds.size.width*0.5 - node_width*0.5;
-      n.d["posY"] = 20.0;
-      return;
-    }
-
-    float parX = parent->d["posX"].value__number;
-    float parY = parent->d["posY"].value__number;
-
-    double posX = parX - 40 + childIndex*nodeHSpacing;
-    double posY = parY + nodeVSpacing + childIndex*4;
-
-    n.d["posX"] = posX;
-    n.d["posY"] = posY;
-  };
-
-  walk(*self.nodes,
-     *topNode,
-     fLayout,
-     [&]() { ++recursionLevel; },
-     [&]() { --recursionLevel; });
-
-  laidOutNodes = true;
+  laidOut = true;
 }
 
-NSPoint attachmentCoord_Parent_forNode(Wrapper *n) {
-  float x = n->d["posX"].value__number;
-  float y = n->d["posY"].value__number;
 
-  return (NSPoint) {
-    x + node_parent_circle_offset_x + node_circle_size*0.5,
-    y + node_parent_circle_offset_y + node_circle_size*0.5
-  };
-}
+// Drawing
+// ---------------------------
 
-NSPoint attachmentCoord_Child_forNode(Wrapper *n, int childIndex) {
-  float x = n->d["posX"].value__number;
-  float y = n->d["posY"].value__number;
-
-  return (NSPoint) {
-    x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
-    y + node_height() - node_child_circle_offset_y
-  };
-}
-
-bool shouldDrawExtraChildConnector(Wrapper *n, Wrapper *hoveredNode, InFlightConnection *cx) {
-  Diatom &maxCh = n->d["maxChildren"];
-  if (!maxCh.is_empty() && maxCh.value__number != -1 && maxCh.value__number <= n->children.size()) {
-    return false;
-  }
-
-  bool just_hovering = n == hoveredNode && cx->type == InFlightConnection::None;
-  bool drawing_from_child_to_this_node = n == hoveredNode && cx->type == InFlightConnection::FromChild;
-  bool drawing_from_this_node_as_parent = cx->type == InFlightConnection::FromParent && n == cx->fromNode;
-
-  if (just_hovering) {
-    return true;
-  }
-  if (drawing_from_child_to_this_node) {
-    return true;
-  }
-  if (drawing_from_this_node_as_parent) {
-    return true;
-  }
-  return false;
-}
-
-void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, bool draw_extra_child_connector) {
-  Diatom &d = n->d;
-
+void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bool extra_child_connector) {
   float x = d["posX"].value__number + scroll.x;
   float y = d["posY"].value__number + scroll.y;
 
@@ -274,7 +255,6 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
   [path_main appendBezierPathWithRoundedRect:NSMakeRect(x, y, node_width, node_width / node_aspect_ratio)
                                      xRadius:3.5
                                      yRadius:3.5];
-
 
   // Get node-specific colour
   NSColor *col__node = [NSColor blackColor];
@@ -286,14 +266,12 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
     col__node = [NSColor systemBlueColor];
   }
 
-
-  // Attachment circle – parent
-  NSPoint pt_pcircle = attachmentCoord_Parent_forNode(n);
-  pt_pcircle = NSPointAdd(pt_pcircle, scroll);
-  pt_pcircle = NSPointAdd(pt_pcircle, -node_half_circle_size);
-  NSBezierPath *path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(pt_pcircle.x, pt_pcircle.y,
+  // Parent connector
+  NSPoint p__parent_circle = attachmentCoord_Parent_forNode(&d);
+  p__parent_circle = add_points(p__parent_circle, scroll);
+  p__parent_circle = add_points(p__parent_circle, NSPoint{-node_half_circle_size.x, -node_half_circle_size.y});
+  NSBezierPath *path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(p__parent_circle.x, p__parent_circle.y,
                                                                                    node_circle_size, node_circle_size)];
-
 
   // Name
   NSString *name = [NSString stringWithFormat:@"%s", d["type"].value__string.c_str()];
@@ -301,7 +279,6 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
   [shadow setShadowBlurRadius:1.0f];
   [shadow setShadowColor:[NSColor darkGrayColor]];
   [shadow setShadowOffset:CGSizeMake(0, -1.0f)];
-
 
   // Draw
   [[NSColor whiteColor] set];
@@ -321,13 +298,12 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
   [[NSColor blackColor] set];
   [path_ac_parent fill];
 
-  int n_children_to_draw = (int)n->children.size();
-  if (draw_extra_child_connector) n_children_to_draw += 1;
-
+  // Child connectors
+  int n_children_to_draw = n_children(&d) + (extra_child_connector ? 1 : 0);
   for (int i=0; i < n_children_to_draw; ++i) {
-    NSPoint p = attachmentCoord_Child_forNode(n, i);
-    p = NSPointAdd(p, scroll);
-    p = NSPointAdd(p, -node_half_circle_size);
+    NSPoint p = attachmentCoord_Child_forNode(&d, i);
+    p = add_points(p, scroll);
+    p = add_points(p, {-node_half_circle_size.x, -node_half_circle_size.y});
     path_ac_parent = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(p.x, p.y, node_circle_size, node_circle_size)];
     [path_ac_parent fill];
   }
@@ -336,8 +312,8 @@ void drawNode(Wrapper *n, NSPoint scroll, bool selected, bool hover, bool leaf, 
 void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scroll, bool inFlight, bool forbidden = false, bool attached = false) {
   NSBezierPath *path = [NSBezierPath bezierPath];
 
-  child_cnxn_pos  = NSPointAdd(child_cnxn_pos, scroll);
-  parent_cnxn_pos = NSPointAdd(parent_cnxn_pos, scroll);
+  child_cnxn_pos  = add_points(child_cnxn_pos, scroll);
+  parent_cnxn_pos = add_points(parent_cnxn_pos, scroll);
 
   [path moveToPoint:child_cnxn_pos];
   [path curveToPoint:parent_cnxn_pos
@@ -357,100 +333,120 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   [path stroke];
 }
 
-int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
-  int n_index = index_in_vec(nodes, n);
-  for (int i=0; i < p->children.size(); ++i) {
-    if (p->children[i] == n_index) {
-      return i;
-    }
-  }
-  return -1;
-}
+#include "DiatomSerialization.h"
 
--(void)drawRect:(NSRect)dirtyRect {
-  [super drawRect:dirtyRect];
+-(void)drawSubtree:(Diatom)t {
+  std::vector<NSPoint> connections;
 
-  if (!laidOutNodes) {
-    [self layOutTree];
-  }
-
-  std::vector<NSPoint> cnxns;
-  for (auto &i : *self.nodes) {
-    if (i.destroyed) {
-      continue;
+  t.recurse([&](std::string name, Diatom &n) {
+    if (!is_node_diatom(&n)) {
+      return;
     }
 
-    bool draw_extra_cnxn = shouldDrawExtraChildConnector(&i, hoveredNode, &inFlightConnection);
-    drawNode(&i, scroll, &i == selectedNode, &i == hoveredNode, false, draw_extra_cnxn);
+    UID uid = n["uid"].value__number;
+    UID uid__selected_node = DOCW.selectedNode;
 
-    // Also save node’s child connections
-    int c_ind = 0;
-    for (auto c : i.children) {
-      auto &nc = self.nodes->at(c);
-      if ((inFlightConnection.type == InFlightConnection::FromParent &&
-        inFlightConnection.fromNode == &i &&
-        inFlightConnection.toNode_prev == &nc) ||
-        (inFlightConnection.type == InFlightConnection::FromChild &&
-         inFlightConnection.fromNode == &nc &&
-         inFlightConnection.toNode_prev == &i)) {
-        c_ind++;
+    bool is_selected = uid == uid__selected_node;
+    bool is_hovered  = uid == hoveredNode;
+    bool extra_child_connector = shouldDrawExtraChildConnector(&n, hoveredNode, ifc);
+
+    drawNode(n, scroll, is_selected, is_hovered, false, extra_child_connector);
+
+    // Save child connections to connections vector
+    for (int i=0; i < n["children"].descendants.size(); ++i) {
+      Diatom &child = n["children"].descendants[i].item;
+      UID uid__child = child["uid"].value__number;
+
+      bool skip_connection_because_inflight = (
+        (ifc.type == InFlightConnection::FromParent &&
+        ifc.fromNode == uid &&
+        ifc.i__child == i)
+        ||
+        (ifc.type == InFlightConnection::FromChild &&
+        ifc.fromNode == uid__child &&
+        ifc.i__child == i)
+      );
+      if (skip_connection_because_inflight) {
         continue;
       }
-      int ind = c_ind;
-      // For FromChild connections, shuffle existing connector indices
-      if (inFlightConnection.type == InFlightConnection::FromChild && hoveredNode == &i) {
-        int orig_cnxn_ind = inFlightConnection.index_of_child_in_parent_children;
-        int temp_cnxn_ind = inFlightConnection.temporary_index_of_child_in_parent_children;
 
-        if (temp_cnxn_ind != -1) {
-          if (inFlightConnection.toNode_prev == &i) {
-            if (orig_cnxn_ind < c_ind && temp_cnxn_ind >= c_ind) {
-              --ind;
-            }
-            if (orig_cnxn_ind > c_ind && temp_cnxn_ind <= c_ind) {
-              ++ind;
-            }
+      // For FromChild connections, shuffle parent's child-connector indices
+      int j = i;
+      bool inflight_from_child = (
+        ifc.type == InFlightConnection::FromChild &&
+        is_hovered &&
+        ifc.i__temporary != -1
+      );
+      if (inflight_from_child) {
+        if (ifc.toNode_prev == uid) {
+          if (i < ifc.i__child && i >= ifc.i__temporary) {
+            ++j;
           }
-          else if (c_ind >= temp_cnxn_ind) {
-            ++ind;
+          else if (i > ifc.i__child && ifc.i__temporary >= i) {
+            --j;
+          }
+        }
+        else {
+          if (i >= ifc.i__temporary) {
+            ++j;
           }
         }
       }
-      cnxns.push_back(attachmentCoord_Parent_forNode(&nc));
-      cnxns.push_back(attachmentCoord_Child_forNode(&i, ind));
-      ++c_ind;
+
+      connections.push_back(attachmentCoord_Parent_forNode(&child));
+      connections.push_back(attachmentCoord_Child_forNode(&n, j));
     }
-  }
+  }, true);
 
-  for (int i=0, n = (int)cnxns.size(); i < n; i += 2) {
-    drawConnection(cnxns[i], cnxns[i+1], scroll, false);
-  }
-
-  // Also draw in-flight connection, if present
-  if (inFlightConnection.type == InFlightConnection::FromChild) {
-    drawConnection(
-      attachmentCoord_Parent_forNode(inFlightConnection.fromNode),
-      inFlightConnection.currentPosition,
-      scroll,
-      true,
-      ifc_forbidden,
-      ifc_attached
-    );
-  }
-  if (inFlightConnection.type == InFlightConnection::FromParent) {
-    drawConnection(
-      attachmentCoord_Child_forNode(inFlightConnection.fromNode, inFlightConnection.index_of_child_in_parent_children),
-      inFlightConnection.currentPosition,
-      scroll,
-      true,
-      ifc_forbidden,
-      ifc_attached
-    );
+  for (int i=0; i < connections.size(); i += 2) {
+    drawConnection(connections[i], connections[i+1], scroll, false);
   }
 }
 
--(BOOL)isFlipped {
-  return YES;
+-(void)drawRect:(NSRect)dirtyRect {
+  auto &tree = [DOCW getTree];
+
+  std::vector<std::string> serialized;
+  std::transform(tree.begin(),
+                 tree.end(),
+                 std::back_inserter(serialized),
+                 [](Diatom d) { return diatom__serialize(d); });
+  for (auto s : serialized) {
+//    NSLog(@"%s", s.c_str());
+  }
+
+
+  [super drawRect:dirtyRect];
+
+  if (!laidOut) {
+    [self layOutTree];
+  }
+
+  for (auto t : tree) {
+    [self drawSubtree:t];
+  }
+
+  // Draw in-flight connection
+  if (ifc.type == InFlightConnection::FromChild) {
+    drawConnection(
+      attachmentCoord_Parent_forNode(&[DOCW getNode:ifc.fromNode]),
+      ifc.currentPosition,
+      scroll,
+      true,
+      ifc_forbidden,
+      ifc_attached
+    );
+  }
+  if (ifc.type == InFlightConnection::FromParent) {
+    drawConnection(
+      attachmentCoord_Child_forNode(&[DOCW getNode:ifc.fromNode], ifc.i__child),
+      ifc.currentPosition,
+      scroll,
+      true,
+      ifc_forbidden,
+      ifc_attached
+    );
+  }
 }
 
 
@@ -471,6 +467,7 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
   NSSize sc = NSMakeSize(newScale, newScale);
   [self setScale:sc];
 }
+
 -(void)scrollWheel:(NSEvent *)event {
   float coeff = 4.0;
 
@@ -480,146 +477,165 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
   DISP;
 }
 
+
+// Event coord conversion
+// ---------------------------
+
 -(NSPoint)convertedPoint:(NSPoint)p {
   p = [self convertPoint:p fromView:nil];
   p.x -= scroll.x;
   p.y -= scroll.y;
   return p;
 }
+
 -(NSPoint)convertedPointForEvent:(NSEvent*)ev {
   return [self convertedPoint:ev.locationInWindow];
 }
+
 -(NSPoint)convertCurrentMouseLocation {
   NSPoint p = [self.window mouseLocationOutsideOfEventStream];
   return [self convertedPoint:p];
 }
 
--(void)mouseDown:(NSEvent *)ev {
-  NSPoint p = [self convertedPointForEvent:ev];
-  Wrapper *w = [self findNodeAtPosition:p];
-  int child_ind;
 
-  if (w) {
-    if (selectedNode != w) {
-      selectedNode = w;
-      [DOCW setSelectedNode:w];
-    }
+// Events
+// ---------------------------
 
-    if (isOverParentConnector(w, p)) {
+-(void)mouseDown:(NSEvent*)ev {
+  NSPoint pos = [self convertedPointForEvent:ev];
+  hoveredNode = [DOCW nodeAtPoint:pos nodeWidth:node_width nodeHeight:node_height()];
 
-      // If an orphan, create a new connection from the selected node
-      if ([DOCW nodeIsOrphan:selectedNode]) {
-        inFlightConnection = {
-          InFlightConnection::FromChild,
-          selectedNode,
-          NULL,
-          p,
-          0
-        };
-        [self startMouseDragAt:p];
-      }
+  [DOCW setSelectedNode:hoveredNode];
 
-      // If not an orphan, set connection from parent node
-      else {
-        Wrapper *parent = [DOCW parentOfNode:selectedNode];
-        if (!parent)
-          NSLog(@"Oh dear - expected to find a parent node!");
-        inFlightConnection = {
-          InFlightConnection::FromParent,
-          parent,
-          selectedNode,
-          p,
-          indexInChildren(parent, selectedNode, *self.nodes)
-        };
-        [self startMouseDragAt:p];
-      }
-    }
-
-    else if ((child_ind = isOverChildConnector(w, p, hoveredNode, &inFlightConnection)) != -1) {
-
-      // If this is a *new* child connection...
-      if (child_ind >= w->children.size()) {
-        inFlightConnection = {
-          InFlightConnection::FromParent,
-          w,
-          NULL,
-          p,
-          child_ind,
-          -1
-        };
-        [self startMouseDragAt:p];
-      }
-
-      // If not...
-      else {
-        Wrapper *child = &self.nodes->at(w->children[child_ind]);
-        inFlightConnection = {
-          InFlightConnection::FromChild,
-          child,
-          w,
-          p,
-          child_ind,
-          -1
-        };
-        [self startMouseDragAt:p];
-      }
-
-    }
-
-    else {
-      [self startMouseDragAt:p];
-    }
-  }
-  else {
-    selectedNode = NULL;
-    [DOCW setSelectedNode:NULL];
+  if (hoveredNode == NotFound) {
     [self endMouseDrag];
+    DISP;
+    return;
   }
 
+  Diatom &d = [DOCW getNode:hoveredNode];
+
+  int i__child = childConnector(&d, pos, hoveredNode, ifc);
+  bool child_connector = i__child != -1;
+  bool parent_connector = isOverParentConnector(&d, pos);
+  UIDParentSearchResult parent = find_node_parent([DOCW getTree], hoveredNode);
+
+  if (parent_connector) {
+    // If an orphan, begin FromChild connection from selected node
+    if (parent.uid == NotFound) {
+      NSLog(@"Starting ifc from child %.0f to new parent", hoveredNode);
+      ifc = {
+        InFlightConnection::FromChild,
+        hoveredNode,
+        NotFound,
+        pos,
+        -1,
+        -1,
+      };
+    }
+
+    // If has existing parent, begin FromParent connection
+    else {
+      NSLog(@"Starting ifc from parent %.0f with existing child %.0f", parent.uid, hoveredNode);
+      ifc = {
+        InFlightConnection::FromParent,
+        parent.uid,
+        hoveredNode,
+        pos,
+        key_string_to_number(parent.child_name, "n"),
+      };
+    }
+  }
+
+  else if (child_connector) {
+    // New child connection: begin FromParent connection
+    int cur_children = n_children(&d);
+    if (i__child >= cur_children) {
+      NSLog(@"Starting ifc from parent %.0f to new child", hoveredNode);
+      ifc = {
+        InFlightConnection::FromParent,
+        hoveredNode,
+        NotFound,
+        pos,
+        i__child,
+        -1,
+      };
+    }
+
+    // Existing child connection: begin FromChild connection
+    else {
+      Diatom d__child = d["children"][numeric_key_string("n", i__child)];
+      UID uid__child = d__child["uid"].value__number;
+      NSLog(@"Starting ifc from child %.0f with existing parent %.0f", uid__child, hoveredNode);
+      ifc = {
+        InFlightConnection::FromChild,
+        uid__child,
+        hoveredNode,
+        pos,
+        i__child,
+        -1,
+      };
+    }
+  }
+
+  [self startMouseDragAt:pos];
   DISP;
 }
--(void)mouseUp:(NSEvent *)ev {
-  if (inFlightConnection.type == InFlightConnection::FromChild)
+
+-(void)mouseUp:(NSEvent*)ev {
+  if (ifc.type == InFlightConnection::FromChild) {
     [self endDrag_ConnectionFromChild:ev];
-  else if (inFlightConnection.type == InFlightConnection::FromParent)
+  }
+  else if (ifc.type == InFlightConnection::FromParent) {
     [self endDrag_ConnectionFromParent:ev];
+  }
 
   [self endMouseDrag];
 }
--(void)mouseMoved:(NSEvent*)ev {
-  hoveredNode = [self findNodeAtPosition:[self convertedPointForEvent:ev]];
 
+-(void)mouseMoved:(NSEvent*)ev {
+  NSPoint p = [self convertedPointForEvent:ev];
+  hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
   DISP;
 }
+
 -(void)keyDown:(NSEvent *)ev {
   unsigned int c = [ev.characters characterAtIndex:0];
+  bool del = (c == 8 || c == 127);
 
-  if (selectedNode && (c == 8 || c == 127)) {
-    [DOCW destroyNode:selectedNode];
+  if (del && DOCW.selectedNode != NotFound) {
+    [DOCW detach:DOCW.selectedNode];
   }
 
   DISP;
 }
 
--(void)startMouseDragAt:(NSPoint)p {
-  SEL sel;
 
-  if (inFlightConnection.type == InFlightConnection::FromChild) sel = @selector(dragCB_ConnectionFromChild:);
-  else if (inFlightConnection.type == InFlightConnection::FromParent) sel = @selector(dragCB_ConnectionFromParent:);
-  else sel = @selector(dragCB_MoveNode:);
+// Drag
+// ---------------------------
+
+-(void)startMouseDragAt:(NSPoint)p {
+  SEL sel = @selector(dragCB_MoveNode:);
+
+  if (ifc.type == InFlightConnection::FromChild) {
+    sel = @selector(dragCB_ConnectionFromChild:);
+  }
+  else if (ifc.type == InFlightConnection::FromParent) {
+    sel = @selector(dragCB_ConnectionFromParent:);
+  }
 
   dragTimer = [NSTimer scheduledTimerWithTimeInterval:0.04 target:self selector:sel userInfo:nil repeats:YES];
   dragInitial = p;
 }
+
 -(void)endMouseDrag {
   [dragTimer invalidate];
-  inFlightConnection.type = InFlightConnection::None;
+  ifc.type = InFlightConnection::None;
   DISP;
 }
 
-
 -(void)dragCB_MoveNode:(NSEvent*)ev {
-  if (!selectedNode) {
+  if (DOCW.selectedNode == NotFound) {
     [dragTimer invalidate];
     return;
   }
@@ -630,132 +646,161 @@ int indexInChildren(Wrapper *p, Wrapper *n, std::vector<Wrapper> &nodes) {
     p.y - dragInitial.y
   };
   dragInitial = p;
-  selectedNode->d["posX"] = selectedNode->d["posX"].value__number + delta.x;
-  selectedNode->d["posY"] = selectedNode->d["posY"].value__number + delta.y;
+
+  Diatom &n = [DOCW getNode:DOCW.selectedNode];
+  n["posX"] = n["posX"].value__number + delta.x;
+  n["posY"] = n["posY"].value__number + delta.y;
 
   DISP;
 }
+
 -(void)dragCB_ConnectionFromChild:(NSEvent*)ev {
   NSPoint p = [self convertCurrentMouseLocation];
-  inFlightConnection.currentPosition = p;
+  ifc.currentPosition = p;
 
   ifc_attached = false;
   ifc_forbidden = false;
-  inFlightConnection.temporary_index_of_child_in_parent_children = -1;
+  ifc.i__temporary = -1;
 
-  hoveredNode = [self findNodeAtPosition:p];
-  Wrapper *parent_of_from = [DOC parentOfNode:inFlightConnection.fromNode];
-  if (hoveredNode && hoveredNode != inFlightConnection.fromNode) {
-    int hovered_child_ind = isOverChildConnector(hoveredNode, p, hoveredNode, &inFlightConnection);
+  hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
+
+  if (hoveredNode != NotFound && hoveredNode != ifc.fromNode) {
+    Diatom d__hovered = [DOCW getNode:hoveredNode];
+
+    int hovered_child_ind = childConnector(&d__hovered, p, hoveredNode, ifc);
     if (hovered_child_ind > -1) {
-      inFlightConnection.currentPosition = attachmentCoord_Child_forNode(hoveredNode, hovered_child_ind);
+      ifc.currentPosition = attachmentCoord_Child_forNode(&d__hovered, hovered_child_ind);
 
-      // Forbidden if:
-      int hov_max_children = hoveredNode->d["maxChildren"].value__number;
-      if (parent_of_from != hoveredNode &&                                      // the hovered not isn't the existing parent, and
-        ([DOC node:inFlightConnection.fromNode isAncestorOf:hoveredNode] ||     // (from node is ancestor of hovered node, or
-        hov_max_children == hoveredNode->children.size())) {                    //  hovered node at capacity)
-        ifc_forbidden = true;
-      }
-      else {
+      UIDParentSearchResult parent = find_node_parent([DOCW getTree], ifc.fromNode);
+      bool is_existing_parent = parent.uid != NotFound && parent.uid == hoveredNode;
+
+      int max_children = d__hovered["maxChildren"].value__number;
+      bool forbidden_because_at_capacity = !is_existing_parent && max_children != -1 && n_children(&d__hovered) >= max_children;
+      bool forbidden_because_circular    = !is_existing_parent && is_ancestor([DOCW getTree], ifc.fromNode, hoveredNode);
+
+      ifc_forbidden = forbidden_because_at_capacity || forbidden_because_circular;
+      if (!ifc_forbidden) {
         ifc_attached = true;
-        inFlightConnection.temporary_index_of_child_in_parent_children = hovered_child_ind;
+        ifc.i__temporary = hovered_child_ind;
       }
     }
   }
 
   DISP;
 }
+
 -(void)dragCB_ConnectionFromParent:(NSEvent*)ev {
   NSPoint p = [self convertCurrentMouseLocation];
-  inFlightConnection.currentPosition = p;
+  ifc.currentPosition = p;
 
   ifc_forbidden = false;
   ifc_attached = false;
+  hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
 
-  hoveredNode = [self findNodeAtPosition:p];
-  if (hoveredNode && hoveredNode != inFlightConnection.fromNode && isOverParentConnector(hoveredNode, p)) {
-    inFlightConnection.currentPosition = attachmentCoord_Parent_forNode(hoveredNode);
-    ifc_attached = true;
+  if (hoveredNode != NotFound && hoveredNode != ifc.fromNode) {
+    Diatom &d__hovered = [DOCW getNode:hoveredNode];
 
-    Wrapper *hov_parent = [DOC parentOfNode:hoveredNode];
-    if (hov_parent && hoveredNode != inFlightConnection.toNode_prev) {
-      ifc_forbidden = true;
-    }
+    if (isOverParentConnector(&d__hovered, p)) {
+      ifc.currentPosition = attachmentCoord_Parent_forNode(&d__hovered);
+      ifc_attached = true;
 
-    else if ([DOC node:hoveredNode isAncestorOf:inFlightConnection.fromNode]) {
-      ifc_forbidden = true;
+      auto result = find_node_parent([DOCW getTree], hoveredNode);
+      bool forbidden_because_circular = is_ancestor([DOCW getTree], hoveredNode, ifc.fromNode);
+      if (forbidden_because_circular) {
+        ifc_forbidden = true;
+      }
     }
   }
 
   DISP;
 }
-
 
 -(void)endDrag_ConnectionFromChild:(NSEvent*)ev {
   NSPoint p = [self convertedPointForEvent:ev];
-  hoveredNode = [self findNodeAtPosition:p];
-  Wrapper *hov     = hoveredNode;
-  Wrapper *from    = inFlightConnection.fromNode;
-  Wrapper *to_prev = inFlightConnection.toNode_prev;
-  int orig_ind = inFlightConnection.index_of_child_in_parent_children;
+  hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
+  Diatom copy = [DOCW getNode:ifc.fromNode];
 
-  // If not over a node, and a previous parent exists, detach
-  if (!hov) {
-    if (to_prev) [DOC detachNodeFromTree:from];
+  if (hoveredNode == NotFound && ifc.toNode_prev != NotFound) {
+    [DOCW detach:ifc.fromNode];
+    [DOCW insert:copy withParent:NotFound withIndex:-1];
     return;
   }
 
-  int over_cnctr = isOverChildConnector(hov, p, hov, &inFlightConnection);
-  int hov_max_ch = hov->d["maxChildren"].value__number;
+  Diatom &d__hovered = [DOCW getNode:hoveredNode];
+  int i__child = childConnector(&d__hovered, p, hoveredNode, ifc);
+  int max_children = d__hovered["maxChildren"].value__number;
 
-  // Do nothing if:
-  if (over_cnctr == -1                           ||   // over a node, but not a connector
-    (hov == to_prev && over_cnctr == orig_ind) ||   // over the same node and connector as before
-    [DOC node:from isAncestorOf:hov]           ||   // over a target, but we are an ancestor of that target
-    hov->children.size() == hov_max_ch) {           // target node is at capacity
+  if (i__child == -1) {
+    return;
+  }
+  if (hoveredNode == ifc.toNode_prev && i__child == ifc.i__child) {
+    return;
+  }
+  if (max_children != -1 && n_children(&d__hovered) >= max_children) {
+    return;
+  }
+  if (is_ancestor([DOCW getTree], ifc.fromNode, hoveredNode)) {
     return;
   }
 
-  // Detach the node
-  [DOC detachNodeFromTree:from];
-
-  // Re-add it
-  [DOC makeNode:from childOf:hov atIndex:over_cnctr];
+  [DOCW detach:ifc.fromNode];
+  [DOCW insert:copy withParent:hoveredNode withIndex:i__child];
 }
 
 -(void)endDrag_ConnectionFromParent:(NSEvent*)ev {
   NSPoint p = [self convertedPointForEvent:ev];
-  hoveredNode = [self findNodeAtPosition:p];
-  Wrapper *hov     = hoveredNode;
-  Wrapper *from    = inFlightConnection.fromNode;
-  Wrapper *to_prev = inFlightConnection.toNode_prev;
+  hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
 
-  // If not over a node, and a previously connected child exists,
-  // detach it
-  if (!hov) {
-    if (to_prev) [DOC detachNodeFromTree:to_prev];
+  if (hoveredNode == NotFound && ifc.toNode_prev != NotFound) {
+    Diatom copy = [DOCW getNode:ifc.toNode_prev];
+    [DOCW detach:ifc.toNode_prev];
+    [DOCW insert:copy withParent:NotFound withIndex:-1];
     return;
   }
 
-  // Do nothing if:
-  if (!isOverParentConnector(hov, p)       ||     // over a node, but not a connector
-    hov == to_prev                       ||     // over the same node as was connected previously
-    [DOC parentOfNode:hov] != NULL  ||     // over a target, but the target already has a parent node
-    [DOC node:hov isAncestorOf:from]) {      // over a target, but the target is an ancestor of the current node
+  Diatom &d__hovered = [DOCW getNode:hoveredNode];
+
+  if (!isOverParentConnector(&d__hovered, p)) {
+    return;
+  }
+  if (hoveredNode == ifc.toNode_prev) {
+    return;
+  }
+  UIDParentSearchResult parent = find_node_parent([DOCW getTree], hoveredNode);
+  if (parent.uid != NotFound) {  // Target node already has a parent
+    return;
+  }
+  if (is_ancestor([DOCW getTree], hoveredNode, ifc.fromNode)) {
     return;
   }
 
-  // Over a valid node -- make the connection
-  [DOC makeNode:hov
-        childOf:from
-        atIndex:inFlightConnection.index_of_child_in_parent_children];
+  Diatom copy = d__hovered;
+  [DOCW detach:hoveredNode];
+  [DOCW insert:copy withParent:ifc.fromNode withIndex:ifc.i__child];
+}
 
-  // If there was a previous connection, unmake it
-  if (to_prev) {
-    [DOC detachNodeFromTree:to_prev];
+-(NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
+  NSPasteboard *pb = [sender draggingPasteboard];
+  return [pb.types containsObject:NSPasteboardTypeString] ? NSDragOperationCopy : NSDragOperationNone;
+}
+
+-(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
+  NSPasteboard *pb = [sender draggingPasteboard];
+
+  if ([pb.types containsObject:NSPasteboardTypeString]) {
+    std::string type = [[pb stringForType:NSPasteboardTypeString] UTF8String];
+
+    NSPoint p = [self convertedPoint:[sender draggingLocation]];
+    p.x -= node_width / 2;
+    p.y -= node_height() / 2;
+
+    [DOCW insert:[DOCW mkNodeOfType:type atPos:p] withParent:NotFound withIndex:-1];
+    DISP;
   }
+
+  return YES;
 }
 
 
 @end
+
