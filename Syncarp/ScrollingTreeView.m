@@ -592,7 +592,12 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   bool del = (c == 8 || c == 127);
 
   if (del && DOCW.selectedNode != NotFound) {
+    Diatom d = [DOCW getNode:DOCW.selectedNode];
     [DOCW detach:DOCW.selectedNode];
+
+    for (auto child : d["children"].descendants) {
+      [DOCW insert:child.item withParent:NotFound withIndex:-1];
+    }
   }
 
   DISP;
