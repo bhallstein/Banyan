@@ -404,25 +404,13 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 }
 
 -(void)drawRect:(NSRect)dirtyRect {
-  auto &tree = [DOCW getTree];
-
-  std::vector<std::string> serialized;
-  std::transform(tree.begin(),
-                 tree.end(),
-                 std::back_inserter(serialized),
-                 [](Diatom d) { return diatom__serialize(d); });
-  for (auto s : serialized) {
-//    NSLog(@"%s", s.c_str());
-  }
-
-
   [super drawRect:dirtyRect];
 
   if (!laidOut) {
     [self layOutTree];
   }
 
-  for (auto t : tree) {
+  for (auto t : [DOCW getTree]) {
     [self drawSubtree:t];
   }
 
@@ -664,25 +652,28 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
   hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
 
-  if (hoveredNode != NotFound && hoveredNode != ifc.fromNode) {
-    Diatom d__hovered = [DOCW getNode:hoveredNode];
+  if (hoveredNode == NotFound || hoveredNode == ifc.fromNode) {
+    DISP;
+    return;
+  }
 
-    int hovered_child_ind = childConnector(&d__hovered, p, hoveredNode, ifc);
-    if (hovered_child_ind > -1) {
-      ifc.currentPosition = attachmentCoord_Child_forNode(&d__hovered, hovered_child_ind);
+  Diatom d__hovered = [DOCW getNode:hoveredNode];
 
-      UIDParentSearchResult parent = find_node_parent([DOCW getTree], ifc.fromNode);
-      bool is_existing_parent = parent.uid != NotFound && parent.uid == hoveredNode;
+  int hovered_child_ind = childConnector(&d__hovered, p, hoveredNode, ifc);
+  if (hovered_child_ind > -1) {
+    ifc.currentPosition = attachmentCoord_Child_forNode(&d__hovered, hovered_child_ind);
 
-      int max_children = d__hovered["maxChildren"].value__number;
-      bool forbidden_because_at_capacity = !is_existing_parent && max_children != -1 && n_children(&d__hovered) >= max_children;
-      bool forbidden_because_circular    = !is_existing_parent && is_ancestor([DOCW getTree], ifc.fromNode, hoveredNode);
+    UIDParentSearchResult parent = find_node_parent([DOCW getTree], ifc.fromNode);
+    bool is_existing_parent = parent.uid != NotFound && parent.uid == hoveredNode;
 
-      ifc_forbidden = forbidden_because_at_capacity || forbidden_because_circular;
-      if (!ifc_forbidden) {
-        ifc_attached = true;
-        ifc.i__temporary = hovered_child_ind;
-      }
+    int max_children = d__hovered["maxChildren"].value__number;
+    bool forbidden_because_at_capacity = !is_existing_parent && max_children != -1 && n_children(&d__hovered) >= max_children;
+    bool forbidden_because_circular    = !is_existing_parent && is_ancestor([DOCW getTree], ifc.fromNode, hoveredNode);
+
+    ifc_forbidden = forbidden_because_at_capacity || forbidden_because_circular;
+    if (!ifc_forbidden) {
+      ifc_attached = true;
+      ifc.i__temporary = hovered_child_ind;
     }
   }
 
@@ -697,19 +688,22 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   ifc_attached = false;
   hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
 
-  if (hoveredNode != NotFound && hoveredNode != ifc.fromNode) {
-    Diatom &d__hovered = [DOCW getNode:hoveredNode];
+  if (hoveredNode == NotFound || hoveredNode == ifc.fromNode) {
+    DISP;
+    return;
+  }
 
-    if (isOverParentConnector(&d__hovered, p)) {
-      ifc.currentPosition = attachmentCoord_Parent_forNode(&d__hovered);
-      ifc_attached = true;
+  Diatom &d__hovered = [DOCW getNode:hoveredNode];
 
-      auto result = find_node_parent([DOCW getTree], hoveredNode);
-      bool forbidden_because_circular = is_ancestor([DOCW getTree], hoveredNode, ifc.fromNode);
-      if (forbidden_because_circular) {
-        ifc_forbidden = true;
-      }
-    }
+  if (isOverParentConnector(&d__hovered, p)) {
+    ifc.currentPosition = attachmentCoord_Parent_forNode(&d__hovered);
+    ifc_attached = true;
+
+    auto hov_parent = find_node_parent([DOCW getTree], hoveredNode);
+    bool forbidden_because_circular = is_ancestor([DOCW getTree], hoveredNode, ifc.fromNode);
+    bool forbidden_because_target_has_parent = hov_parent.uid != NotFound;
+
+    ifc_forbidden = forbidden_because_circular || forbidden_because_target_has_parent;
   }
 
   DISP;
