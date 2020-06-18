@@ -25,6 +25,7 @@ namespace Banyan {
 
       return { NodeReturnStatus::PushChild, children[0] };
     }
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
       if (s.status == NodeReturnStatus::Success && stopAfterFirstSuccess) {
         return { NodeReturnStatus::Success };
@@ -48,11 +49,13 @@ namespace Banyan {
 
       std::vector<int> v;
 
-      for (int i=0; i < n; ++i)
+      for (int i=0; i < n; ++i) {
         v.push_back(i);
+      }
 
-      if (randomize)
+      if (randomize) {
         std::shuffle(v.begin(), v.end(), g);
+      }
 
       return v;
     }

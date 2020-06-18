@@ -2,9 +2,8 @@
 #define __NodeBase_h
 
 #include <new>
-
-#include "../GenericTree/Diatom/Diatomize/Diatomize.h"
 #include <stdexcept>
+#include "../GenericTree/Diatom/Diatomize/Diatomize.h"
 
 
 namespace Banyan {
@@ -62,6 +61,7 @@ namespace Banyan {
     virtual Diatomize::Descriptor getSD() { return { }; }
   };
 
+
   template<class Derived>
   class NodeBase_CRTP : public NodeBase {
   public:
@@ -72,6 +72,7 @@ namespace Banyan {
       n->type = type;
       return n;
     }
+
     int size() { return sizeof(Derived); }
       // CRTP superclass
       // - Calling clone() on a subclass will invoke this method, calling the
@@ -79,6 +80,7 @@ namespace Banyan {
       // - Especially for classes with automatically-generated copy constructors,
       //   this is super convenient.
   };
+
 
   class NodeFunctional : public NodeBase_CRTP<NodeFunctional> {
   public:
@@ -90,6 +92,7 @@ namespace Banyan {
     NodeReturnStatus call(int identifier, int nChildren) {
       return f(identifier);
     }
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
       throw std::runtime_error("resume() called on functional node");
       return s;
@@ -100,17 +103,21 @@ namespace Banyan {
 
 }
 
+
 #define STBL(s) diatomPart(#s, &s)
 #define STBL1(s)                  STBL(s)
 #define STBL2(s1, s2)             STBL(s1), STBL(s2)
 #define STBL3(s1, s2, s3)         STBL(s1), STBL(s2), STBL(s3)
 #define STBL4(s1, s2, s3, s4)     STBL(s1), STBL(s2), STBL(s3), STBL(s4)
 #define STBL5(s1, s2, s3, s4, s5) STBL(s1), STBL(s2), STBL(s3), STBL(s4), STBL(s5)
-#define GET_STBL_MACRO(_1,_2,_3,_4,_5,NAME,...) NAME
+
+#define GET_STBL_MACRO(_1, _2, _3, _4, _5, NAME, ...) NAME
+
 #define SETTABLES(...) \
     Diatomize::Descriptor __getSD() {  \
     return {{ GET_STBL_MACRO(__VA_ARGS__, STBL5, STBL4, STBL3, STBL2, STBL1)(__VA_ARGS__) }};  \
   }
+
 // NB Macros are arguably not the right tool for this. May be possible with templates.
 //    But, this is nice and simple.
 

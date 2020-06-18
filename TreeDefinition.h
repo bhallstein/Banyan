@@ -106,7 +106,7 @@ namespace Banyan {
         int n_children = nChildren(i);
         ChildLimits limits = n->childLimits();
 
-        if ((limits.min != -1 && n_children < limits.min) || (limits.max != -1 && n_children > limits.max))
+        if ((limits.min != -1 && n_children < limits.min) || (limits.max != -1 && n_children > limits.max)) {
           throw std::runtime_error(
             std::string("Node of type ") + *n->type +
             std::string(" has invalid # of children (") +
@@ -114,6 +114,7 @@ namespace Banyan {
             std::to_string(limits.min) + std::string("-") + std::to_string(limits.max) +
             std::string(")")
           );
+        }
       });
     }
 
