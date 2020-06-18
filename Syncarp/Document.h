@@ -5,7 +5,6 @@
 
 @interface Document : NSDocument <NSTextFieldDelegate>
 
-@property (nonatomic) BOOL loaderWinOpen;
 @property (nonatomic) UID selectedNode;
 
 // Tree manipulation
@@ -17,9 +16,7 @@
 -(Diatom&)getNode:(UID)uid;
 
 // Node definitions
--(std::vector<Diatom>)documentNodeDefs;
 -(std::vector<Diatom>)allNodeDefs;
--(void*)getDefinitionFiles;
 
 @end
 

@@ -1,11 +1,11 @@
 #import "AppDelegate.h"
 #import "Document.h"
 #import "ScrollingTreeView.h"
-#include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
-#include "Banyan/Banyan.h"
 #include "NodeListView.h"
-#include "NodeLoaderWinCtrlr.h"
-#include "NodeDefFile.h"
+#include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
+#define _GT_ENABLE_SERIALIZATION
+#include "Banyan/GenericTree/GenericTree_Nodeless.h"
+
 #include <fstream>
 #include <cassert>
 
@@ -13,11 +13,7 @@
 @interface Document () {
   std::vector<Diatom> tree;
   std::map<void*, std::string> control_names;
-
   std::vector<Diatom> nodeDefs;
-  std::vector<NodeDefFile> definition_files;
-
-  BOOL should_initially_show_loader_window;
 }
 
 @property IBOutlet ScrollingTreeView *view__scrollingTree;
@@ -32,8 +28,6 @@
 @property NSArray *form_labels;
 @property NSArray *form_controls;
 
-@property (strong, nonatomic) NodeLoaderWinCtrlr *nodeLoaderWC;
-
 @end
 
 
@@ -43,8 +37,6 @@
 -(instancetype)init {
   if (self = [super init]) {
     self.selectedNode = NotFound;
-    _loaderWinOpen = NO;
-    should_initially_show_loader_window = NO;
   }
   return self;
 }
@@ -61,14 +53,7 @@
     [self.view__nodeListContainer setDocumentView:self.view__nodeList];
   }
 
-  if (!self.nodeLoaderWC) {
-    self.nodeLoaderWC = [[NodeLoaderWinCtrlr alloc] initWithDoc:self];
-    [self setUpFileDropCallback];
-    if (should_initially_show_loader_window) {
-      [self setLoaderWinOpen:YES];
-      should_initially_show_loader_window = NO;
-    }
-  }
+  [self setUpDefinitionDropCallback];
 }
 
 +(BOOL)autosavesInPlace { return NO; }
@@ -89,12 +74,12 @@
 
   Diatom save;
 
-  // Save definition file locations, if present
-  if (definition_files.size() > 0) {
-    save["definitionFiles"] = Diatom();
-    for (size_t i = 0; i < definition_files.size(); ++i) {
-      std::string k = numeric_key_string("f", (int) i);
-      save["definitionFiles"][k] = definition_files[i].path;
+  // Save any doc-level node definition
+  if (nodeDefs.size() > 0) {
+    save["nodeDefs"] = Diatom();
+    for (auto def : nodeDefs) {
+      int i = (int) save["nodeDefs"].descendants.size();
+      save["nodeDefs"][numeric_key_string("f", i)] = def;
     }
   }
 
@@ -213,25 +198,11 @@
 
 
   // Load doc's node definitions
-  {
-    if (d["definitionFiles"].is_table()) {
-      d["definitionFiles"].each([&](std::string &key, Diatom &d) {
-        NSString *file = [NSString stringWithFormat:@"%s", d.value__string.c_str()];
-        [self addNodeDef_FromFile:file];
-      });
-    }
-
-    // If there were failures, open the node loader window
-    for (auto &f : definition_files) {
-      if (!f.succeeded) {
-        putUpError(@"Node definitions not found",
-                   @"The files might have been moved or deleted. Please re-import the missing definitions using the Node Loader window.");
-        should_initially_show_loader_window = YES;
-        break;
-      }
-    }
+  if (d["nodeDefs"].is_table()) {
+    d["nodeDefs"].each([&](std::string &key, Diatom &d) {
+      [self addNodeDef:d];
+    });
   }
-
 
   try {
     // Load the nodes vector
@@ -285,8 +256,7 @@
 
   if (unknown_node_types.size() > 0) {
     putUpError(@"Warning: unknown node types detected",
-               @"Load the missing node definition files in the Node Loader window.");
-    should_initially_show_loader_window = YES;
+               @"Please load the missing node definitions by dragging them onto the node list on the left.");
   }
 
   if (unknown_node_properties.size() > 0) {
@@ -299,40 +269,11 @@
 }
 
 
-// Node Loader window
-// --------------------------------------
-
--(void)setSelectedNode:(UID)n {
-  _selectedNode = n;
-  if (n != NotFound) { [self setNodeOptionsViewToFilledOut]; }
-  else               { [self setNodeOptionsViewToEmpty];     }
-}
-
--(void)setLoaderWinOpen:(BOOL)loaderWinOpen {
-  if (_loaderWinOpen == loaderWinOpen) {
-    return;
-  }
-
-  _loaderWinOpen = loaderWinOpen;
-
-  if (_loaderWinOpen) {
-    [self.nodeLoaderWC showWindow:nil];
-    [self.nodeLoaderWC.window makeKeyAndOrderFront:nil];
-    [self addWindowController:self.nodeLoaderWC];
-  }
-  else {
-    [self.nodeLoaderWC close];
-    [self removeWindowController:self.nodeLoaderWC];
-  }
-}
-
-
 // Tree manipulation
 // --------------------------------------
 
 -(void)detach:(UID)uid {
   // Removes & destroys -- caller may want to copy the Diatom beforehand
-
   UIDParentSearchResult result = find_node_parent(tree, uid);
 
   // If no parent, remove from top-level vector
@@ -463,6 +404,12 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 // Node options view
 // --------------------------------------
 
+-(void)setSelectedNode:(UID)n {
+  _selectedNode = n;
+  if (n != NotFound) { [self setNodeOptionsViewToFilledOut]; }
+  else               { [self setNodeOptionsViewToEmpty];     }
+}
+
 -(void)setNodeOptionsViewToEmpty {
   self.label__nodeType.stringValue = @"";
   self.label__nodeDescr.stringValue = @"";
@@ -487,14 +434,14 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   }
 
   Diatom d = [self getNode:self.selectedNode];
-  auto n_type = d["type"].value__string;
-  auto n_desc = self.appDelegate.descriptions[n_type];
-  if (n_type == "Unknown") {
-    n_desc = std::string("Warning: type '") + d["original_type"].value__string + std::string("' is not loaded");
+  auto node_type = d["type"].value__string;
+  auto node_desc = self.appDelegate.descriptions[node_type];
+  if (node_type == "Unknown") {
+    node_desc = std::string("Warning: type '") + d["original_type"].value__string + std::string("' is not loaded");
   }
 
-  self.label__nodeType.stringValue = nsstr(n_type);
-  self.label__nodeDescr.stringValue = nsstr(n_desc);
+  self.label__nodeType.stringValue = nsstr(node_type);
+  self.label__nodeDescr.stringValue = nsstr(node_desc);
 
   auto settables = node_settable_properties(d);
   if (settables.size() == 0) {
@@ -604,7 +551,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   }
   else {
     putUpError(@"Incorrect property type",
-               @"The expected property of the selected node did not have the expected type. This is unexpected and serious.");
+               @"The target property of the selected node did not have the expected type. This is unexpected and serious.");
   }
 }
 
@@ -620,7 +567,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   }
   else {
     putUpError(@"Incorrect property type",
-               @"The expected property of the selected node was not a boolean. This is unexpected and serious.");
+               @"The target property of the selected node was not a boolean. This is unexpected and serious.");
   }
 }
 
@@ -628,23 +575,22 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 // Node definitions
 // ------------------------------------
 
--(std::vector<Diatom>)documentNodeDefs {
-  return nodeDefs;
-}
-
 -(std::vector<Diatom>)allNodeDefs {
   std::vector<Diatom> all = nodeDefs;
-  std::vector<Diatom> builtins = self.appDelegate.builtinNodeDefs;
+  std::vector<Diatom> builtins = self.appDelegate.nodeDefs;
   all.insert(all.end(), builtins.begin(), builtins.end());
 
   return all;
 }
 
--(void*)getDefinitionFiles {
-  return &definition_files;
-}
-
 -(void)addNodeDef:(Diatom)def {
+  auto i = std::find_if(nodeDefs.begin(), nodeDefs.end(), [&](Diatom d) {
+    return d["type"].value__string == def["type"].value__string;
+  });
+  if (i != nodeDefs.end()) {
+    nodeDefs.erase(i);
+  }
+
   nodeDefs.push_back(def);
 
   if (def["description"].is_string()) {
@@ -668,48 +614,35 @@ std::string read_file(std::string filename) {
   auto &d = result.d;
 
   if (!result.success) {
-    definition_files.push_back({ false, path_str, result.error_string });
+    putUpError(nsstr(path_str), nsstr(result.error_string));
     return NO;
   }
 
-  if (!d.is_table()) {
-    definition_files.push_back({ false, path_str, "file does not contain a table" });
+  bool valid_structure = d.is_table() && d["nodeDef"].is_table() && d["nodeDef"]["type"].is_string();
+  if (!valid_structure) {
+    putUpError(nsstr(path_str),
+               @"File must have a 'nodeDef' table with a 'type' property and optional 'description' property.");
     return NO;
   }
 
-  if (!(d["nodeDef"].is_table() && d["nodeDef"]["type"].is_string())) {
-    definition_files.push_back({ true, path_str, "file does not have a 'nodeDef' table with a 'type' property" });
-    return NO;
-  }
-
-  definition_files.push_back({ true, path_str });
   [self addNodeDef:d["nodeDef"]];
-
   return YES;
 }
 
--(void)setUpFileDropCallback {
-  // Load dropped nodes as Diatoms
-  __unsafe_unretained typeof(self) weakSelf = self;
-  [self.nodeLoaderWC setCB:^(NSArray *files) {
-    // - Load each file into a Diatom object
-    //    - If any fail, add to errors
-    // - Ensure each has the required properties:
-    //    - type
-    //    - any options w/ defaults
+-(void)setUpDefinitionDropCallback {
+  __unsafe_unretained typeof(self) weak_self = self;
 
-    [weakSelf.nodeLoaderWC disp];
-
+  self.view__nodeList.definitionDropCallback = ^(NSArray *files) {
     NSMutableArray *failed = [NSMutableArray array];
 
     for (NSString *file in files) {
-      BOOL result = [weakSelf addNodeDef_FromFile:file];
+      BOOL result = [weak_self addNodeDef_FromFile:file];
       if (!result) {
         [failed addObject:file];
       }
     }
 
-    [weakSelf.view__nodeList setNeedsDisplay:YES];
+    [weak_self.view__nodeList setNeedsDisplay:YES];
 
     if ([failed count] != 0) {
       NSMutableString *errFilesList = [[NSMutableString alloc] init];
@@ -721,7 +654,7 @@ std::string read_file(std::string filename) {
       putUpError(@"Error loading node definitions", errStr);
       return;
     }
-  }];
+  };
 }
 
 @end

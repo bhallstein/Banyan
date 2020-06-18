@@ -7,7 +7,7 @@ class Diatom;
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
--(std::vector<Diatom>)builtinNodeDefs;
+@property (nonatomic) std::vector<Diatom> nodeDefs;
 -(std::map<std::string, std::string>&)descriptions;
 
 @end

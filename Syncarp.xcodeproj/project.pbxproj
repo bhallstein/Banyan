@@ -7,11 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */ = {isa = PBXBuildFile; fileRef = B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */; };
 		B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B555B4AE247E62BC005351CB /* Diatomize.cpp */; };
 		B593C6AB2493B5DA00B68102 /* Helpers.mm in Sources */ = {isa = PBXBuildFile; fileRef = B593C6AA2493B5DA00B68102 /* Helpers.mm */; };
-		B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */; };
-		B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */; };
 		E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* NodeListView.m */; };
 		E1CB18621AC057B000E7B579 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18611AC057B000E7B579 /* main.m */; };
 		E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1CB18691AC057B000E7B579 /* Images.xcassets */; };
@@ -20,12 +17,9 @@
 		E1CB188B1AC057E500E7B579 /* Document.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188A1AC057E500E7B579 /* Document.xib */; };
 		E1CB188D1AC057EE00E7B579 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188C1AC057EE00E7B579 /* MainMenu.xib */; };
 		E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */; };
-		E1CB18D01AC4987E00E7B579 /* DragDestView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18CF1AC4987E00E7B579 /* DragDestView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B547365D1BC08F82001E4F32 /* NodeDefLoadList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeDefLoadList.h; sourceTree = "<group>"; };
-		B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeDefLoadList.m; sourceTree = "<group>"; };
 		B555B49B247E62BC005351CB /* Banyan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Banyan.h; sourceTree = "<group>"; };
 		B555B49E247E62BC005351CB /* TreeInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeInstance.h; sourceTree = "<group>"; };
 		B555B49F247E62BC005351CB /* TreeDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeDefinition.h; sourceTree = "<group>"; };
@@ -47,13 +41,9 @@
 		B555B4CB247E62BC005351CB /* Node_Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Sequence.h; sourceTree = "<group>"; };
 		B555B4CC247E62BC005351CB /* NodeRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeRegistry.h; sourceTree = "<group>"; };
 		B555B4CD247E62BC005351CB /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
-		B576ED731BC14A0400C5413F /* NodeDefFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NodeDefFile.h; sourceTree = "<group>"; };
 		B583FAD11BBA756F00EDD446 /* Helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Helpers.h; sourceTree = "<group>"; };
 		B593C6A92490063100B68102 /* GenericTree_Nodeless.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericTree_Nodeless.h; path = Syncarp/Banyan/GenericTree/GenericTree_Nodeless.h; sourceTree = SOURCE_ROOT; };
 		B593C6AA2493B5DA00B68102 /* Helpers.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Helpers.mm; sourceTree = "<group>"; };
-		B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeLoaderWinCtrlr.h; sourceTree = "<group>"; };
-		B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeLoaderWinCtrlr.m; sourceTree = "<group>"; };
-		B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NodeLoaderWinCtrlr.xib; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
 		E152C3B01B13C62900D58FC0 /* NodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.m; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,8 +60,6 @@
 		E1CB188C1AC057EE00E7B579 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
 		E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingTreeView.h; sourceTree = "<group>"; };
 		E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = ScrollingTreeView.m; sourceTree = "<group>"; };
-		E1CB18CE1AC4987E00E7B579 /* DragDestView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragDestView.h; sourceTree = "<group>"; };
-		E1CB18CF1AC4987E00E7B579 /* DragDestView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DragDestView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,12 +149,6 @@
 				E152C3B01B13C62900D58FC0 /* NodeListView.m */,
 				E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */,
 				E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */,
-				B547365D1BC08F82001E4F32 /* NodeDefLoadList.h */,
-				B547365E1BC08F82001E4F32 /* NodeDefLoadList.m */,
-				B5D2A54A1BB867C30049F357 /* NodeLoaderWinCtrlr.h */,
-				B5D2A54B1BB867C30049F357 /* NodeLoaderWinCtrlr.m */,
-				E1CB18CE1AC4987E00E7B579 /* DragDestView.h */,
-				E1CB18CF1AC4987E00E7B579 /* DragDestView.m */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -197,14 +179,12 @@
 				E1CB18871AC057DA00E7B579 /* Document.m */,
 				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,
 				E1CB188A1AC057E500E7B579 /* Document.xib */,
-				B5D2A54C1BB867C30049F357 /* NodeLoaderWinCtrlr.xib */,
 				B555B48B247E62BC005351CB /* Banyan */,
 				B5D2A5491BB867900049F357 /* Views */,
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
 				B583FAD11BBA756F00EDD446 /* Helpers.h */,
 				B593C6AA2493B5DA00B68102 /* Helpers.mm */,
-				B576ED731BC14A0400C5413F /* NodeDefFile.h */,
 			);
 			path = Syncarp;
 			sourceTree = "<group>";
@@ -293,7 +273,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5D2A54E1BB867C30049F357 /* NodeLoaderWinCtrlr.xib in Resources */,
 				E1CB188B1AC057E500E7B579 /* Document.xib in Resources */,
 				E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */,
 				E1CB188D1AC057EE00E7B579 /* MainMenu.xib in Resources */,
@@ -307,12 +286,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5D2A54D1BB867C30049F357 /* NodeLoaderWinCtrlr.m in Sources */,
 				E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */,
 				E1CB18891AC057DA00E7B579 /* Document.m in Sources */,
-				B547365F1BC08F82001E4F32 /* NodeDefLoadList.m in Sources */,
 				E1CB18621AC057B000E7B579 /* main.m in Sources */,
-				E1CB18D01AC4987E00E7B579 /* DragDestView.m in Sources */,
 				B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */,
 				B593C6AB2493B5DA00B68102 /* Helpers.mm in Sources */,
 				E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */,

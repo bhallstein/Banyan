@@ -21,6 +21,7 @@ float h_node = 54.;
 @property NSData *dragData;
 @property NSImage *dragImage;
 @property NSDraggingSession *dragSession;
+@property NSArray *droppedFilePaths;
 
 @end
 
@@ -30,15 +31,20 @@ float h_node = 54.;
 -(instancetype)initWithFrame:(NSRect)frameRect {
   if (self = [super initWithFrame:frameRect]) {
     indexOfSelectedNode = -1;
+    [self registerForDraggedTypes:@[ NSFilenamesPboardType ]];
   }
   return self;
 }
 
 -(AppDelegate*)appDelegate {
-    return (AppDelegate*)[NSApplication sharedApplication].delegate;
+  return (AppDelegate*)[NSApplication sharedApplication].delegate;
 }
 
 -(BOOL)isFlipped { return YES; }
+
+
+// Drawing
+// ------------------------------------
 
 -(void)drawRect:(NSRect)dirtyRect {
   [super drawRect:dirtyRect];
@@ -89,6 +95,10 @@ float h_node = 54.;
   [self setFrameSize:NSMakeSize(w, h_total-1)];
 }
 
+
+// Drag source (creating node)
+// ------------------------------------
+
 -(void)mouseDown:(NSEvent*)ev {
   NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
   int ind = (p.y - start_offset) / h_node;
@@ -96,6 +106,7 @@ float h_node = 54.;
 
   DISP;
 }
+
 -(void)mouseDragged:(NSEvent*)ev {
   // Get image
   NSBitmapImageRep *rep = [self bitmapImageRepForCachingDisplayInRect:self.bounds];
@@ -130,6 +141,7 @@ float h_node = 54.;
 
   self.dragSession = [self beginDraggingSessionWithItems:@[dragItem] event:ev source:self];
 }
+
 -(void)mouseUp:(NSEvent*)ev {
   indexOfSelectedNode = -1;
   DISP;
@@ -140,7 +152,6 @@ float h_node = 54.;
     [pb setData:self.dragData forType:type];
   }
 }
-
 
 -(NSDragOperation)draggingSession:(NSDraggingSession*)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context {
   if (context == NSDraggingContextOutsideApplication) {
@@ -153,6 +164,41 @@ float h_node = 54.;
 -(void)draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation {
   indexOfSelectedNode = -1;
   DISP;
+}
+
+
+// Drag target (dropping definitions)
+// ------------------------------------
+
+-(NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
+  return NSDragOperationCopy;
+}
+
+-(BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
+  return YES;
+}
+
+-(BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
+  NSArray *types = sender.draggingPasteboard.types;
+
+  self.droppedFilePaths = [[sender draggingPasteboard] propertyListForType:NSFilenamesPboardType];
+
+  if (![types containsObject:NSFilenamesPboardType]) {
+    printf("DragDestView: No NSFilenamesPboardType items in pasteboard for drag operation\n");
+    return NO;
+  }
+
+  NSTimer *timer = [NSTimer timerWithTimeInterval:0.1 target:self selector:@selector(runCallback) userInfo:nil repeats:NO];
+  [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+
+  return YES;
+}
+
+-(void)runCallback {
+  bool can_run = self.definitionDropCallback && self.droppedFilePaths && self.droppedFilePaths.count > 0;
+  if (can_run) {
+    self.definitionDropCallback(self.droppedFilePaths);
+  }
 }
 
 @end
