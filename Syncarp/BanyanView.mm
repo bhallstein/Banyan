@@ -1,4 +1,4 @@
-#import "ScrollingTreeView.h"
+#import "BanyanView.h"
 #import "Document.h"
 #include "Helpers.h"
 #include "Diatom.h"
@@ -6,7 +6,7 @@
 #include <string>
 
 
-@interface ScrollingTreeView () {
+@interface BanyanView () {
   NSSize  scale;
   NSPoint scroll;
 
@@ -67,27 +67,31 @@ NSPoint add_points(NSPoint p1, NSPoint p2) {
   return NSPoint{ p1.x + p2.x, p1.y + p2.y };
 }
 
-@implementation ScrollingTreeView
+@implementation BanyanView
 static const NSSize unitSize = {1.0, 1.0};
 
--(void)awakeFromNib {
-  [self.window makeFirstResponder:self];
-  [self registerForDraggedTypes:@[NSPasteboardTypeString]];
+-(instancetype)initWithFrame:(NSRect)frameRect {
+  if (self = [super initWithFrame:frameRect]) {
+    [self.window makeFirstResponder:self];
+    [self registerForDraggedTypes:@[NSPasteboardTypeString]];
 
-  hoveredNode = NotFound;
-  ifc_forbidden = false;
-  ifc_attached = false;
+    hoveredNode = NotFound;
+    ifc_forbidden = false;
+    ifc_attached = false;
 
-  NSTrackingAreaOptions tr_options = (
-    NSTrackingActiveAlways |
-    NSTrackingInVisibleRect |
-    NSTrackingMouseEnteredAndExited |
-    NSTrackingMouseMoved
-  );
-  [self addTrackingArea:[[NSTrackingArea alloc] initWithRect:[self bounds]
-                                                     options:tr_options
-                                                       owner:self
-                                                    userInfo:nil]];
+    NSTrackingAreaOptions tr_options = (
+      NSTrackingActiveAlways |
+      NSTrackingInVisibleRect |
+      NSTrackingMouseEnteredAndExited |
+      NSTrackingMouseMoved
+    );
+    [self addTrackingArea:[[NSTrackingArea alloc] initWithRect:[self bounds]
+                                                       options:tr_options
+                                                         owner:self
+                                                      userInfo:nil]];
+  }
+  
+  return self;
 }
 
 -(BOOL)acceptsFirstResponder {
@@ -511,7 +515,6 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   if (parent_connector) {
     // If an orphan, begin FromChild connection from selected node
     if (parent.uid == NotFound) {
-      NSLog(@"Starting ifc from child %.0f to new parent", hoveredNode);
       ifc = {
         InFlightConnection::FromChild,
         hoveredNode,
@@ -524,7 +527,6 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
     // If has existing parent, begin FromParent connection
     else {
-      NSLog(@"Starting ifc from parent %.0f with existing child %.0f", parent.uid, hoveredNode);
       ifc = {
         InFlightConnection::FromParent,
         parent.uid,
@@ -539,7 +541,6 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
     // New child connection: begin FromParent connection
     int cur_children = n_children(&d);
     if (i__child >= cur_children) {
-      NSLog(@"Starting ifc from parent %.0f to new child", hoveredNode);
       ifc = {
         InFlightConnection::FromParent,
         hoveredNode,
@@ -552,9 +553,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
     // Existing child connection: begin FromChild connection
     else {
-      Diatom d__child = d["children"][numeric_key_string("n", i__child)];
-      UID uid__child = d__child["uid"].value__number;
-      NSLog(@"Starting ifc from child %.0f with existing parent %.0f", uid__child, hoveredNode);
+      UID uid__child = d["children"][numeric_key_string("n", i__child)]["uid"].value__number;
       ifc = {
         InFlightConnection::FromChild,
         uid__child,
@@ -594,6 +593,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   if (del && DOCW.selectedNode != NotFound) {
     Diatom d = [DOCW getNode:DOCW.selectedNode];
     [DOCW detach:DOCW.selectedNode];
+    DOCW.selectedNode = NotFound;
 
     for (auto child : d["children"].descendants) {
       [DOCW insert:child.item withParent:NotFound withIndex:-1];

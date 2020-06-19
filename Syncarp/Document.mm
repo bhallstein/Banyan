@@ -1,6 +1,6 @@
 #import "AppDelegate.h"
 #import "Document.h"
-#import "ScrollingTreeView.h"
+#import "BanyanView.h"
 #include "NodeListView.h"
 #include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
 #define _GT_ENABLE_SERIALIZATION
@@ -9,6 +9,11 @@
 #include <fstream>
 #include <cassert>
 
+Diatom EmptyDiatom{Diatom::Type::Empty};
+
+
+float initial_panel_width = 240.;
+
 
 @interface Document () {
   std::vector<Diatom> tree;
@@ -16,17 +21,17 @@
   std::vector<Diatom> nodeDefs;
 }
 
-@property IBOutlet ScrollingTreeView *view__scrollingTree;
-@property IBOutlet NSScrollView *view__nodeOptions;
-@property IBOutlet NSScrollView *view__nodeListContainer;
+@property IBOutlet NSSplitView *view__splitContainer;
+@property NSScrollView *view__nodeListContainer;
 @property NodeListView *view__nodeList;
+@property BanyanView *view__banyanLayout;
+@property NSView *view__nodeOptions;
 
-@property IBOutlet NSTextField *label__nodeType;
-@property IBOutlet NSTextField *label__nodeDescr;
-@property IBOutlet NSTextField *label__optionsHeader;
+@property NSTextField *label__nodeType;
+@property NSTextField *label__nodeDescr;
+@property NSTextField *label__optionsHeader;
 
-@property NSArray *form_labels;
-@property NSArray *form_controls;
+@property NSArray *form_elements;
 
 @end
 
@@ -41,18 +46,85 @@
   return self;
 }
 
+NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_offset) {
+  lbl.translatesAutoresizingMaskIntoConstraints = false;
+  lbl.editable = false;
+  lbl.selectable = true;
+  lbl.bezeled = false;
+
+  [parent addSubview:lbl];
+
+  [lbl setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
+  if (l_offset != -1.) {
+    [[lbl.leftAnchor constraintEqualToAnchor:parent.leftAnchor constant:l_offset] setActive:YES];
+  }
+  if (r_offset != -1.) {
+    [[lbl.rightAnchor constraintEqualToAnchor:parent.rightAnchor constant:r_offset] setActive:YES];
+  }
+
+  return lbl;
+}
+
 -(void)awakeFromNib {
+  self.selectedNode = NotFound;
+
+  [self.view__splitContainer setArrangesAllSubviews:YES];
+
+  self.view__nodeListContainer = [[NSScrollView alloc] init];
+  self.view__banyanLayout     = [[BanyanView alloc] initWithFrame:{0,0,10,10}];
+  self.view__nodeOptions       = [[NSView alloc] initWithFrame:{0,0,10,10}];
+
+  // Add views to split view
+  self.view__splitContainer.dividerStyle = NSSplitViewDividerStyleThin;
+  [self.view__splitContainer addArrangedSubview:self.view__nodeListContainer];
+  [self.view__splitContainer addArrangedSubview:self.view__banyanLayout];
+  [self.view__splitContainer addArrangedSubview:self.view__nodeOptions];
+
+  [self.view__splitContainer setHoldingPriority:2 forSubviewAtIndex:0];
+  [self.view__splitContainer setHoldingPriority:1 forSubviewAtIndex:1];
+  [self.view__splitContainer setHoldingPriority:3 forSubviewAtIndex:2];
+  [self.view__splitContainer setPosition:initial_panel_width ofDividerAtIndex:0];
+  [self.view__splitContainer setPosition:(self.view__splitContainer.frame.size.width - initial_panel_width) ofDividerAtIndex:1];
+
+  // Set up Node List scroll view
+  self.view__nodeListContainer.hasVerticalScroller = YES;
+  [self.view__nodeListContainer setDocumentView:self.view__nodeList];
+  self.view__nodeList = [[NodeListView alloc] initWithFrame:{{0,0}, self.view__nodeListContainer.contentSize}];
+  [self.view__nodeListContainer setDocumentView:self.view__nodeList];
+  self.view__nodeList.translatesAutoresizingMaskIntoConstraints = false;
+  [[self.view__nodeList.topAnchor   constraintEqualToAnchor:self.view__nodeListContainer.contentView.topAnchor]   setActive:YES];
+  [[self.view__nodeList.leftAnchor  constraintEqualToAnchor:self.view__nodeListContainer.contentView.leftAnchor]  setActive:YES];
+  [[self.view__nodeList.rightAnchor constraintEqualToAnchor:self.view__nodeListContainer.contentView.rightAnchor] setActive:YES];
+
+  // Set up Node Options view
+  self.view__nodeOptions.translatesAutoresizingMaskIntoConstraints = false;
+  [self.view__nodeOptions setValue:[NSColor whiteColor] forKey:@"backgroundColor"];
+  [[self.view__nodeOptions.topAnchor    constraintEqualToAnchor:self.view__nodeOptions.topAnchor]    setActive:YES];
+  [[self.view__nodeOptions.leftAnchor   constraintEqualToAnchor:self.view__nodeOptions.leftAnchor]   setActive:YES];
+  [[self.view__nodeOptions.rightAnchor  constraintEqualToAnchor:self.view__nodeOptions.rightAnchor]  setActive:YES];
+  [[self.view__nodeOptions.bottomAnchor constraintEqualToAnchor:self.view__nodeOptions.bottomAnchor] setActive:YES];
+
+  self.label__nodeType      = mk_label([NSTextField textFieldWithString:@"Node type"],            self.view__nodeOptions, 12, -12);
+  self.label__nodeDescr     = mk_label([NSTextField wrappingLabelWithString:@"Node description"], self.view__nodeOptions, 14, -14);
+  self.label__optionsHeader = mk_label([NSTextField textFieldWithString:@"Options"],              self.view__nodeOptions, 12, -12);
+
+  [[self.label__nodeType.topAnchor      constraintEqualToAnchor:self.view__nodeOptions.topAnchor   constant:18] setActive:YES];
+  [[self.label__nodeDescr.topAnchor     constraintEqualToAnchor:self.label__nodeType.bottomAnchor  constant:9]  setActive:YES];
+  [[self.label__optionsHeader.topAnchor constraintEqualToAnchor:self.label__nodeDescr.bottomAnchor constant:24] setActive:YES];
+
+  self.label__nodeType.font      = [NSFont boldSystemFontOfSize:16];
+  self.label__nodeDescr.font     = [NSFont systemFontOfSize:13];
+  self.label__optionsHeader.font = [NSFont boldSystemFontOfSize:14];
+
+  self.label__nodeType.textColor      = [NSColor labelColor];
+  self.label__nodeDescr.textColor     = [NSColor systemGrayColor];
+  self.label__optionsHeader.textColor = [NSColor labelColor];
+
   [self setNodeOptionsViewToEmpty];
 }
 
--(void)windowControllerDidLoadNib:(NSWindowController *)aController {
+-(void)windowControllerDidLoadNib:(NSWindowController*)aController {
   [super windowControllerDidLoadNib:aController];
-
-  if (!self.view__nodeList) {
-    self.view__nodeList = [[NodeListView alloc] initWithFrame:self.view__nodeListContainer.frame];
-    [self.view__nodeListContainer setDocumentView:self.view__nodeList];
-  }
-
   [self setUpDefinitionDropCallback];
 }
 
@@ -278,7 +350,7 @@
 
   // If no parent, remove from top-level vector
   if (result.uid == NotFound) {
-    auto it = std::find_if(tree.begin(), tree.end(), [&](Diatom d) {
+    auto it = std::find_if(tree.begin(), tree.end(), [=](Diatom d) {
       return d["uid"].value__number == uid;
     });
     if (it != tree.end()) {
@@ -289,7 +361,6 @@
   // If parent, remove from parent
   else {
     [self getNode:result.uid]["children"].remove_child(result.child_name);
-    return;
   }
 }
 
@@ -415,14 +486,10 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   self.label__nodeDescr.stringValue = @"";
   self.label__optionsHeader.hidden = YES;
 
-  for (id control in self.form_controls) {
+  for (id control in self.form_elements) {
     [control removeFromSuperview];
   }
-  for (id label in self.form_labels) {
-    [label removeFromSuperview];
-  }
-  self.form_labels = nil;
-  self.form_controls = nil;
+  self.form_elements = nil;
 
   control_names.clear();
 }
@@ -450,86 +517,61 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
   self.label__optionsHeader.hidden = NO;
 
-  NSMutableArray *temp_controls = [[NSMutableArray alloc] init];
-  NSMutableArray *temp_labels = [[NSMutableArray alloc] init];
+  NSMutableArray *temp_elements = [[NSMutableArray alloc] init];
+  NSView *last_label = nil;
 
-  float view_width = self.view__nodeOptions.contentSize.width;
-  float x_padding = 12.;
-  float w_available = (view_width - 3 * x_padding);
-  float w_label   = w_available * 0.75;
-  float w_control = w_available * 0.25;
-  float x_control = x_padding + w_label + x_padding;
-
-  float checkbox_size = 18.;
-  float x_checkbox = view_width - x_padding - checkbox_size;
-
-  float vInc = 26.;
-  float vOffset = 138.;
-  NSRect checkbox_frame = { x_checkbox, 0, checkbox_size, checkbox_size };
-  NSRect label__frame   = { 0, 0, w_label, 17 };
-  NSRect control_frame  = { 0, 0, w_control, 19 };
-
-  int ind = 0;
   for (auto &property_name : settables) {
     Diatom prop = d[property_name];
-
-    float v = vOffset + ind * vInc;
+    NSView *prev = last_label == nil ? self.label__optionsHeader : last_label;
 
     // Create label
-    label__frame.origin = { x_padding, v };
-    NSTextField *label = [[NSTextField alloc] initWithFrame:label__frame];
-    label.stringValue = nsstr(property_name);
-    label.font = [NSFont systemFontOfSize:13.];
-    label.textColor = [NSColor colorWithCalibratedRed:0.27 green:0.27 blue:0.26 alpha:1.0];
-    [label setBezeled:NO];
-    [temp_labels addObject:label];
-    [self.view__nodeOptions addSubview:label];
+    NSTextField *lbl = [NSTextField textFieldWithString:nsstr(property_name)];
+    mk_label(lbl, self.view__nodeOptions, 12, -1);
+    lbl.textColor = [NSColor systemGrayColor];
+    [[lbl.topAnchor constraintEqualToAnchor:prev.bottomAnchor constant:12] setActive:YES];
 
-    if (prop.is_bool()) {
-      // Create checkbox
-      checkbox_frame.origin.y = v - 1;
-      NSButton *checkbox = [[NSButton alloc] initWithFrame:checkbox_frame];
-      checkbox.target = self;
-      checkbox.action = @selector(formButtonClicked:);
+    last_label = lbl;
+    [temp_elements addObject:lbl];
+
+    // Create text input
+    if (prop.is_string() || prop.is_number()) {
+      NSTextField *text_field = [NSTextField textFieldWithString:@""];
+      mk_label(text_field, self.view__nodeOptions, -1, -12);
+      text_field.delegate = self;
+      text_field.editable = YES;
+      text_field.bezeled = YES;
+      text_field.bezelStyle = NSTextFieldRoundedBezel;
+      text_field.textColor = [NSColor labelColor];
+      [[text_field.topAnchor constraintEqualToAnchor:lbl.topAnchor constant:-2] setActive:YES];
+      [[text_field.leftAnchor constraintGreaterThanOrEqualToAnchor:lbl.rightAnchor constant:16] setActive:YES];
+      if (prop.is_string()) {
+        text_field.stringValue = nsstr(prop.value__string);
+      }
+      else {
+        text_field.stringValue = nsstr(_DiatomSerialization::float_format(prop.value__number));
+      }
+
+      control_names[(__bridge void*)text_field] = property_name;
+      [temp_elements addObject:text_field];
+    }
+
+    else if (prop.is_bool()) {
+      NSButton *checkbox = [NSButton checkboxWithTitle:@"" target:self action:@selector(formButtonClicked:)];
       if (prop.value__bool) {
         checkbox.state = NSOnState;
       }
-      [checkbox setButtonType:NSSwitchButton];
-      [temp_controls addObject:checkbox];
+      checkbox.translatesAutoresizingMaskIntoConstraints = NO;
+      [checkbox setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
       [self.view__nodeOptions addSubview:checkbox];
+      [[checkbox.topAnchor constraintEqualToAnchor:lbl.topAnchor constant:0] setActive:YES];
+      [[checkbox.rightAnchor constraintGreaterThanOrEqualToAnchor:self.view__nodeOptions.rightAnchor constant:-12] setActive:YES];
 
-      void* checkbox_ptr = (__bridge void*) checkbox;
-      control_names[checkbox_ptr] = property_name;
+      control_names[(__bridge void*) checkbox] = property_name;
+      [temp_elements addObject:checkbox];
     }
-
-    else if (prop.is_string() || prop.is_number()) {
-      // Create string input
-      control_frame.origin = { x_control, v - 1 };
-      NSTextField *control = [[NSTextField alloc] initWithFrame:control_frame];
-      control.font = [NSFont systemFontOfSize:13.];
-      control.delegate = self;
-      if (prop.is_string()) {
-        control.stringValue = nsstr(prop.value__string);
-      }
-      else {
-        control.doubleValue = prop.value__number;
-      }
-      [temp_controls addObject:control];
-      [self.view__nodeOptions addSubview:control];
-
-      void* ctrl_pointer = (__bridge void*) control;
-      control_names[ctrl_pointer] = property_name;
-    }
-
-    else {
-      // Consider displaying an error message
-    }
-
-    ++ind;
   }
 
-  self.form_controls = [NSArray arrayWithArray:temp_controls];
-  self.form_labels = [NSArray arrayWithArray:temp_labels];
+  self.form_elements = [NSArray arrayWithArray:temp_elements];
 }
 
 
@@ -547,7 +589,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
     prop.value__string = [[notif.object stringValue] UTF8String];
   }
   else if (prop.is_number()) {
-    prop.value__number = [[notif.object stringValue] doubleValue];
+    prop.value__number = [[notif.object stringValue] doubleValue];;
   }
   else {
     putUpError(@"Incorrect property type",

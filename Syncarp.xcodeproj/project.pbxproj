@@ -8,15 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B555B4AE247E62BC005351CB /* Diatomize.cpp */; };
-		B593C6AB2493B5DA00B68102 /* Helpers.mm in Sources */ = {isa = PBXBuildFile; fileRef = B593C6AA2493B5DA00B68102 /* Helpers.mm */; };
-		E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* NodeListView.m */; };
+		E152C3B11B13C62900D58FC0 /* NodeListView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* NodeListView.mm */; };
 		E1CB18621AC057B000E7B579 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18611AC057B000E7B579 /* main.m */; };
 		E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1CB18691AC057B000E7B579 /* Images.xcassets */; };
-		E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18821AC057C800E7B579 /* AppDelegate.m */; };
-		E1CB18891AC057DA00E7B579 /* Document.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18871AC057DA00E7B579 /* Document.m */; };
+		E1CB18831AC057C800E7B579 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18821AC057C800E7B579 /* AppDelegate.mm */; };
+		E1CB18891AC057DA00E7B579 /* Document.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18871AC057DA00E7B579 /* Document.mm */; };
 		E1CB188B1AC057E500E7B579 /* Document.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188A1AC057E500E7B579 /* Document.xib */; };
 		E1CB188D1AC057EE00E7B579 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188C1AC057EE00E7B579 /* MainMenu.xib */; };
-		E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */; };
+		E1CB18C21AC0728D00E7B579 /* BanyanView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18C11AC0728D00E7B579 /* BanyanView.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,9 +42,8 @@
 		B555B4CD247E62BC005351CB /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
 		B583FAD11BBA756F00EDD446 /* Helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Helpers.h; sourceTree = "<group>"; };
 		B593C6A92490063100B68102 /* GenericTree_Nodeless.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericTree_Nodeless.h; path = Syncarp/Banyan/GenericTree/GenericTree_Nodeless.h; sourceTree = SOURCE_ROOT; };
-		B593C6AA2493B5DA00B68102 /* Helpers.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Helpers.mm; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
-		E152C3B01B13C62900D58FC0 /* NodeListView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.m; sourceTree = "<group>"; };
+		E152C3B01B13C62900D58FC0 /* NodeListView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.mm; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1CB185D1AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E1CB185E1AC057B000E7B579 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -53,13 +51,13 @@
 		E1CB18691AC057B000E7B579 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		E1CB18771AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E1CB18781AC057B000E7B579 /* SyncarpTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SyncarpTests.m; sourceTree = "<group>"; };
-		E1CB18821AC057C800E7B579 /* AppDelegate.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = AppDelegate.m; sourceTree = "<group>"; };
+		E1CB18821AC057C800E7B579 /* AppDelegate.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = AppDelegate.mm; sourceTree = "<group>"; };
 		E1CB18861AC057DA00E7B579 /* Document.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Document.h; sourceTree = "<group>"; };
-		E1CB18871AC057DA00E7B579 /* Document.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Document.m; sourceTree = "<group>"; };
+		E1CB18871AC057DA00E7B579 /* Document.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Document.mm; sourceTree = "<group>"; };
 		E1CB188A1AC057E500E7B579 /* Document.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Document.xib; sourceTree = "<group>"; };
 		E1CB188C1AC057EE00E7B579 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
-		E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScrollingTreeView.h; sourceTree = "<group>"; };
-		E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = ScrollingTreeView.m; sourceTree = "<group>"; };
+		E1CB18C01AC0728D00E7B579 /* BanyanView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BanyanView.h; sourceTree = "<group>"; };
+		E1CB18C11AC0728D00E7B579 /* BanyanView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = BanyanView.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,9 +144,9 @@
 			isa = PBXGroup;
 			children = (
 				E152C3AF1B13C62900D58FC0 /* NodeListView.h */,
-				E152C3B01B13C62900D58FC0 /* NodeListView.m */,
-				E1CB18C01AC0728D00E7B579 /* ScrollingTreeView.h */,
-				E1CB18C11AC0728D00E7B579 /* ScrollingTreeView.m */,
+				E152C3B01B13C62900D58FC0 /* NodeListView.mm */,
+				E1CB18C01AC0728D00E7B579 /* BanyanView.h */,
+				E1CB18C11AC0728D00E7B579 /* BanyanView.mm */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -174,9 +172,9 @@
 			isa = PBXGroup;
 			children = (
 				E1CB185E1AC057B000E7B579 /* AppDelegate.h */,
-				E1CB18821AC057C800E7B579 /* AppDelegate.m */,
+				E1CB18821AC057C800E7B579 /* AppDelegate.mm */,
 				E1CB18861AC057DA00E7B579 /* Document.h */,
-				E1CB18871AC057DA00E7B579 /* Document.m */,
+				E1CB18871AC057DA00E7B579 /* Document.mm */,
 				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,
 				E1CB188A1AC057E500E7B579 /* Document.xib */,
 				B555B48B247E62BC005351CB /* Banyan */,
@@ -184,7 +182,6 @@
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
 				B583FAD11BBA756F00EDD446 /* Helpers.h */,
-				B593C6AA2493B5DA00B68102 /* Helpers.mm */,
 			);
 			path = Syncarp;
 			sourceTree = "<group>";
@@ -241,7 +238,7 @@
 		E1CB18511AC057B000E7B579 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = Ben;
 				TargetAttributes = {
 					E1CB18581AC057B000E7B579 = {
@@ -251,10 +248,9 @@
 			};
 			buildConfigurationList = E1CB18541AC057B000E7B579 /* Build configuration list for PBXProject "Syncarp" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
 			);
@@ -286,13 +282,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1CB18C21AC0728D00E7B579 /* ScrollingTreeView.m in Sources */,
-				E1CB18891AC057DA00E7B579 /* Document.m in Sources */,
+				E1CB18C21AC0728D00E7B579 /* BanyanView.mm in Sources */,
+				E1CB18891AC057DA00E7B579 /* Document.mm in Sources */,
 				E1CB18621AC057B000E7B579 /* main.m in Sources */,
 				B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */,
-				B593C6AB2493B5DA00B68102 /* Helpers.mm in Sources */,
-				E152C3B11B13C62900D58FC0 /* NodeListView.m in Sources */,
-				E1CB18831AC057C800E7B579 /* AppDelegate.m in Sources */,
+				E152C3B11B13C62900D58FC0 /* NodeListView.mm in Sources */,
+				E1CB18831AC057C800E7B579 /* AppDelegate.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,17 +298,28 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -322,6 +328,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -334,7 +341,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -345,17 +352,28 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -364,13 +382,14 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
@@ -380,6 +399,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Syncarp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -397,6 +417,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Syncarp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
