@@ -541,7 +541,9 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
       text_field.editable = YES;
       text_field.bezeled = YES;
       text_field.bezelStyle = NSTextFieldRoundedBezel;
-      text_field.textColor = [NSColor labelColor];
+      text_field.textColor = NSColor.blackColor;
+      text_field.drawsBackground = YES;
+      text_field.backgroundColor = NSColor.whiteColor;
       [[text_field.topAnchor constraintEqualToAnchor:lbl.topAnchor constant:-2] setActive:YES];
       [[text_field.leftAnchor constraintGreaterThanOrEqualToAnchor:lbl.rightAnchor constant:16] setActive:YES];
       if (prop.is_string()) {
