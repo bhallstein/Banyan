@@ -31,13 +31,14 @@
 #define __PSA_PSIZE_TYPE uint8_t  // It is highly unlikely our nodes will exceed 256 bytes
 #include "StackAllocators/StackAllocator_PopAndExpand.h"
 
+
 namespace Banyan {
 
   class TreeInstance {
   public:
-    TreeInstance(TreeDefinition *_bt, int _ident) :
-      bt(_bt),
-      identifier(_ident),
+    TreeInstance(TreeDefinition *_tree_def, int _identifier) :
+      tree_def(_tree_def),
+      identifier(_identifier),
       currentNode_gtInd(-1),
       allocator(128)
     {
@@ -45,19 +46,16 @@ namespace Banyan {
     }
     ~TreeInstance()
     {
-      while (stack.size() > 0) popNode();
+      while (stack.size() > 0) {
+        popNode();
+      }
     }
 
     void begin() {
-      currentNode_gtInd = bt->indexOfTopNode();
+      currentNode_gtInd = tree_def->indexOfTopNode();
 
       pushNode(currentNode_gtInd);
-      update();
-    }
-
-    void update() {
-      NodeReturnStatus s = callNode(stack.back());
-      update(s);
+      update(callNode(stack.back()));
     }
 
     void update(NodeReturnStatus s) {
@@ -72,14 +70,13 @@ namespace Banyan {
           s = stack.back()->resume(identifier, s);
         }
         else if (s.status == NodeReturnStatus::PushChild) {
-          pushNode(bt->indexForChild(currentNode_gtInd, s.child));
+          pushNode(tree_def->indexForChild(currentNode_gtInd, s.child));
           s = callNode(stack.back());
         }
       }
     }
 
     void end_running_state(NodeReturnStatus s) {
-//      popNode();
       update(s);
     }
 
@@ -88,25 +85,24 @@ namespace Banyan {
     }
 
   private:
+    TreeDefinition *tree_def;
 
-    TreeDefinition *bt;
-
-    int identifier;
-    int currentNode_gtInd;  // The index of the node within the GenericTree
+    int identifier;         // External identifier of the entity that this behaviour tree is tied to
+    int currentNode_gtInd;  // Index of the node within the GenericTree
 
     StackAllocator_PopAndExpand allocator;
     std::vector<NodeBase*> stack;
       // Nodes are pushed/popped as we descend/ascend the tree
 
     NodeReturnStatus callNode(NodeBase *n) {
-      int nChildren = bt->nChildren(currentNode_gtInd);
+      int nChildren = tree_def->nChildren(currentNode_gtInd);
       return n->call(identifier, nChildren);
     }
 
     void pushNode(int index) {
       currentNode_gtInd = index;
 
-      NodeBase *source_node = bt->getNode(index);
+      NodeBase *source_node = tree_def->getNode(index);
       NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
       source_node->clone(n);
 
@@ -120,10 +116,9 @@ namespace Banyan {
       stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
       allocator.pop();
 
-      currentNode_gtInd = bt->parentIndex(currentNode_gtInd);
+      currentNode_gtInd = tree_def->parentIndex(currentNode_gtInd);
       // NB - may be NOT_FOUND -- caller should check & decide what to do
     }
-
   };
 
 }

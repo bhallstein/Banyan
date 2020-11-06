@@ -17,76 +17,59 @@
 
 namespace Banyan {
 
-  class NodeRegistry {
-  public:
-
-    struct Wrapper {
-      NodeBase *node;
-      std::string identifier;
-
-      Wrapper(NodeBase *_n, const std::string &_id) :
-        node(_n),
-        identifier(_id)
-      {
-        node->type = &identifier;
-      }
-      ~Wrapper()
-      {
-        delete node;
-      }
-    };
-
-    static std::vector<Wrapper*>& definitions() {
-      static std::vector<Wrapper*> _definitions;
+  struct NodeRegistry {
+    static std::vector<NodeBase*>& definitions() {
+      static std::vector<NodeBase*> _definitions;
       return _definitions;
     }
 
-    static void unregisterAll() {
-      for (auto &i : definitions())
-        delete i;
-      definitions().clear();
-    }
 
     struct AutoRegister {
-      AutoRegister(NodeBase *n, const std::string &id) {
-        // printf("registering node: %s  (%lu)\n", id.c_str(), definitions().size()+1);
-        ensureNotAlreadyInDefinitions(id);
-        definitions().push_back(new Wrapper(n, id));
+      AutoRegister(NodeBase *n, std::string node_type) {
+        ensureNotAlreadyInDefinitions(node_type);
+
+        n->type = new std::string(node_type);    // - Intentionally leak this memory to create
+        definitions().push_back(n);              //   an always-present type string
       };
-      AutoRegister(node_function *f, const std::string &id) {
-        // printf("registering node: %s  (%lu)\n", id.c_str(), definitions().size()+1);
-        ensureNotAlreadyInDefinitions(id);
+      AutoRegister(node_function *f, std::string node_type) {
+        ensureNotAlreadyInDefinitions(node_type);
+
         NodeFunctional *n = new NodeFunctional;
         n->f = f;
-        definitions().push_back(new Wrapper(n, id));
-      }
-      void ensureNotAlreadyInDefinitions(const std::string &id) {
-        auto &defs = definitions();
-        for (auto &i : defs) {
-          if (i->identifier.compare(id) == 0) {
-            throw std::runtime_error(
-              std::string("Behaviour already registered: '") + id + "'"
-            );
-          }
-        }
+        n->type = new std::string(node_type);
+        definitions().push_back(n);
       }
     };
 
+
+    static NodeBase* getNode(std::string node_type) {
+      NodeBase *node = NULL;
+      for (auto &n : definitions()) {
+        if (*n->type == node_type) {
+          node = n;
+        }
+      }
+      return node;
+    }
+
+
+    static void ensureNotAlreadyInDefinitions(std::string node_type) {
+      NodeBase *node = getNode(node_type);
+      if (node) {
+        throw std::runtime_error(
+          std::string("Behaviour already registered: '") + node_type + "'"
+        );
+      }
+    }
   };
 
 }
 
 
-#define ConcatL2(a, b) a##b
-#define ConcatL1(a, b) ConcatL2(a, b)
-#define NODE_DEFINITION(sym, ident)  \
-  Banyan::NodeRegistry::AutoRegister _node_Autoregister_##ident(  \
-    new sym, #ident  \
-  )
-#define NODE_DEFINITION_FN(sym, ident)  \
-  Banyan::NodeRegistry::AutoRegister _node_Autoregister_##ident(  \
-    sym, #ident  \
-  )
+#define NODE_DEFINITION(class, node_type)  \
+  Banyan::NodeRegistry::AutoRegister _node_Autoregister_##node_type(new class, #node_type)
+#define NODE_DEFINITION_FN(f, node_type)  \
+  Banyan::NodeRegistry::AutoRegister _node_Autoregister_##node_type(f, #node_type)
 
 
 #endif

@@ -126,30 +126,27 @@ namespace Banyan {
     }
 
     void nodesFromDiatom(Diatom &d_nodes) {
-      // For each node, instantiate into the vector by copying from the definitions
-      // vector, using the identifier
-
+      // Instantiate into the vector by copying from definitions vector
       _assert(d_nodes.is_table());
 
       d_nodes.each([&](std::string &key, Diatom &dn) {
-        std::string identifier = dn["type"].value__string;
+        std::string node_type = dn["type"].value__string;
 
-        // Find existing NodeDef with the right identifier
-        NodeRegistry::Wrapper *nw_def = NULL;
-        for (auto &nw : NodeRegistry::definitions()) {
-          if (nw->identifier == identifier) {
-            nw_def = nw;
+        NodeBase *node = NULL;
+        for (auto &n : NodeRegistry::definitions()) {
+          if (*n->type == node_type) {
+            node = n;
           }
         }
 
-        if (nw_def == NULL) {
+        if (node == NULL) {
           throw std::runtime_error(
-            std::string("Couldn't find a node definition called '") + identifier + "'"
+            std::string("Couldn't find a node definition called '") + node_type + "'"
           );
         }
 
         // Clone the node, then deserialize it
-        NodeBase *n = nw_def->node->clone();
+        NodeBase *n = node->clone();
         antidiatomize(n->_getSD(), dn);
 
         treedef_nodes.push_back(n);
