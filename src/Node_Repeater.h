@@ -1,11 +1,11 @@
-#ifndef __Node_Repeater_h
-#define __Node_Repeater_h
+#ifndef __Banyan_Node_Repeater_h
+#define __Banyan_Node_Repeater_h
 
-#include "NodeBase.h"
+#include "Node.h"
 
 namespace Banyan {
 
-  class Repeater : public NodeBase_CRTP<Repeater> {
+  class Repeater : public Node<Repeater> {
   public:
     ChildLimits childLimits() {
       return { 1, 1 };

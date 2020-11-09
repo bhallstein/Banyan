@@ -1,13 +1,13 @@
-#ifndef __Node_Selector_h
-#define __Node_Selector_h
+#ifndef __Banyan_Node_Selector_h
+#define __Banyan_Node_Selector_h
 
-#include "NodeBase.h"
+#include "Node.h"
 #include <algorithm>
 #include <random>
 
 namespace Banyan {
 
-  class Selector : public NodeBase_CRTP<Selector> {
+  class Selector : public Node<Selector> {
   public:
     ChildLimits childLimits() { return { 1, -1 }; }
 

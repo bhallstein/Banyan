@@ -1,11 +1,11 @@
-#ifndef __Node_Sequence_h
-#define __Node_Sequence_h
+#ifndef __Banyan_Node_Sequence_h
+#define __Banyan_Node_Sequence_h
 
-#include "NodeBase.h"
+#include "Node.h"
 
 namespace Banyan {
 
-  class Sequence : public NodeBase_CRTP<Sequence> {
+  class Sequence : public Node<Sequence> {
   public:
     ChildLimits childLimits()  { return { 1, -1 }; }
 

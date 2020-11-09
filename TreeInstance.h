@@ -20,11 +20,10 @@
 // as defined in the TreeDefinition.
 //
 
-#ifndef __BT_Inst_h
-#define __BT_Inst_h
+#ifndef __Banyan_TreeInstance_h
+#define __Banyan_TreeInstance_h
 
 #include "TreeDefinition.h"
-#include "src/NodeBase.h"
 #include "src/NodeRegistry.h"
 
 #include <cstdint>
@@ -91,10 +90,10 @@ namespace Banyan {
     int currentNode_gtInd;  // Index of the node within the GenericTree
 
     StackAllocator_PopAndExpand allocator;
-    std::vector<NodeBase*> stack;
+    std::vector<NodeSuper*> stack;
       // Nodes are pushed/popped as we descend/ascend the tree
 
-    NodeReturnStatus callNode(NodeBase *n) {
+    NodeReturnStatus callNode(NodeSuper *n) {
       int nChildren = tree_def->nChildren(currentNode_gtInd);
       return n->call(identifier, nChildren);
     }
@@ -102,17 +101,17 @@ namespace Banyan {
     void pushNode(int index) {
       currentNode_gtInd = index;
 
-      NodeBase *source_node = tree_def->getNode(index);
-      NodeBase *n = (NodeBase*) allocator.allocate(source_node->size());
+      NodeSuper *source_node = tree_def->getNode(index);
+      NodeSuper *n = (NodeSuper*) allocator.allocate(source_node->size());
       source_node->clone(n);
 
       stack.push_back(n);
     }
 
     void popNode() {
-      NodeBase *n = stack.back();
+      NodeSuper *n = stack.back();
 
-      n->~NodeBase();    // Manually call destructor (as placement new used in clone().)
+      n->~NodeSuper();    // Manually call destructor (as placement new used in clone().)
       stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
       allocator.pop();
 

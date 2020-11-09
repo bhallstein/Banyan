@@ -1,5 +1,5 @@
-#ifndef __NodeBase_h
-#define __NodeBase_h
+#ifndef __Banyan_Node_h
+#define __Banyan_Node_h
 
 #include <new>
 #include <stdexcept>
@@ -7,6 +7,9 @@
 
 
 namespace Banyan {
+
+  // NodeReturnStatus
+  // -----------------------------------
 
   struct NodeReturnStatus {
     enum T {
@@ -24,17 +27,26 @@ namespace Banyan {
   };
 
 
+  // node_function
+  // -----------------------------------
+
+  typedef NodeReturnStatus (node_function)(size_t identifier);
+
+
+  // ChildLimits
+  // -----------------------------------
+
   struct ChildLimits {
     int min, max;
   };
 
 
-  typedef NodeReturnStatus (node_function)(size_t identifier);
+  // NodeSuper - base node
+  // -----------------------------------
 
-
-  class NodeBase {
+  class NodeSuper {
   public:
-    virtual ~NodeBase() {  }
+    virtual ~NodeSuper() {  }
 
     virtual ChildLimits childLimits() = 0;
     Diatomize::Descriptor _getSD() {
@@ -52,7 +64,7 @@ namespace Banyan {
     virtual NodeReturnStatus call(int identifier, int nChildren) = 0;
     virtual NodeReturnStatus resume(int identifier, NodeReturnStatus &s) = 0;
 
-    virtual NodeBase* clone(void *into = NULL) = 0;
+    virtual NodeSuper* clone(void *into = NULL) = 0;
     virtual int size() = 0;
 
     std::string *type;
@@ -62,11 +74,16 @@ namespace Banyan {
   };
 
 
+  // Node
+  // -----------------------------------
+  // - Class for extending by custom node classes
+  // - Uses CRTP for automatic cloning, sizing
+
   template<class Derived>
-  class NodeBase_CRTP : public NodeBase {
+  class Node : public NodeSuper {
   public:
-    NodeBase* clone(void *mem = NULL) {
-      NodeBase *n;
+    NodeSuper* clone(void *mem = NULL) {
+      NodeSuper *n;
       if (mem) { n = new (mem) Derived((Derived const &) (*this)); }
       else     { n = new Derived((Derived const &) (*this)); }
       n->type = type;
@@ -82,7 +99,11 @@ namespace Banyan {
   };
 
 
-  class NodeFunctional : public NodeBase_CRTP<NodeFunctional> {
+  // NodeFunctional
+  // -----------------------------------
+  // - User node_functions are converted to NodeFunctionals
+
+  class NodeFunctional : public Node<NodeFunctional> {
   public:
     ChildLimits childLimits() { return { 0, 0}; }
     Diatomize::Descriptor getSD() {
@@ -104,6 +125,9 @@ namespace Banyan {
 }
 
 
+// SETTABLES macro
+// -----------------------------------
+
 #define STBL(s) diatomPart(#s, &s)
 #define STBL1(s)                  STBL(s)
 #define STBL2(s1, s2)             STBL(s1), STBL(s2)
@@ -119,7 +143,7 @@ namespace Banyan {
   }
 
 // NB Macros are arguably not the right tool for this. May be possible with templates.
-//    But, this is nice and simple.
+//    This is nice and simple, however.
 
 #endif
 

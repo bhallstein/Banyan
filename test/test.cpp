@@ -15,7 +15,7 @@ int leaf__times_created = 0;
 int leaf__times_called  = 0;
 int leaf__times_resumed = 0;
 
-class MockLeaf : public Banyan::NodeBase_CRTP<MockLeaf> {
+class MockLeaf : public Banyan::Node<MockLeaf> {
 public:
   Banyan::ChildLimits childLimits()  { return { 0, 0 }; }
 

@@ -6,26 +6,26 @@
 //  - A TreeInstance will obtain nodes by copying them from the TreeDef.
 //
 
-#ifndef __NodeRegistry_h
-#define __NodeRegistry_h
+#ifndef __Banyan_NodeRegistry_h
+#define __Banyan_NodeRegistry_h
 
 #include <vector>
 #include <string>
 
-#include "NodeBase.h"
+#include "Node.h"
 
 
 namespace Banyan {
 
   struct NodeRegistry {
-    static std::vector<NodeBase*>& definitions() {
-      static std::vector<NodeBase*> _definitions;
+    static std::vector<NodeSuper*>& definitions() {
+      static std::vector<NodeSuper*> _definitions;
       return _definitions;
     }
 
 
     struct AutoRegister {
-      AutoRegister(NodeBase *n, std::string node_type) {
+      AutoRegister(NodeSuper *n, std::string node_type) {
         ensureNotAlreadyInDefinitions(node_type);
 
         n->type = new std::string(node_type);    // - Intentionally leak this memory to create
@@ -42,8 +42,8 @@ namespace Banyan {
     };
 
 
-    static NodeBase* getNode(std::string node_type) {
-      NodeBase *node = NULL;
+    static NodeSuper* getNode(std::string node_type) {
+      NodeSuper *node = NULL;
       for (auto &n : definitions()) {
         if (*n->type == node_type) {
           node = n;
@@ -54,7 +54,7 @@ namespace Banyan {
 
 
     static void ensureNotAlreadyInDefinitions(std::string node_type) {
-      NodeBase *node = getNode(node_type);
+      NodeSuper *node = getNode(node_type);
       if (node) {
         throw std::runtime_error(
           std::string("Behaviour already registered: '") + node_type + "'"

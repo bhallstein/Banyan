@@ -12,14 +12,14 @@
 //       The first case is equivalent to Rep[0, false] - Seq[false] - C1
 //                                                                  - C2
 
-#ifndef __Node_While_h
-#define __Node_While_h
+#ifndef __Banyan_Node_While_h
+#define __Banyan_Node_While_h
 
-#include "NodeBase.h"
+#include "Node.h"
 
 namespace Banyan {
 
-  class While : public NodeBase_CRTP<While> {
+  class While : public Node<While> {
   public:
     ChildLimits childLimits()  { return { 2, 2 }; }
 

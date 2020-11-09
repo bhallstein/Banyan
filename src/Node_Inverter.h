@@ -1,11 +1,11 @@
-#ifndef __Node_Inverter_h
-#define __Node_Inverter_h
+#ifndef __Banyan_Node_Inverter_h
+#define __Banyan_Node_Inverter_h
 
-#include "NodeBase.h"
+#include "Node.h"
 
 namespace Banyan {
 
-  class Inverter : public NodeBase_CRTP<Inverter> {
+  class Inverter : public Node<Inverter> {
   public:
     ChildLimits childLimits() { return { 1, 1 }; }
 

@@ -6,13 +6,13 @@
 // This means the entire tree does not have to be duplicated for every instance,
 // which can instead maintain only a stack of current nodes.
 //
-// TreeInstance creates nodes by copying them from the TreeDefinition.
+// When TreeInstance needs to create nodes, it does so by copying them from the
+// TreeDefinition.
 //
 
-#ifndef __TreeDef_h
-#define __TreeDef_h
+#ifndef __Banyan_TreeDefinition_h
+#define __Banyan_TreeDefinition_h
 
-#include "src/NodeBase.h"
 #include "src/NodeRegistry.h"
 
 #define _GT_ENABLE_SERIALIZATION
@@ -59,7 +59,7 @@ namespace Banyan {
       }
     }
 
-    NodeBase* getNode(int i) {
+    NodeSuper* getNode(int i) {
       return treedef_nodes[i];
     }
 
@@ -102,7 +102,7 @@ namespace Banyan {
       super::fromDiatom(d_gt);
 
       super::walk([&](int i) {
-        NodeBase *n = treedef_nodes[i];
+        NodeSuper *n = treedef_nodes[i];
         int n_children = nChildren(i);
         ChildLimits limits = n->childLimits();
 
@@ -119,9 +119,9 @@ namespace Banyan {
     }
 
   private:
-    std::vector<NodeBase*> treedef_nodes;
+    std::vector<NodeSuper*> treedef_nodes;
 
-    static Diatom nodeToDiatom(NodeBase *n) {
+    static Diatom nodeToDiatom(NodeSuper *n) {
       return diatomize(n->_getSD());
     }
 
@@ -132,7 +132,7 @@ namespace Banyan {
       d_nodes.each([&](std::string &key, Diatom &dn) {
         std::string node_type = dn["type"].value__string;
 
-        NodeBase *node = NULL;
+        NodeSuper *node = NULL;
         for (auto &n : NodeRegistry::definitions()) {
           if (*n->type == node_type) {
             node = n;
@@ -146,7 +146,7 @@ namespace Banyan {
         }
 
         // Clone the node, then deserialize it
-        NodeBase *n = node->clone();
+        NodeSuper *n = node->clone();
         antidiatomize(n->_getSD(), dn);
 
         treedef_nodes.push_back(n);

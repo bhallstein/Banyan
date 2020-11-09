@@ -1,11 +1,11 @@
-#ifndef __Node_Succeeder_h
-#define __Node_Succeeder_h
+#ifndef __Banyan_Node_Succeeder_h
+#define __Banyan_Node_Succeeder_h
 
-#include "NodeBase.h"
+#include "Node.h"
 
 namespace Banyan {
 
-  class Succeeder : public NodeBase_CRTP<Succeeder> {
+  class Succeeder : public Node<Succeeder> {
   public:
     ChildLimits childLimits()  { return { 1, 1 }; }
 
