@@ -2,14 +2,14 @@ treeDef:
   nodes:
     n0:
       N: 3
-      ignoreFailure: false
+      break_on_failure: true
       type: "Repeater"
     n1:
       succeeds: true
       type: "MockLeaf"
     n2:
       N: 2
-      ignoreFailure: false
+      break_on_failure: true
       type: "Repeater"
   tree:
     free_list:

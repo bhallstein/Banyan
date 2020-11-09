@@ -5,8 +5,7 @@
 
 namespace Banyan {
 
-  class Inverter : public Node<Inverter> {
-  public:
+  struct Inverter : Node<Inverter> {
     std::string type() { return "Inverter"; }
     ChildLimits childLimits() { return { 1, 1 }; }
 

@@ -19,8 +19,7 @@
 
 namespace Banyan {
 
-  class While : public Node<While> {
-  public:
+  struct While : Node<While> {
     std::string type() { return "While"; }
     ChildLimits childLimits()  { return { 2, 2 }; }
 

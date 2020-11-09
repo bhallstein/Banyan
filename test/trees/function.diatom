@@ -2,7 +2,7 @@ treeDef:
   nodes:
     n0:
       N: 4
-      ignoreFailure: false
+      break_on_failure: true
       type: "Repeater"
     n1:
       type: "MockSucceeder"

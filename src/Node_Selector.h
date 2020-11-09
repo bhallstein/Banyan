@@ -7,8 +7,7 @@
 
 namespace Banyan {
 
-  class Selector : public Node<Selector> {
-  public:
+  struct Selector : Node<Selector> {
     std::string type() { return "Selector"; }
     ChildLimits childLimits() { return { 1, -1 }; }
 
@@ -56,7 +55,6 @@ namespace Banyan {
       return { NodeReturnStatus::PushChild, children[i] };
     }
 
-  private:
     static std::vector<int> vectorUpTo(int n, bool randomize) {
       static std::random_device rd;
       static std::mt19937 g(rd());

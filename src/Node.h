@@ -44,8 +44,7 @@ namespace Banyan {
   // NodeSuper - base node
   // -----------------------------------
 
-  class NodeSuper {
-  public:
+  struct NodeSuper {
     virtual ~NodeSuper() {  }
 
     virtual ChildLimits childLimits() = 0;
@@ -83,8 +82,7 @@ namespace Banyan {
   // - Uses CRTP for automatic cloning, sizing
 
   template<class Derived>
-  class Node : public NodeSuper {
-  public:
+  struct Node : NodeSuper {
     NodeSuper* clone(void *mem = NULL) {
       if (mem) { return new (mem) Derived((Derived const &) (*this)); }
       else     { return new Derived((Derived const &) (*this)); }
@@ -103,8 +101,7 @@ namespace Banyan {
   // -----------------------------------
   // - User node_functions are converted to NodeFunctionals
 
-  class NodeFunctional : public Node<NodeFunctional> {
-  public:
+  struct NodeFunctional : Node<NodeFunctional> {
     ChildLimits childLimits() { return { 0, 0}; }
 
     std::string functional_node_type;

@@ -1,7 +1,7 @@
 treeDef:
   nodes:
     n0:
-      ignoreFailure: false
+      break_on_failure: true
       type: "Sequence"
     n1:
       succeeds: true

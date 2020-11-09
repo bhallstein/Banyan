@@ -5,8 +5,7 @@
 
 namespace Banyan {
 
-  class Repeater : public Node<Repeater> {
-  public:
+  struct Repeater : Node<Repeater> {
     std::string type() { return "Repeater"; }
     ChildLimits childLimits() {
       return { 1, 1 };
