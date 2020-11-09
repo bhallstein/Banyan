@@ -7,23 +7,42 @@ namespace Banyan {
 
   class Repeater : public Node<Repeater> {
   public:
+    std::string type() { return "Repeater"; }
     ChildLimits childLimits() {
       return { 1, 1 };
     }
 
-    int N;               // Set N to 0 to repeat infinitely
-    bool ignoreFailure;  // Should failures cease the repeater?
 
-    SETTABLES(N, ignoreFailure);
+    int N;                  // If N is 0, will repeat infinitely
+    bool break_on_failure;  // Should failures cease the repeater?
 
-    Repeater() : i(0), N(1), ignoreFailure(false) {  }
+    int i;                  // Number of times repeated
+
+
+    Diatom to_diatom() {
+      Diatom d;
+      d["N"] = (double) N;
+      d["break_on_failure"] = break_on_failure;
+      return d;
+    }
+    void from_diatom(Diatom d) {
+      i = d["i"].value__number;
+      N = d["N"].value__number;
+      break_on_failure = d["break_on_failure"].value__bool;
+    }
+
+
+    Repeater() : i(0), N(1), break_on_failure(false) {  }
     ~Repeater() {  }
+
 
     NodeReturnStatus call(int identifier, int nChildren) {
       return { NodeReturnStatus::PushChild, 0 };
     }
+
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
-      if (s.status == NodeReturnStatus::Failure && !ignoreFailure) {
+      if (s.status == NodeReturnStatus::Failure && break_on_failure) {
         return s;
       }
 
@@ -37,8 +56,6 @@ namespace Banyan {
 
       return { NodeReturnStatus::PushChild, 0 };
     }
-
-    int i;
   };
 
 }

@@ -25,18 +25,16 @@ namespace Banyan {
 
 
     struct AutoRegister {
-      AutoRegister(NodeSuper *n, std::string node_type) {
-        ensureNotAlreadyInDefinitions(node_type);
-
-        n->type = new std::string(node_type);    // - Intentionally leak this memory to create
-        definitions().push_back(n);              //   an always-present type string
+      AutoRegister(NodeSuper *n) {
+        ensureNotAlreadyInDefinitions(n->type());
+        definitions().push_back(n);
       };
       AutoRegister(node_function *f, std::string node_type) {
         ensureNotAlreadyInDefinitions(node_type);
 
         NodeFunctional *n = new NodeFunctional;
         n->f = f;
-        n->type = new std::string(node_type);
+        n->functional_node_type = node_type;
         definitions().push_back(n);
       }
     };
@@ -45,7 +43,7 @@ namespace Banyan {
     static NodeSuper* getNode(std::string node_type) {
       NodeSuper *node = NULL;
       for (auto &n : definitions()) {
-        if (*n->type == node_type) {
+        if (n->type() == node_type) {
           node = n;
         }
       }
@@ -66,9 +64,9 @@ namespace Banyan {
 }
 
 
-#define NODE_DEFINITION(class, node_type)  \
-  Banyan::NodeRegistry::AutoRegister _node_Autoregister_##node_type(new class, #node_type)
-#define NODE_DEFINITION_FN(f, node_type)  \
+#define NodeDefinition(class)  \
+  Banyan::NodeRegistry::AutoRegister _node_Autoregister_##class(new class)
+#define NodeDefinitionFunction(f, node_type)  \
   Banyan::NodeRegistry::AutoRegister _node_Autoregister_##node_type(f, #node_type)
 
 

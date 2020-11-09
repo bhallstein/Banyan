@@ -21,19 +21,33 @@ namespace Banyan {
 
   class While : public Node<While> {
   public:
+    std::string type() { return "While"; }
     ChildLimits childLimits()  { return { 2, 2 }; }
+
 
     bool breakOnFailuresIn2ndChild;  // Should failures in the action child
                                      // cease the sequence?
 
-    SETTABLES(breakOnFailuresIn2ndChild);
+    int i;
+
+    Diatom to_diatom() {
+      Diatom d;
+      d["breakOnFailuresIn2ndChild"] = breakOnFailuresIn2ndChild;
+      return d;
+    }
+    void from_diatom(Diatom d) {
+      breakOnFailuresIn2ndChild = d["breakOnFailuresIn2ndChild"].value__bool;
+    }
+
 
     While() : i(0), breakOnFailuresIn2ndChild(false) {  }
     ~While() {  }
 
+
     NodeReturnStatus call(int identifier, int _n_children) {
       return { NodeReturnStatus::PushChild, 0 };
     }
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
       if (i == 0) {
         // Act on condition child return status
@@ -55,7 +69,6 @@ namespace Banyan {
       }
     }
 
-    int i;
   };
 
 }

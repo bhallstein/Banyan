@@ -4,7 +4,7 @@ treeDef:
       breakOnFailuresIn2ndChild: false
       type: "While"
     n1:
-      type: "NodeThatFailsEventually"
+      type: "MockFailsOnThirdCall"
     n2:
       succeeds: false
       type: "MockLeaf"

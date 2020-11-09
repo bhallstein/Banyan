@@ -7,14 +7,29 @@ namespace Banyan {
 
   class Sequence : public Node<Sequence> {
   public:
+    std::string type() { return "Sequence"; }
     ChildLimits childLimits()  { return { 1, -1 }; }
+
 
     bool ignoreFailure;
 
-    SETTABLES(ignoreFailure);
+    int i;
+    int n_children;
+
+
+    Diatom to_diatom() {
+      Diatom d;
+      d["ignoreFailure"] = ignoreFailure;
+      return d;
+    }
+    void from_diatom(Diatom d) {
+      ignoreFailure = d["ignoreFailure"].value__bool;
+    }
+
 
     Sequence() : i(0), n_children(-1), ignoreFailure(false) {  }
     ~Sequence() {  }
+
 
     NodeReturnStatus call(int identifier, int _n_children) {
       n_children = _n_children;
@@ -29,9 +44,6 @@ namespace Banyan {
 
       return { NodeReturnStatus::PushChild, i };
     }
-
-    int i;
-    int n_children;
   };
 
 }

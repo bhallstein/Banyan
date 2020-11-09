@@ -8,38 +8,37 @@
 #include <iostream>
 
 
-// Test nodes
-// ------------------------------
-
 int leaf__times_created = 0;
 int leaf__times_called  = 0;
 int leaf__times_resumed = 0;
 
+
+// MockLeaf
+// ------------------------------
+
 class MockLeaf : public Banyan::Node<MockLeaf> {
 public:
+  std::string type() { return "MockLeaf"; }
   Banyan::ChildLimits childLimits()  { return { 0, 0 }; }
 
-  Diatomize::Descriptor getSD() {
-    return {{
-      diatomPart("succeeds", &succeeds)
-    }};
+
+  bool succeeds;
+
+
+  Diatom to_diatom() {
+    Diatom d;
+    d["succeeds"] = succeeds;
+    return d;
+  }
+  void from_diatom(Diatom d) {
+    succeeds = d["succeeds"].value__bool;
   }
 
-  MockLeaf()  { leaf__times_created += 1; }
+
+  MockLeaf() { leaf__times_created += 1; }
   MockLeaf(const MockLeaf &m) : succeeds(m.succeeds) { leaf__times_created += 1; }
   ~MockLeaf() {  }
 
-  static void reset() {
-    leaf__times_created = 0;
-    leaf__times_called  = 0;
-    leaf__times_resumed = 0;
-  }
-
-  static void print() {
-    printf("leaf__times_created: %d\n", leaf__times_created);
-    printf("leaf__times_called : %d\n", leaf__times_called );
-    printf("leaf__times_resumed: %d\n", leaf__times_resumed);
-  }
 
   Banyan::NodeReturnStatus call(int identifier, int nChildren) {
     leaf__times_called += 1;
@@ -47,6 +46,8 @@ public:
       (succeeds ? Banyan::NodeReturnStatus::Success : Banyan::NodeReturnStatus::Failure)
     };
   }
+
+
   Banyan::NodeReturnStatus resume(int identifier, Banyan::NodeReturnStatus &s) {
     // This should not be called, as we are a leaf node.
     _assert(false);
@@ -54,19 +55,31 @@ public:
     return s;
   }
 
-  bool succeeds;  // Returns success or failure?
+
+  static void reset() {
+    leaf__times_created = 0;
+    leaf__times_called  = 0;
+    leaf__times_resumed = 0;
+  }
 };
 
-int fn_node_calls = 0;
-int fn_node_calls_2 = 0;
+NodeDefinition(MockLeaf);
 
-Banyan::NodeReturnStatus node_fn(size_t identifier) {
-  fn_node_calls++;
+
+
+// node functions
+// ------------------------------
+
+int calls__mock__succeeder = 0;
+int calls__mock__fails_on_third_call = 0;
+
+Banyan::NodeReturnStatus mock__succeeder(size_t identifier) {
+  calls__mock__succeeder++;
   return { Banyan::NodeReturnStatus::Success };
 }
 
-Banyan::NodeReturnStatus node_fn_fails_eventually(size_t id) {
-  if (fn_node_calls_2++ == 2) {
+Banyan::NodeReturnStatus mock__fails_on_third_call(size_t id) {
+  if (calls__mock__fails_on_third_call++ == 2) {
     return { Banyan::NodeReturnStatus::Failure };
   }
   else {
@@ -74,9 +87,9 @@ Banyan::NodeReturnStatus node_fn_fails_eventually(size_t id) {
   }
 }
 
-NODE_DEFINITION(MockLeaf, MockLeaf);
-NODE_DEFINITION_FN(node_fn, FunctionTest);
-NODE_DEFINITION_FN(node_fn_fails_eventually, NodeThatFailsEventually);
+NodeDefinitionFunction(mock__succeeder, MockSucceeder);
+NodeDefinitionFunction(mock__fails_on_third_call, MockFailsOnThirdCall);
+
 
 
 // Helpers
@@ -102,11 +115,56 @@ Banyan::TreeDefinition load_tree(std::string filename) {
 }
 
 
-// Tests
+// NodeRegistry tests
 // ------------------------------
 
-void testTreeDef() {
-  p_file_header("Treedef-serialization.cpp");
+void test__node_registry() {
+  p_file_header("NodeRegistry");
+
+  p_header("Autoregister");
+  {
+    size_t number_of_definitions = Banyan::NodeRegistry::definitions().size();
+    p_assert(number_of_definitions == 9);
+      // 6 builtins, MockLeaf, 2 functional nodes
+  }
+
+  p_header("getNode");
+  {
+    Banyan::NodeSuper *def__repeater = Banyan::NodeRegistry::getNode("Repeater");
+    p_assert(def__repeater->type() == "Repeater");
+
+    Banyan::NodeSuper *def__mock_leaf = Banyan::NodeRegistry::getNode("MockLeaf");
+    p_assert(def__mock_leaf->type() == "MockLeaf");
+
+    Banyan::NodeSuper *def__mock_succeeder = Banyan::NodeRegistry::getNode("MockSucceeder");
+    p_assert(def__mock_succeeder->type() == "MockSucceeder");
+
+    Banyan::NodeSuper *def__nonexistent = Banyan::NodeRegistry::getNode("Nonexistent");
+    p_assert(def__nonexistent == NULL);
+  }
+
+  p_header("ensureNotAlreadyInDefinitions");
+  {
+    int throws = 0;
+    Banyan::NodeRegistry::ensureNotAlreadyInDefinitions("NotInDefinitions");
+    p_assert(throws == 0);
+
+    try {
+      Banyan::NodeRegistry::ensureNotAlreadyInDefinitions("MockLeaf");
+    }
+    catch(std::runtime_error exc) {
+      throws += 1;
+    }
+    p_assert(throws == 1);
+  }
+}
+
+
+// TreeDefinition tests
+// ------------------------------
+
+void test__tree_definition() {
+  p_file_header("TreeDefinition");
   p_header("TreeDef serialization");
 
   std::string file_str = read_file("trees/serialization.diatom");
@@ -126,8 +184,12 @@ void testTreeDef() {
 }
 
 
-void testTreeInst() {
-  p_file_header("TreeInstance.h");
+
+// TreeInstance tests
+// ------------------------------
+
+void test__tree_instance() {
+  p_file_header("TreeInstance");
 
   p_header("Repeater");
   {
@@ -204,12 +266,12 @@ void testTreeInst() {
   {
     Banyan::TreeDefinition bt = load_tree("trees/function.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
-    fn_node_calls = 0;
-    fn_node_calls_2 = 0;
+    calls__mock__succeeder = 0;
+    calls__mock__fails_on_third_call = 0;
     bt_inst.begin();
 
     p_assert(bt_inst.stackSize() == 0);
-    p_assert(fn_node_calls == 4);
+    p_assert(calls__mock__succeeder == 4);
   }
 
 
@@ -218,12 +280,12 @@ void testTreeInst() {
     Banyan::TreeDefinition bt = load_tree("trees/while.diatom");
     Banyan::TreeInstance bt_inst(&bt, 1);
     MockLeaf::reset();
-    fn_node_calls = 0;
-    fn_node_calls_2 = 0;
+    calls__mock__succeeder = 0;
+    calls__mock__fails_on_third_call = 0;
     bt_inst.begin();
 
     p_assert(bt_inst.stackSize() == 0);
-    p_assert(fn_node_calls_2 == 3);
+    p_assert(calls__mock__fails_on_third_call == 3);
     p_assert(leaf__times_created == 2);
   }
 }
@@ -231,8 +293,10 @@ void testTreeInst() {
 
 int main() {
   Banyan::TreeDefinition::registerBuiltins();
-  testTreeDef();
-  testTreeInst();
+  test__node_registry();
+  test__tree_definition();
+  test__tree_instance();
+
   return 0;
 }
 

@@ -3,7 +3,7 @@
 
 #include <new>
 #include <stdexcept>
-#include "../GenericTree/Diatom/Diatomize/Diatomize.h"
+#include "../GenericTree/Diatom/DiatomSerialization.h"
 
 
 namespace Banyan {
@@ -49,28 +49,31 @@ namespace Banyan {
     virtual ~NodeSuper() {  }
 
     virtual ChildLimits childLimits() = 0;
-    Diatomize::Descriptor _getSD() {
-      Diatomize::Descriptor sd = getSD();
-      sd.descriptor.push_back(diatomPart("type", &type));
-
-      for (auto i : __getSD().descriptor) {
-        sd.descriptor.push_back(i->clone());
-      }
-
-      return sd;
-    }
-    virtual Diatomize::Descriptor __getSD() { return {{ }}; }
 
     virtual NodeReturnStatus call(int identifier, int nChildren) = 0;
     virtual NodeReturnStatus resume(int identifier, NodeReturnStatus &s) = 0;
 
     virtual NodeSuper* clone(void *into = NULL) = 0;
     virtual int size() = 0;
+    virtual std::string type() = 0;
 
-    std::string *type;
+    virtual Diatom to_diatom() { return { }; }
+    virtual void from_diatom(Diatom d) { }
+    Diatom __to_diatom() {
+      Diatom d;
+      auto child_props = to_diatom();
 
-  protected:
-    virtual Diatomize::Descriptor getSD() { return { }; }
+      d["type"] = type();
+
+      child_props.each([&](std::string key, Diatom value) {
+        d[key] = value;
+      });
+
+      return d;
+    }
+    void __from_diatom(Diatom d) {
+      from_diatom(d);
+    }
   };
 
 
@@ -83,11 +86,8 @@ namespace Banyan {
   class Node : public NodeSuper {
   public:
     NodeSuper* clone(void *mem = NULL) {
-      NodeSuper *n;
-      if (mem) { n = new (mem) Derived((Derived const &) (*this)); }
-      else     { n = new Derived((Derived const &) (*this)); }
-      n->type = type;
-      return n;
+      if (mem) { return new (mem) Derived((Derived const &) (*this)); }
+      else     { return new Derived((Derived const &) (*this)); }
     }
 
     int size() { return sizeof(Derived); }
@@ -106,8 +106,10 @@ namespace Banyan {
   class NodeFunctional : public Node<NodeFunctional> {
   public:
     ChildLimits childLimits() { return { 0, 0}; }
-    Diatomize::Descriptor getSD() {
-      return Diatomize::Descriptor();
+
+    std::string functional_node_type;
+    std::string type() {
+      return functional_node_type;
     }
 
     NodeReturnStatus call(int identifier, int nChildren) {
@@ -124,26 +126,6 @@ namespace Banyan {
 
 }
 
-
-// SETTABLES macro
-// -----------------------------------
-
-#define STBL(s) diatomPart(#s, &s)
-#define STBL1(s)                  STBL(s)
-#define STBL2(s1, s2)             STBL(s1), STBL(s2)
-#define STBL3(s1, s2, s3)         STBL(s1), STBL(s2), STBL(s3)
-#define STBL4(s1, s2, s3, s4)     STBL(s1), STBL(s2), STBL(s3), STBL(s4)
-#define STBL5(s1, s2, s3, s4, s5) STBL(s1), STBL(s2), STBL(s3), STBL(s4), STBL(s5)
-
-#define GET_STBL_MACRO(_1, _2, _3, _4, _5, NAME, ...) NAME
-
-#define SETTABLES(...) \
-    Diatomize::Descriptor __getSD() {  \
-    return {{ GET_STBL_MACRO(__VA_ARGS__, STBL5, STBL4, STBL3, STBL2, STBL1)(__VA_ARGS__) }};  \
-  }
-
-// NB Macros are arguably not the right tool for this. May be possible with templates.
-//    This is nice and simple, however.
 
 #endif
 

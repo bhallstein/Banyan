@@ -3,14 +3,14 @@ treeDef:
     n0:
       type: "Repeater"
       N: 2
-      ignoreFailure: false
+      break_on_failure: false
     n1:
-      succeeds: true
       type: "MockLeaf"
+      succeeds: true
     n2:
       type: "Repeater"
       N: 3
-      ignoreFailure: false
+      break_on_failure: false
   tree:
     tree:
       n0:

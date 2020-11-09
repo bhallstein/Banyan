@@ -5,7 +5,7 @@ treeDef:
       ignoreFailure: false
       type: "Repeater"
     n1:
-      type: "FunctionTest"
+      type: "MockSucceeder"
   tree:
     free_list:
     tree:

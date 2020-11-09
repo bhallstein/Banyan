@@ -13,11 +13,11 @@
 //  - RUNNING: cede to game code until some time in the future
 //
 // Game code itself shouldn't track individual nodes -- the TreeInstance does this.
-// The user hangs onto a TreeInstance, and calls it when it has finished running a state
-// to transition it into a new state.
+// The user hangs onto a TreeInstance, calling it when it has finished running a node
+// to transition to a new node.
 //
-// The TreeInstance transitions to a new state by calling a sequence of nodes
-// as defined in the TreeDefinition.
+// The TreeInstance transitions through tree of nodes, as defined in the TreeDefinition,
+// coming to rest on some other node.
 //
 
 #ifndef __Banyan_TreeInstance_h
@@ -38,84 +38,84 @@ namespace Banyan {
     TreeInstance(TreeDefinition *_tree_def, int _identifier) :
       tree_def(_tree_def),
       identifier(_identifier),
-      currentNode_gtInd(-1),
+      index__current_node_in_gt(-1),
       allocator(128)
     {
 
     }
     ~TreeInstance()
     {
-      while (stack.size() > 0) {
+      while (node_stack.size() > 0) {
         popNode();
       }
     }
 
-    void begin() {
-      currentNode_gtInd = tree_def->indexOfTopNode();
 
-      pushNode(currentNode_gtInd);
-      update(callNode(stack.back()));
+    void begin() {
+      index__current_node_in_gt = tree_def->indexOfTopNode();
+
+      pushNode(index__current_node_in_gt);
+      update(callNode(node_stack.back()));
     }
 
     void update(NodeReturnStatus s) {
       while (s.status != NodeReturnStatus::Running) {
         if (s.status == NodeReturnStatus::Success || s.status == NodeReturnStatus::Failure) {
           popNode();
-          if (stack.size() == 0) {
+          if (node_stack.size() == 0) {
             // printf("Stack size now zero\n");
             // TODO: signal finishing to the user somehow
             break;
           }
-          s = stack.back()->resume(identifier, s);
+          s = node_stack.back()->resume(identifier, s);
         }
         else if (s.status == NodeReturnStatus::PushChild) {
-          pushNode(tree_def->indexForChild(currentNode_gtInd, s.child));
-          s = callNode(stack.back());
+          pushNode(tree_def->indexForChild(index__current_node_in_gt, s.child));
+          s = callNode(node_stack.back());
         }
       }
     }
 
-    void end_running_state(NodeReturnStatus s) {
+    void end_running_node(NodeReturnStatus s) {
       update(s);
     }
 
     int stackSize() {
-      return (int) stack.size();
+      return (int) node_stack.size();
     }
 
   private:
     TreeDefinition *tree_def;
 
-    int identifier;         // External identifier of the entity that this behaviour tree is tied to
-    int currentNode_gtInd;  // Index of the node within the GenericTree
+    int identifier;      // External identifier of the entity that this behaviour tree belongs to
+    int index__current_node_in_gt;
 
     StackAllocator_PopAndExpand allocator;
-    std::vector<NodeSuper*> stack;
-      // Nodes are pushed/popped as we descend/ascend the tree
+    std::vector<NodeSuper*> node_stack;
 
     NodeReturnStatus callNode(NodeSuper *n) {
-      int nChildren = tree_def->nChildren(currentNode_gtInd);
+      int nChildren = tree_def->nChildren(index__current_node_in_gt);
       return n->call(identifier, nChildren);
     }
 
     void pushNode(int index) {
-      currentNode_gtInd = index;
+      index__current_node_in_gt = index;
 
       NodeSuper *source_node = tree_def->getNode(index);
       NodeSuper *n = (NodeSuper*) allocator.allocate(source_node->size());
       source_node->clone(n);
 
-      stack.push_back(n);
+      node_stack.push_back(n);
     }
 
     void popNode() {
-      NodeSuper *n = stack.back();
+      NodeSuper *n = node_stack.back();
 
-      n->~NodeSuper();    // Manually call destructor (as placement new used in clone().)
-      stack.pop_back();  //  -- i.e. clean up if the node makes any allocations
+      n->~NodeSuper();        // Manually call destructor (as placement new used in clone())
+      node_stack.pop_back();  // -- i.e. clean up if the node makes any allocations
       allocator.pop();
 
-      currentNode_gtInd = tree_def->parentIndex(currentNode_gtInd);
+      index__current_node_in_gt = tree_def->parentIndex(index__current_node_in_gt);
       // NB - may be NOT_FOUND -- caller should check & decide what to do
     }
   };

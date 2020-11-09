@@ -1,12 +1,8 @@
 treeDef:
   nodes:
     n0:
-      N: 2
-      ignoreFailure: false
-      type: "Repeater"
-    n1:
       type: "Inverter"
-    n2:
+    n1:
       succeeds: true
       type: "MockLeaf"
   tree:
@@ -19,10 +15,5 @@ treeDef:
         i__parent: -1
       n1:
         i__children:
-          n0: 2
         i: 1
         i__parent: 0
-      n2:
-        i__children:
-        i: 2
-        i__parent: 1

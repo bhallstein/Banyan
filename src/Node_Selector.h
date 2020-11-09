@@ -9,15 +9,33 @@ namespace Banyan {
 
   class Selector : public Node<Selector> {
   public:
+    std::string type() { return "Selector"; }
     ChildLimits childLimits() { return { 1, -1 }; }
+
 
     bool stopAfterFirstSuccess;  // Return success after a child succeeds
     bool randomizeOrder;         // Call children in random order?
 
-    SETTABLES(stopAfterFirstSuccess, randomizeOrder);
+    int i;
+    int n_children;
+    std::vector<int> children;
+
+
+    Diatom to_diatom() {
+      Diatom d;
+      d["stopAfterFirstSuccess"] = stopAfterFirstSuccess;
+      d["randomizeOrder"] = randomizeOrder;
+      return d;
+    }
+    void from_diatom(Diatom d) {
+      stopAfterFirstSuccess = d["stopAfterFirstSuccess"].value__bool;
+      randomizeOrder = d["randomizeOrder"].value__bool;
+    }
+
 
     Selector() : i(0), n_children(-1), stopAfterFirstSuccess(true), randomizeOrder(false) {  }
     ~Selector() {  }
+
 
     NodeReturnStatus call(int identifier, int _n_children) {
       n_children = _n_children;
@@ -37,10 +55,6 @@ namespace Banyan {
 
       return { NodeReturnStatus::PushChild, children[i] };
     }
-
-    int i;
-    int n_children;
-    std::vector<int> children;
 
   private:
     static std::vector<int> vectorUpTo(int n, bool randomize) {

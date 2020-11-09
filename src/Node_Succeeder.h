@@ -7,6 +7,7 @@ namespace Banyan {
 
   class Succeeder : public Node<Succeeder> {
   public:
+    std::string type() { return "Succeeder"; }
     ChildLimits childLimits()  { return { 1, 1 }; }
 
     Succeeder() {  }

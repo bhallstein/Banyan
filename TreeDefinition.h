@@ -27,6 +27,7 @@
 
 #include <stdexcept>
 
+
 namespace Banyan {
 
   class TreeDefinition : public GenericTree_Nodeless {
@@ -47,13 +48,13 @@ namespace Banyan {
     static void registerBuiltins() {
       static bool loaded = false;
       if (!loaded) {
-        NODE_DEFINITION(Repeater, Repeater);   // Decorators
-        NODE_DEFINITION(Inverter, Inverter);
-        NODE_DEFINITION(Succeeder, Succeeder);
+        NodeDefinition(Repeater);   // Decorators
+        NodeDefinition(Inverter);
+        NodeDefinition(Succeeder);
 
-        NODE_DEFINITION(Sequence, Sequence);   // Composites
-        NODE_DEFINITION(Selector, Selector);
-        NODE_DEFINITION(While, While);
+        NodeDefinition(Sequence);   // Composites
+        NodeDefinition(Selector);
+        NodeDefinition(While);
 
         loaded = true;
       }
@@ -76,7 +77,7 @@ namespace Banyan {
       treedef["nodes"] = Diatom();
       int i = 0;
       for (auto &n : treedef_nodes) {
-        treedef["nodes"][std::string("n") + std::to_string(i++)] = nodeToDiatom(n);
+        treedef["nodes"][std::string("n") + std::to_string(i++)] = n->__to_diatom();
       }
 
       treedef["tree"] = super::toDiatom();
@@ -108,7 +109,7 @@ namespace Banyan {
 
         if ((limits.min != -1 && n_children < limits.min) || (limits.max != -1 && n_children > limits.max)) {
           throw std::runtime_error(
-            std::string("Node of type ") + *n->type +
+            std::string("Node of type ") + n->type() +
             std::string(" has invalid # of children (") +
             std::to_string(n_children) + std::string(" for ") +
             std::to_string(limits.min) + std::string("-") + std::to_string(limits.max) +
@@ -121,34 +122,27 @@ namespace Banyan {
   private:
     std::vector<NodeSuper*> treedef_nodes;
 
-    static Diatom nodeToDiatom(NodeSuper *n) {
-      return diatomize(n->_getSD());
+    NodeSuper* nodeFromDiatom(Diatom &d) {
+      std::string node_type = d["type"].value__string;
+
+      NodeSuper *node_definition = NodeRegistry::getNode(node_type);
+      if (node_definition == NULL) {
+        throw std::runtime_error(
+          std::string("Couldn't find a node definition called '") + node_type + "'"
+        );
+      }
+
+      NodeSuper *n = node_definition->clone();
+      n->__from_diatom(d);
+
+      return n;
     }
 
     void nodesFromDiatom(Diatom &d_nodes) {
-      // Instantiate into the vector by copying from definitions vector
       _assert(d_nodes.is_table());
 
       d_nodes.each([&](std::string &key, Diatom &dn) {
-        std::string node_type = dn["type"].value__string;
-
-        NodeSuper *node = NULL;
-        for (auto &n : NodeRegistry::definitions()) {
-          if (*n->type == node_type) {
-            node = n;
-          }
-        }
-
-        if (node == NULL) {
-          throw std::runtime_error(
-            std::string("Couldn't find a node definition called '") + node_type + "'"
-          );
-        }
-
-        // Clone the node, then deserialize it
-        NodeSuper *n = node->clone();
-        antidiatomize(n->_getSD(), dn);
-
+        NodeSuper* n = nodeFromDiatom(dn);
         treedef_nodes.push_back(n);
       });
     }
