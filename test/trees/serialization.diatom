@@ -2,13 +2,18 @@ treeDef:
   nodes:
     n0:
       type: "Repeater"
+      state_contexts:
+        n0: "destination"
+        n1: "tool"
       N: 2
       break_on_failure: false
     n1:
       type: "MockLeaf"
+      state_contexts:
       succeeds: true
     n2:
       type: "Repeater"
+      state_contexts:
       N: 3
       break_on_failure: false
   tree:

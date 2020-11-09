@@ -43,7 +43,7 @@ namespace Banyan {
     ~While() {  }
 
 
-    NodeReturnStatus call(int identifier, int _n_children) {
+    NodeReturnStatus activate(int identifier, int _n_children) {
       return { NodeReturnStatus::PushChild, 0 };
     }
 

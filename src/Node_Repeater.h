@@ -35,7 +35,7 @@ namespace Banyan {
     ~Repeater() {  }
 
 
-    NodeReturnStatus call(int identifier, int nChildren) {
+    NodeReturnStatus activate(int identifier, int nChildren) {
       return { NodeReturnStatus::PushChild, 0 };
     }
 

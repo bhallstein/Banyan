@@ -12,7 +12,7 @@ namespace Banyan {
     Inverter() {  }
     ~Inverter() {  }
 
-    NodeReturnStatus call(int identifier, int nChildren) {
+    NodeReturnStatus activate(int identifier, int nChildren) {
       return { NodeReturnStatus::PushChild, 0 };
     }
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {

@@ -25,16 +25,17 @@
 
 #include "TreeDefinition.h"
 #include "src/NodeRegistry.h"
+#include "src/StateObject.h"
 
 #include <cstdint>
+#include <map>
 #define __PSA_PSIZE_TYPE uint8_t  // It is highly unlikely our nodes will exceed 256 bytes
 #include "StackAllocators/StackAllocator_PopAndExpand.h"
 
 
 namespace Banyan {
 
-  class TreeInstance {
-  public:
+  struct TreeInstance {
     TreeInstance(TreeDefinition *_tree_def, int _identifier) :
       tree_def(_tree_def),
       identifier(_identifier),
@@ -50,6 +51,9 @@ namespace Banyan {
       }
     }
 
+
+    // Updating
+    // -----------------------------------
 
     void begin() {
       index__current_node_in_gt = tree_def->indexOfTopNode();
@@ -76,27 +80,18 @@ namespace Banyan {
       }
     }
 
+    NodeReturnStatus callNode(NodeSuper *n) {
+      int nChildren = tree_def->nChildren(index__current_node_in_gt);
+      return n->activate(identifier, nChildren);
+    }
+
     void end_running_node(NodeReturnStatus s) {
       update(s);
     }
 
-    int stackSize() {
-      return (int) node_stack.size();
-    }
 
-  private:
-    TreeDefinition *tree_def;
-
-    int identifier;      // External identifier of the entity that this behaviour tree belongs to
-    int index__current_node_in_gt;
-
-    StackAllocator_PopAndExpand allocator;
-    std::vector<NodeSuper*> node_stack;
-
-    NodeReturnStatus callNode(NodeSuper *n) {
-      int nChildren = tree_def->nChildren(index__current_node_in_gt);
-      return n->call(identifier, nChildren);
-    }
+    // Node manipulation
+    // -----------------------------------
 
     void pushNode(int index) {
       index__current_node_in_gt = index;
@@ -111,6 +106,10 @@ namespace Banyan {
     void popNode() {
       NodeSuper *n = node_stack.back();
 
+      for (auto key : n->state_contexts) {
+        remove_state_object(key);
+      }
+
       n->~NodeSuper();        // Manually call destructor (as placement new used in clone())
       node_stack.pop_back();  // -- i.e. clean up if the node makes any allocations
       allocator.pop();
@@ -118,6 +117,35 @@ namespace Banyan {
       index__current_node_in_gt = tree_def->parentIndex(index__current_node_in_gt);
       // NB - may be NOT_FOUND -- caller should check & decide what to do
     }
+
+
+    // State
+    // -----------------------------------
+
+    StateObject get_state_object(std::string key) {
+      return state[key];
+    }
+
+    void set_state_object(std::string key, StateObject value) {
+      state[key] = value;
+    }
+
+    void remove_state_object(std::string key) {
+      state.erase(key);
+    }
+
+
+    // Props
+    // -----------------------------------
+
+    TreeDefinition *tree_def;
+
+    int identifier;      // External identifier of the entity that this behaviour tree belongs to
+    int index__current_node_in_gt;
+    std::map<std::string, StateObject> state;
+
+    StackAllocator_PopAndExpand allocator;
+    std::vector<NodeSuper*> node_stack;
   };
 
 }

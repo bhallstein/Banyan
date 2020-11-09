@@ -36,7 +36,7 @@ namespace Banyan {
     ~Selector() {  }
 
 
-    NodeReturnStatus call(int identifier, int _n_children) {
+    NodeReturnStatus activate(int identifier, int _n_children) {
       n_children = _n_children;
       children = vectorUpTo(n_children, randomizeOrder);
 
@@ -54,6 +54,7 @@ namespace Banyan {
 
       return { NodeReturnStatus::PushChild, children[i] };
     }
+
 
     static std::vector<int> vectorUpTo(int n, bool randomize) {
       static std::random_device rd;

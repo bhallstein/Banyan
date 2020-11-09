@@ -11,6 +11,7 @@
 int leaf__times_created = 0;
 int leaf__times_called  = 0;
 int leaf__times_resumed = 0;
+Banyan::TreeInstance *global_tree_instance;
 
 
 // MockLeaf
@@ -40,7 +41,7 @@ public:
   ~MockLeaf() {  }
 
 
-  Banyan::NodeReturnStatus call(int identifier, int nChildren) {
+  Banyan::NodeReturnStatus activate(int identifier, int nChildren) {
     leaf__times_called += 1;
     return (Banyan::NodeReturnStatus) {
       (succeeds ? Banyan::NodeReturnStatus::Success : Banyan::NodeReturnStatus::Failure)
@@ -87,8 +88,21 @@ Banyan::NodeReturnStatus mock__fails_on_third_call(size_t id) {
   }
 }
 
+Banyan::NodeReturnStatus mock__set_state(size_t id) {
+  global_tree_instance->set_state_object("AStateItem", 1);
+  global_tree_instance->set_state_object("AnotherStateItem", 2);
+  global_tree_instance->set_state_object("Z", 3);
+  return { Banyan::NodeReturnStatus::Running };
+}
+
+Banyan::NodeReturnStatus mock__running(size_t id) {
+  return { Banyan::NodeReturnStatus::Running };
+}
+
 NodeDefinitionFunction(mock__succeeder, MockSucceeder);
 NodeDefinitionFunction(mock__fails_on_third_call, MockFailsOnThirdCall);
+NodeDefinitionFunction(mock__set_state, MockSetState);
+NodeDefinitionFunction(mock__running, MockRunning);
 
 
 
@@ -123,9 +137,9 @@ void test__node_registry() {
 
   p_header("Autoregister");
   {
-    size_t number_of_definitions = Banyan::NodeRegistry::definitions().size();
-    p_assert(number_of_definitions == 9);
-      // 6 builtins, MockLeaf, 2 functional nodes
+    size_t n_definitions = Banyan::NodeRegistry::definitions().size();
+    p_assert(n_definitions == 11);
+      // 6 builtins, MockLeaf, 4 functional nodes
   }
 
   p_header("getNode");
@@ -198,7 +212,7 @@ void test__tree_instance() {
     MockLeaf::reset();
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(leaf__times_created == 6);
     p_assert(leaf__times_called  == 6);
     p_assert(leaf__times_resumed == 0);
@@ -212,7 +226,7 @@ void test__tree_instance() {
     MockLeaf::reset();
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(leaf__times_created == 1);
     p_assert(leaf__times_called  == 1);
     p_assert(leaf__times_resumed == 0);
@@ -226,7 +240,7 @@ void test__tree_instance() {
     MockLeaf::reset();
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(leaf__times_created == 2);
     p_assert(leaf__times_called  == 2);
     p_assert(leaf__times_resumed == 0);
@@ -240,7 +254,7 @@ void test__tree_instance() {
     MockLeaf::reset();
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(leaf__times_created == 5);
     p_assert(leaf__times_called  == 5);
     p_assert(leaf__times_resumed == 0);
@@ -255,7 +269,7 @@ void test__tree_instance() {
     MockLeaf::reset();
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(leaf__times_created == 4);
     p_assert(leaf__times_called  == 4);
     p_assert(leaf__times_resumed == 0);
@@ -270,7 +284,7 @@ void test__tree_instance() {
     calls__mock__fails_on_third_call = 0;
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(calls__mock__succeeder == 4);
   }
 
@@ -284,9 +298,58 @@ void test__tree_instance() {
     calls__mock__fails_on_third_call = 0;
     bt_inst.begin();
 
-    p_assert(bt_inst.stackSize() == 0);
+    p_assert(bt_inst.node_stack.size() == 0);
     p_assert(calls__mock__fails_on_third_call == 3);
     p_assert(leaf__times_created == 2);
+  }
+
+  p_header("set_state_object");
+  {
+    Banyan::TreeDefinition bt = load_tree("trees/while.diatom");
+    Banyan::TreeInstance bt_inst(&bt, 1);
+
+    p_assert(bt_inst.state.size() == 0);
+    bt_inst.set_state_object("XYZ", 4);
+    p_assert(bt_inst.state.size() == 1);
+  }
+
+  p_header("get_state_object");
+  {
+    Banyan::TreeDefinition bt = load_tree("trees/while.diatom");
+    Banyan::TreeInstance bt_inst(&bt, 1);
+
+    bt_inst.set_state_object("XYZ", 4);
+    Banyan::StateObject obj = bt_inst.get_state_object("XYZ");
+    p_assert(obj.type == Banyan::StateObject::Int);
+    p_assert(obj.value__int == 4);
+
+    Banyan::StateObject null_obj = bt_inst.get_state_object("ABC");
+    p_assert(null_obj.type == Banyan::StateObject::Null);
+  }
+
+  p_header("remove_state_object");
+  {
+    Banyan::TreeDefinition bt = load_tree("trees/while.diatom");
+    Banyan::TreeInstance bt_inst(&bt, 1);
+
+    bt_inst.set_state_object("XYZ", 4);
+    p_assert(bt_inst.state.size() == 1);
+    bt_inst.remove_state_object("XYZ");
+    p_assert(bt_inst.state.size() == 0);
+  }
+
+  p_header("popNode() removes state contexts");
+  {
+    Banyan::TreeDefinition bt = load_tree("trees/state.diatom");
+    Banyan::TreeInstance bt_inst(&bt, 1);
+    global_tree_instance = &bt_inst;
+
+    bt_inst.begin();
+    p_assert(bt_inst.state.size() == 3);
+    bt_inst.end_running_node({ Banyan::NodeReturnStatus::Success });
+    p_assert(bt_inst.state.size() == 1);
+    Banyan::StateObject state__a = bt_inst.get_state_object("Z");
+    p_assert(state__a.value__int == 3);
   }
 }
 

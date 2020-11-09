@@ -49,12 +49,14 @@ namespace Banyan {
 
     virtual ChildLimits childLimits() = 0;
 
-    virtual NodeReturnStatus call(int identifier, int nChildren) = 0;
+    virtual NodeReturnStatus activate(int identifier, int nChildren) = 0;
     virtual NodeReturnStatus resume(int identifier, NodeReturnStatus &s) = 0;
 
     virtual NodeSuper* clone(void *into = NULL) = 0;
     virtual int size() = 0;
     virtual std::string type() = 0;
+
+    std::vector<std::string> state_contexts;
 
     virtual Diatom to_diatom() { return { }; }
     virtual void from_diatom(Diatom d) { }
@@ -63,6 +65,11 @@ namespace Banyan {
       auto child_props = to_diatom();
 
       d["type"] = type();
+      d["state_contexts"] = Diatom();
+
+      for (int i=0; i < state_contexts.size(); ++i) {
+        d["state_contexts"][std::string("n") + std::to_string(i)] = state_contexts[i];
+      }
 
       child_props.each([&](std::string key, Diatom value) {
         d[key] = value;
@@ -71,6 +78,9 @@ namespace Banyan {
       return d;
     }
     void __from_diatom(Diatom d) {
+      d["state_contexts"].each([&](std::string key, Diatom item_name) {
+        state_contexts.push_back(item_name.value__string);
+      });
       from_diatom(d);
     }
   };
@@ -109,7 +119,7 @@ namespace Banyan {
       return functional_node_type;
     }
 
-    NodeReturnStatus call(int identifier, int nChildren) {
+    NodeReturnStatus activate(int identifier, int nChildren) {
       return f(identifier);
     }
 
