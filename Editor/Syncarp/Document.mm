@@ -2,9 +2,9 @@
 #import "Document.h"
 #import "BanyanView.h"
 #include "NodeListView.h"
-#include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
+#include "DiatomSerialization.h"
 #define _GT_ENABLE_SERIALIZATION
-#include "Banyan/GenericTree/GenericTree_Nodeless.h"
+#include "GenericTree_Nodeless.h"
 
 #include <fstream>
 #include <cassert>

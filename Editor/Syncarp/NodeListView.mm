@@ -1,7 +1,7 @@
 #import "NodeListView.h"
 #import "Document.h"
 #import "AppDelegate.h"
-#include "Banyan/GenericTree/Diatom/Diatom.h"
+#include "Diatom.h"
 #include "Helpers.h"
 #include <vector>
 #include <map>

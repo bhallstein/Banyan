@@ -1,6 +1,6 @@
 #import "AppDelegate.h"
-#include "Banyan/Banyan.h"
-#include "Banyan/GenericTree/Diatom/DiatomSerialization.h"
+#include "Banyan.h"
+#include "DiatomSerialization.h"
 #include "Document.h"
 
 @interface AppDelegate () {
