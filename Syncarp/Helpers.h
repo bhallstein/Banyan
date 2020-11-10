@@ -141,8 +141,7 @@ static std::vector<std::string> node_settable_properties(Diatom d) {
 
   std::vector<std::string> settables;
   d.each([&](std::string &prop_name, Diatom &d) {
-    auto it = std::find(builtin_props.begin(), builtin_props.end(), prop_name);
-    bool is_builtin_prop = it != builtin_props.end();
+    bool is_builtin_prop = std::find(builtin_props.begin(), builtin_props.end(), prop_name) != builtin_props.end();
     if (!is_builtin_prop) {
       settables.push_back(prop_name);
     }

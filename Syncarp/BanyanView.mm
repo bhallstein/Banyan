@@ -504,7 +504,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   }
 
   if ([DOCW containsUnknownNodes]) {
-    putUpError(@"Unknown node types", @"The document contains nodes that failed to load. Resolve this before editing the tree.");
+    putUpError(@"Unknown node types", @"The document contains nodes with definitions that failed to load. Resolve this before editing the tree.");
     return;
   }
 
@@ -709,8 +709,13 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
     ifc_attached = true;
 
     auto hov_parent = find_node_parent([DOCW getTree], hoveredNode);
+    bool ifc_leaves_connection_unchanged =
+      hov_parent.uid != NotFound &&
+      hov_parent.uid == ifc.fromNode &&
+      ifc.toNode_prev == hoveredNode;
+
     bool forbidden_because_circular = is_ancestor([DOCW getTree], hoveredNode, ifc.fromNode);
-    bool forbidden_because_target_has_parent = hov_parent.uid != NotFound && hov_parent.uid != ifc.fromNode;
+    bool forbidden_because_target_has_parent = hov_parent.uid != NotFound && !ifc_leaves_connection_unchanged;
 
     ifc_forbidden = forbidden_because_circular || forbidden_because_target_has_parent;
   }
@@ -791,6 +796,11 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   NSPasteboard *pb = [sender draggingPasteboard];
 
   if ([pb.types containsObject:NSPasteboardTypeString]) {
+    if ([DOCW containsUnknownNodes]) {
+      putUpError(@"Unknown node types", @"The document contains nodes with definitions that failed to load. Resolve this before editing the tree.");
+      return YES;
+    }
+
     std::string type = [[pb stringForType:NSPasteboardTypeString] UTF8String];
 
     NSPoint p = [self convertedPoint:[sender draggingLocation]];

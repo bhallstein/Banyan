@@ -177,13 +177,13 @@
 				E1CB18821AC057C800E7B579 /* AppDelegate.mm */,
 				E1CB18861AC057DA00E7B579 /* Document.h */,
 				E1CB18871AC057DA00E7B579 /* Document.mm */,
+				B583FAD11BBA756F00EDD446 /* Helpers.h */,
 				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,
 				E1CB188A1AC057E500E7B579 /* Document.xib */,
 				B555B48B247E62BC005351CB /* Banyan */,
 				B5D2A5491BB867900049F357 /* Views */,
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
-				B583FAD11BBA756F00EDD446 /* Helpers.h */,
 			);
 			path = Syncarp;
 			sourceTree = "<group>";

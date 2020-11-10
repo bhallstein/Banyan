@@ -138,7 +138,13 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
 
 -(NSData*)dataOfType:(NSString*)typeName error:(NSError**)outError {
   if (tree.size() > 1) {
-    NSString *msg = @"The document currently contains orphaned nodes. Please fix before saving.";
+    NSString *msg = @"The document contains orphaned nodes. Resolve this before saving.";
+    *outError = [NSError errorWithDomain:@"" code:0
+                                userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: msg }];
+    return nil;
+  }
+  if ([self containsUnknownNodes]) {
+    NSString *msg =  @"The document contains nodes with definitions that failed to load. Resolve this before saving.";
     *outError = [NSError errorWithDomain:@"" code:0
                                 userInfo:@{ NSLocalizedRecoverySuggestionErrorKey: msg }];
     return nil;
@@ -344,6 +350,19 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
 // Tree manipulation
 // --------------------------------------
 
+void regularise_node_keys(Diatom &node) {
+  std::vector<Diatom> children;
+  std::transform(node["children"].descendants.begin(),
+                 node["children"].descendants.end(),
+                 std::back_inserter(children),
+                 [](Diatom::DTableEntry entry) { return entry.item; });
+
+  node["children"] = Diatom();
+  for (int i=0; i < children.size(); ++i) {
+    node["children"][numeric_key_string("n", i)] = children[i];
+  }
+}
+
 -(void)detach:(UID)uid {
   // Removes & destroys -- caller may want to copy the Diatom beforehand
   UIDParentSearchResult result = find_node_parent(tree, uid);
@@ -360,7 +379,9 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
 
   // If parent, remove from parent
   else {
-    [self getNode:result.uid]["children"].remove_child(result.child_name);
+    Diatom &parent = [self getNode:result.uid];
+    parent["children"].remove_child(result.child_name);
+    regularise_node_keys(parent);
   }
 }
 
@@ -391,13 +412,13 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
 }
 
 -(void)insert:(Diatom)n withParent:(UID)uid__parent withIndex:(int)i {
-  // Insert into top-level vector
+  // Insert as orphan in top-level vector
   if (uid__parent == NotFound) {
-    tree.insert(tree.end(), n);
+    tree.push_back(n);
     return;
   }
 
-  // Insert under parent
+  // Insert as child
   Diatom &parent = [self getNode:uid__parent];
   assert(is_node_diatom(&parent));
 
@@ -405,22 +426,12 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
     parent["children"] = Diatom{Diatom::Type::Table};
   }
 
-  // Copy children into temporary vector
-  std::vector<Diatom> children;
-  std::transform(parent["children"].descendants.begin(),
-                 parent["children"].descendants.end(),
-                 std::back_inserter(children),
-                 [](Diatom::DTableEntry entry) { return entry.item; });
+  Diatom &children = parent["children"];
   if (i == -1) {
-    i = (int) children.size();
+    i = (int) children.descendants.size();
   }
-  children.insert(children.begin() + i, n);
-
-  // Set parent["children"]
-  parent["children"] = Diatom();
-  for (int i=0; i < children.size(); ++i) {
-    parent["children"][numeric_key_string("n", i)] = children[i];
-  }
+  children.descendants.insert(children.descendants.begin() + i, { "TempKey", n });
+  regularise_node_keys(parent);
 }
 
 UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
