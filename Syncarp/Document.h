@@ -14,6 +14,7 @@
 -(UID)nodeAtPoint:(NSPoint)p nodeWidth:(float)w nodeHeight:(float)h;
 -(std::vector<Diatom>&)getTree;
 -(Diatom&)getNode:(UID)uid;
+-(bool)containsUnknownNodes;
 
 // Node definitions
 -(std::vector<Diatom>)allNodeDefs;

@@ -19,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B503877B2559577B00031403 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		B555B49B247E62BC005351CB /* Banyan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Banyan.h; sourceTree = "<group>"; };
 		B555B49E247E62BC005351CB /* TreeInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeInstance.h; sourceTree = "<group>"; };
 		B555B49F247E62BC005351CB /* TreeDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeDefinition.h; sourceTree = "<group>"; };
@@ -36,12 +37,12 @@
 		B555B4C7247E62BC005351CB /* Node_Selector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Selector.h; sourceTree = "<group>"; };
 		B555B4C8247E62BC005351CB /* Node_Succeeder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Succeeder.h; sourceTree = "<group>"; };
 		B555B4C9247E62BC005351CB /* Node_Inverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Inverter.h; sourceTree = "<group>"; };
-		B555B4CA247E62BC005351CB /* NodeBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeBase.h; sourceTree = "<group>"; };
 		B555B4CB247E62BC005351CB /* Node_Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Sequence.h; sourceTree = "<group>"; };
 		B555B4CC247E62BC005351CB /* NodeRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeRegistry.h; sourceTree = "<group>"; };
 		B555B4CD247E62BC005351CB /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
 		B583FAD11BBA756F00EDD446 /* Helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Helpers.h; sourceTree = "<group>"; };
 		B593C6A92490063100B68102 /* GenericTree_Nodeless.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericTree_Nodeless.h; path = Syncarp/Banyan/GenericTree/GenericTree_Nodeless.h; sourceTree = SOURCE_ROOT; };
+		B5F084972559EC8500413C9E /* StateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateObject.h; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
 		E152C3B01B13C62900D58FC0 /* NodeListView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.mm; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -128,11 +129,12 @@
 		B555B4C5247E62BC005351CB /* src */ = {
 			isa = PBXGroup;
 			children = (
+				B5F084972559EC8500413C9E /* StateObject.h */,
+				B503877B2559577B00031403 /* Node.h */,
 				B555B4C6247E62BC005351CB /* Node_While.h */,
 				B555B4C7247E62BC005351CB /* Node_Selector.h */,
 				B555B4C8247E62BC005351CB /* Node_Succeeder.h */,
 				B555B4C9247E62BC005351CB /* Node_Inverter.h */,
-				B555B4CA247E62BC005351CB /* NodeBase.h */,
 				B555B4CB247E62BC005351CB /* Node_Sequence.h */,
 				B555B4CC247E62BC005351CB /* NodeRegistry.h */,
 				B555B4CD247E62BC005351CB /* Node_Repeater.h */,

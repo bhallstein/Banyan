@@ -20,10 +20,10 @@
   std::transform(Banyan::NodeRegistry::definitions().begin(),
                  Banyan::NodeRegistry::definitions().end(),
                  std::back_inserter(defs),
-                 [&](Banyan::NodeRegistry::Wrapper *item) -> Diatom {
-    Diatom d = diatomize(item->node->_getSD());
-    d["minChildren"] = (double) item->node->childLimits().min;  // Todo: not do this?
-    d["maxChildren"] = (double) item->node->childLimits().max;
+                 [&](Banyan::NodeSuper *node) -> Diatom {
+    Diatom d = node->__to_diatom();
+    d["minChildren"] = (double) node->childLimits().min;
+    d["maxChildren"] = (double) node->childLimits().max;
     return d;
   });
   self.nodeDefs = defs;
@@ -42,7 +42,7 @@
   // Insert code here to tear down your application
 }
 
--(BOOL) applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+-(BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
   return NO;
 }
 

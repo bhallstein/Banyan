@@ -471,6 +471,22 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   return EmptyDiatom;
 }
 
+-(bool)containsUnknownNodes {
+  bool unknown_nodes = false;
+
+  for (auto &t : tree) {
+    t.recurse([&](std::string name, Diatom &n) {
+      if (is_node_diatom(&n)) {
+        if (n["type"].value__string == "Unknown") {
+          unknown_nodes = true;
+        }
+      }
+    });
+  }
+
+  return unknown_nodes;
+}
+
 
 // Node options view
 // --------------------------------------

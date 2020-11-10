@@ -497,14 +497,18 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   NSPoint pos = [self convertedPointForEvent:ev];
   hoveredNode = [DOCW nodeAtPoint:pos nodeWidth:node_width nodeHeight:node_height()];
 
-  [DOCW setSelectedNode:hoveredNode];
-
   if (hoveredNode == NotFound) {
     [self endMouseDrag];
     DISP;
     return;
   }
 
+  if ([DOCW containsUnknownNodes]) {
+    putUpError(@"Unknown node types", @"The document contains nodes that failed to load. Resolve this before editing the tree.");
+    return;
+  }
+
+  [DOCW setSelectedNode:hoveredNode];
   Diatom &d = [DOCW getNode:hoveredNode];
 
   int i__child = childConnector(&d, pos, hoveredNode, ifc);
@@ -538,7 +542,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   }
 
   else if (child_connector) {
-    // New child connection: begin FromParent connection
+    // Begin new FromParent connection
     int cur_children = n_children(&d);
     if (i__child >= cur_children) {
       ifc = {
@@ -551,7 +555,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
       };
     }
 
-    // Existing child connection: begin FromChild connection
+    // Edit existing FromChild connection
     else {
       UID uid__child = d["children"][numeric_key_string("n", i__child)]["uid"].value__number;
       ifc = {
@@ -706,7 +710,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
     auto hov_parent = find_node_parent([DOCW getTree], hoveredNode);
     bool forbidden_because_circular = is_ancestor([DOCW getTree], hoveredNode, ifc.fromNode);
-    bool forbidden_because_target_has_parent = hov_parent.uid != NotFound;
+    bool forbidden_because_target_has_parent = hov_parent.uid != NotFound && hov_parent.uid != ifc.fromNode;
 
     ifc_forbidden = forbidden_because_circular || forbidden_because_target_has_parent;
   }
