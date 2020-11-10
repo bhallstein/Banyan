@@ -1,0 +1,84 @@
+nodeDefs:
+  f0:
+    type: "MySucceeder"
+    maxChildren: 0
+    minChildren: 0
+    muffins: 0
+    lemons_and_such: 12
+    description: "Another succeeder"
+treeDef:
+  tree:
+    tree:
+      n0:
+        i: 0
+        i__parent: -1
+        i__children:
+          n0: 1
+      n1:
+        i: 1
+        i__parent: 0
+        i__children:
+          n0: 2
+      n2:
+        i: 2
+        i__parent: 1
+        i__children:
+          n0: 3
+      n3:
+        i: 3
+        i__parent: 2
+        i__children:
+          n0: 4
+      n4:
+        i: 4
+        i__parent: 3
+        i__children:
+          n0: 5
+      n5:
+        i: 5
+        i__parent: 4
+        i__children:
+          n0: 6
+      n6:
+        i: 6
+        i__parent: 5
+        i__children:
+    free_list:
+  nodes:
+    n0:
+      type: "Repeater"
+      N: 1
+      ignoreFailure: false
+      posX: 43.77734375
+      posY: 28.7265625
+    n1:
+      type: "Inverter"
+      posX: 61.05859375
+      posY: 123.72265625
+    n2:
+      type: "Succeeder"
+      posX: 71.1875
+      posY: 217.6953125
+    n3:
+      type: "Sequence"
+      ignoreFailure: false
+      posX: 86.375
+      posY: 309.6953125
+    n4:
+      type: "Selector"
+      stopAfterFirstSuccess: true
+      randomizeOrder: false
+      posX: 102.75390625
+      posY: 401.03125
+    n5:
+      type: "While"
+      breakOnFailuresIn2ndChild: false
+      posX: 122.9196014404296875
+      posY: 490.09375
+    n6:
+      type: "MySucceeder"
+      muffins: 0
+      lemons_and_such: 12
+      description: "Another succeeder"
+      posX: 334.15625
+      posY: 294.43359375

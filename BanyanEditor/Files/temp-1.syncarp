@@ -1,0 +1,100 @@
+nodeDefs:
+  f0:
+    type: "MySucceeder"
+    maxChildren: 0
+    minChildren: 0
+    muffins: 0
+    description: "Another succeeder"
+treeDef:
+  tree:
+    tree:
+      n0:
+        i: 0
+        i__parent: -1
+        i__children:
+          n0: 1
+          n1: 3
+      n1:
+        i: 1
+        i__parent: 0
+        i__children:
+          n0: 2
+      n2:
+        i: 2
+        i__parent: 1
+        i__children:
+      n3:
+        i: 3
+        i__parent: 0
+        i__children:
+          n0: 4
+      n4:
+        i: 4
+        i__parent: 3
+        i__children:
+          n0: 5
+          n1: 6
+          n2: 7
+          n3: 8
+      n5:
+        i: 5
+        i__parent: 4
+        i__children:
+      n6:
+        i: 6
+        i__parent: 4
+        i__children:
+      n7:
+        i: 7
+        i__parent: 4
+        i__children:
+      n8:
+        i: 8
+        i__parent: 4
+        i__children:
+    free_list:
+  nodes:
+    n0:
+      type: "While"
+      breakOnFailuresIn2ndChild: false
+      posX: 122.421875
+      posY: 74.42578125
+    n1:
+      type: "Inverter"
+      posX: 14.6484375
+      posY: 210.953125
+    n2:
+      type: "MySucceeder"
+      muffins: 0
+      description: "Another succeeder"
+      posX: 25.94921875
+      posY: 302.78125
+    n3:
+      type: "Succeeder"
+      posX: 156.78515625
+      posY: 194.71484375
+    n4:
+      type: "Sequence"
+      ignoreFailure: true
+      posX: 192.34375
+      posY: 309.46484375
+    n5:
+      type: "While"
+      breakOnFailuresIn2ndChild: false
+      posX: 65.59375
+      posY: 418.96484375
+    n6:
+      type: "While"
+      breakOnFailuresIn2ndChild: true
+      posX: 193.5546875
+      posY: 433.28125
+    n7:
+      type: "While"
+      breakOnFailuresIn2ndChild: true
+      posX: 308.71875
+      posY: 456.4296875
+    n8:
+      type: "While"
+      breakOnFailuresIn2ndChild: false
+      posX: 368.12109375
+      posY: 377.75

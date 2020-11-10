@@ -1,0 +1,460 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B555B4AE247E62BC005351CB /* Diatomize.cpp */; };
+		E152C3B11B13C62900D58FC0 /* NodeListView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E152C3B01B13C62900D58FC0 /* NodeListView.mm */; };
+		E1CB18621AC057B000E7B579 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18611AC057B000E7B579 /* main.m */; };
+		E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1CB18691AC057B000E7B579 /* Images.xcassets */; };
+		E1CB18831AC057C800E7B579 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18821AC057C800E7B579 /* AppDelegate.mm */; };
+		E1CB18891AC057DA00E7B579 /* Document.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18871AC057DA00E7B579 /* Document.mm */; };
+		E1CB188B1AC057E500E7B579 /* Document.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188A1AC057E500E7B579 /* Document.xib */; };
+		E1CB188D1AC057EE00E7B579 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1CB188C1AC057EE00E7B579 /* MainMenu.xib */; };
+		E1CB18C21AC0728D00E7B579 /* BanyanView.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1CB18C11AC0728D00E7B579 /* BanyanView.mm */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B503877B2559577B00031403 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		B555B49B247E62BC005351CB /* Banyan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Banyan.h; sourceTree = "<group>"; };
+		B555B49E247E62BC005351CB /* TreeInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeInstance.h; sourceTree = "<group>"; };
+		B555B49F247E62BC005351CB /* TreeDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreeDefinition.h; sourceTree = "<group>"; };
+		B555B4AD247E62BC005351CB /* Diatomize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diatomize.h; sourceTree = "<group>"; };
+		B555B4AE247E62BC005351CB /* Diatomize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Diatomize.cpp; sourceTree = "<group>"; };
+		B555B4B0247E62BC005351CB /* Diatom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diatom.h; sourceTree = "<group>"; };
+		B555B4B1247E62BC005351CB /* DiatomSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DiatomSerialization.h; sourceTree = "<group>"; };
+		B555B4B8247E62BC005351CB /* GenericTree_Referential.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTree_Referential.h; sourceTree = "<group>"; };
+		B555B4BA247E62BC005351CB /* GenericTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTree.h; sourceTree = "<group>"; };
+		B555B4BC247E62BC005351CB /* StackAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator.h; sourceTree = "<group>"; };
+		B555B4C1247E62BC005351CB /* StackAllocator_Poppable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Poppable.h; sourceTree = "<group>"; };
+		B555B4C3247E62BC005351CB /* StackAllocator_Stretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_Stretchy.h; sourceTree = "<group>"; };
+		B555B4C4247E62BC005351CB /* StackAllocator_PoppableAndStretchy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackAllocator_PoppableAndStretchy.h; sourceTree = "<group>"; };
+		B555B4C6247E62BC005351CB /* Node_While.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_While.h; sourceTree = "<group>"; };
+		B555B4C7247E62BC005351CB /* Node_Selector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Selector.h; sourceTree = "<group>"; };
+		B555B4C8247E62BC005351CB /* Node_Succeeder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Succeeder.h; sourceTree = "<group>"; };
+		B555B4C9247E62BC005351CB /* Node_Inverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Inverter.h; sourceTree = "<group>"; };
+		B555B4CB247E62BC005351CB /* Node_Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Sequence.h; sourceTree = "<group>"; };
+		B555B4CC247E62BC005351CB /* NodeRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeRegistry.h; sourceTree = "<group>"; };
+		B555B4CD247E62BC005351CB /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
+		B583FAD11BBA756F00EDD446 /* Helpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Helpers.h; sourceTree = "<group>"; };
+		B593C6A92490063100B68102 /* GenericTree_Nodeless.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericTree_Nodeless.h; path = Syncarp/Banyan/GenericTree/GenericTree_Nodeless.h; sourceTree = SOURCE_ROOT; };
+		B5F084972559EC8500413C9E /* StateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateObject.h; sourceTree = "<group>"; };
+		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
+		E152C3B01B13C62900D58FC0 /* NodeListView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.mm; sourceTree = "<group>"; };
+		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1CB185D1AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E1CB185E1AC057B000E7B579 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		E1CB18611AC057B000E7B579 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		E1CB18691AC057B000E7B579 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		E1CB18771AC057B000E7B579 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E1CB18781AC057B000E7B579 /* SyncarpTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SyncarpTests.m; sourceTree = "<group>"; };
+		E1CB18821AC057C800E7B579 /* AppDelegate.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = AppDelegate.mm; sourceTree = "<group>"; };
+		E1CB18861AC057DA00E7B579 /* Document.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Document.h; sourceTree = "<group>"; };
+		E1CB18871AC057DA00E7B579 /* Document.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Document.mm; sourceTree = "<group>"; };
+		E1CB188A1AC057E500E7B579 /* Document.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = Document.xib; sourceTree = "<group>"; };
+		E1CB188C1AC057EE00E7B579 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
+		E1CB18C01AC0728D00E7B579 /* BanyanView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BanyanView.h; sourceTree = "<group>"; };
+		E1CB18C11AC0728D00E7B579 /* BanyanView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = BanyanView.mm; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E1CB18561AC057B000E7B579 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B555B48B247E62BC005351CB /* Banyan */ = {
+			isa = PBXGroup;
+			children = (
+				B555B49B247E62BC005351CB /* Banyan.h */,
+				B555B49E247E62BC005351CB /* TreeInstance.h */,
+				B555B49F247E62BC005351CB /* TreeDefinition.h */,
+				B555B4A0247E62BC005351CB /* GenericTree */,
+				B555B4BB247E62BC005351CB /* StackAllocators */,
+				B555B4C5247E62BC005351CB /* src */,
+			);
+			path = Banyan;
+			sourceTree = "<group>";
+		};
+		B555B4A0247E62BC005351CB /* GenericTree */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4A1247E62BC005351CB /* Diatom */,
+				B593C6A92490063100B68102 /* GenericTree_Nodeless.h */,
+				B555B4B8247E62BC005351CB /* GenericTree_Referential.h */,
+				B555B4BA247E62BC005351CB /* GenericTree.h */,
+			);
+			path = GenericTree;
+			sourceTree = "<group>";
+		};
+		B555B4A1247E62BC005351CB /* Diatom */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4A8247E62BC005351CB /* Diatomize */,
+				B555B4B0247E62BC005351CB /* Diatom.h */,
+				B555B4B1247E62BC005351CB /* DiatomSerialization.h */,
+			);
+			path = Diatom;
+			sourceTree = "<group>";
+		};
+		B555B4A8247E62BC005351CB /* Diatomize */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4AD247E62BC005351CB /* Diatomize.h */,
+				B555B4AE247E62BC005351CB /* Diatomize.cpp */,
+			);
+			path = Diatomize;
+			sourceTree = "<group>";
+		};
+		B555B4BB247E62BC005351CB /* StackAllocators */ = {
+			isa = PBXGroup;
+			children = (
+				B555B4BC247E62BC005351CB /* StackAllocator.h */,
+				B555B4C1247E62BC005351CB /* StackAllocator_Poppable.h */,
+				B555B4C3247E62BC005351CB /* StackAllocator_Stretchy.h */,
+				B555B4C4247E62BC005351CB /* StackAllocator_PoppableAndStretchy.h */,
+			);
+			path = StackAllocators;
+			sourceTree = "<group>";
+		};
+		B555B4C5247E62BC005351CB /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B5F084972559EC8500413C9E /* StateObject.h */,
+				B503877B2559577B00031403 /* Node.h */,
+				B555B4C6247E62BC005351CB /* Node_While.h */,
+				B555B4C7247E62BC005351CB /* Node_Selector.h */,
+				B555B4C8247E62BC005351CB /* Node_Succeeder.h */,
+				B555B4C9247E62BC005351CB /* Node_Inverter.h */,
+				B555B4CB247E62BC005351CB /* Node_Sequence.h */,
+				B555B4CC247E62BC005351CB /* NodeRegistry.h */,
+				B555B4CD247E62BC005351CB /* Node_Repeater.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		B5D2A5491BB867900049F357 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				E152C3AF1B13C62900D58FC0 /* NodeListView.h */,
+				E152C3B01B13C62900D58FC0 /* NodeListView.mm */,
+				E1CB18C01AC0728D00E7B579 /* BanyanView.h */,
+				E1CB18C11AC0728D00E7B579 /* BanyanView.mm */,
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		E1CB18501AC057B000E7B579 = {
+			isa = PBXGroup;
+			children = (
+				E1CB185B1AC057B000E7B579 /* Syncarp */,
+				E1CB18751AC057B000E7B579 /* SyncarpTests */,
+				E1CB185A1AC057B000E7B579 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E1CB185A1AC057B000E7B579 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E1CB18591AC057B000E7B579 /* Syncarp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E1CB185B1AC057B000E7B579 /* Syncarp */ = {
+			isa = PBXGroup;
+			children = (
+				E1CB185E1AC057B000E7B579 /* AppDelegate.h */,
+				E1CB18821AC057C800E7B579 /* AppDelegate.mm */,
+				E1CB18861AC057DA00E7B579 /* Document.h */,
+				E1CB18871AC057DA00E7B579 /* Document.mm */,
+				B583FAD11BBA756F00EDD446 /* Helpers.h */,
+				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,
+				E1CB188A1AC057E500E7B579 /* Document.xib */,
+				B555B48B247E62BC005351CB /* Banyan */,
+				B5D2A5491BB867900049F357 /* Views */,
+				E1CB18691AC057B000E7B579 /* Images.xcassets */,
+				E1CB185C1AC057B000E7B579 /* Supporting Files */,
+			);
+			path = Syncarp;
+			sourceTree = "<group>";
+		};
+		E1CB185C1AC057B000E7B579 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				E1CB185D1AC057B000E7B579 /* Info.plist */,
+				E1CB18611AC057B000E7B579 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		E1CB18751AC057B000E7B579 /* SyncarpTests */ = {
+			isa = PBXGroup;
+			children = (
+				E1CB18781AC057B000E7B579 /* SyncarpTests.m */,
+				E1CB18761AC057B000E7B579 /* Supporting Files */,
+			);
+			path = SyncarpTests;
+			sourceTree = "<group>";
+		};
+		E1CB18761AC057B000E7B579 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				E1CB18771AC057B000E7B579 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E1CB18581AC057B000E7B579 /* Syncarp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1CB187C1AC057B000E7B579 /* Build configuration list for PBXNativeTarget "Syncarp" */;
+			buildPhases = (
+				E1CB18551AC057B000E7B579 /* Sources */,
+				E1CB18561AC057B000E7B579 /* Frameworks */,
+				E1CB18571AC057B000E7B579 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Syncarp;
+			productName = Syncarp;
+			productReference = E1CB18591AC057B000E7B579 /* Syncarp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E1CB18511AC057B000E7B579 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1130;
+				ORGANIZATIONNAME = Ben;
+				TargetAttributes = {
+					E1CB18581AC057B000E7B579 = {
+						CreatedOnToolsVersion = 6.2;
+					};
+				};
+			};
+			buildConfigurationList = E1CB18541AC057B000E7B579 /* Build configuration list for PBXProject "Syncarp" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E1CB18501AC057B000E7B579;
+			productRefGroup = E1CB185A1AC057B000E7B579 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E1CB18581AC057B000E7B579 /* Syncarp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E1CB18571AC057B000E7B579 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1CB188B1AC057E500E7B579 /* Document.xib in Resources */,
+				E1CB186A1AC057B000E7B579 /* Images.xcassets in Resources */,
+				E1CB188D1AC057EE00E7B579 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E1CB18551AC057B000E7B579 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1CB18C21AC0728D00E7B579 /* BanyanView.mm in Sources */,
+				E1CB18891AC057DA00E7B579 /* Document.mm in Sources */,
+				E1CB18621AC057B000E7B579 /* main.m in Sources */,
+				B555B4E3247E62BD005351CB /* Diatomize.cpp in Sources */,
+				E152C3B11B13C62900D58FC0 /* NodeListView.mm in Sources */,
+				E1CB18831AC057C800E7B579 /* AppDelegate.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		E1CB187A1AC057B000E7B579 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		E1CB187B1AC057B000E7B579 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E1CB187D1AC057B000E7B579 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Syncarp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-ferror-limit=0",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "ben.am.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		E1CB187E1AC057B000E7B579 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Syncarp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-ferror-limit=0",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "ben.am.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E1CB18541AC057B000E7B579 /* Build configuration list for PBXProject "Syncarp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1CB187A1AC057B000E7B579 /* Debug */,
+				E1CB187B1AC057B000E7B579 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1CB187C1AC057B000E7B579 /* Build configuration list for PBXNativeTarget "Syncarp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1CB187D1AC057B000E7B579 /* Debug */,
+				E1CB187E1AC057B000E7B579 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E1CB18511AC057B000E7B579 /* Project object */;
+}
