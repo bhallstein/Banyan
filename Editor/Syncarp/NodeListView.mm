@@ -54,11 +54,12 @@ float h_node = 54.;
   float y = start_offset;
   float w = self.frame.size.width;
   float h_total = h_node * defs.size() + start_offset;
+  BOOL is_dark_mode = dark_mode(self);
 
   [@"AVAILABLE NODES:" drawAtPoint:NSMakePoint(10, 18)
                     withAttributes:@{
                       NSFontAttributeName: [NSFont systemFontOfSize:11. weight:NSFontWeightBold],
-                      NSForegroundColorAttributeName: [NSColor systemGrayColor],
+                      NSForegroundColorAttributeName: is_dark_mode ? [NSColor darkGrayColor] : [NSColor lightGrayColor],
                     }];
 
   int i = 0;
@@ -76,16 +77,21 @@ float h_node = 54.;
 
     // draw name
     NSString *name = [NSString stringWithFormat:@"%s", nd["type"].string_value.c_str()];
+
+    NSColor *name_color = (is_dark_mode ?
+                            (sel ? [NSColor whiteColor] : [NSColor lightGrayColor]) :
+                            (sel ? [NSColor whiteColor] : [NSColor blackColor]));
+
     [name drawAtPoint:NSMakePoint(10.5, y + h_node/2 - 12.)
        withAttributes:@{
          NSFontAttributeName: [NSFont systemFontOfSize:13. weight:NSFontWeightBold],
-         NSForegroundColorAttributeName: (sel ? [NSColor whiteColor] : [NSColor blackColor])
+         NSForegroundColorAttributeName: name_color,
        }];
 
     // draw horizontal line
     if (&nd != &defs.back()) {
       NSRect lineRect = NSMakeRect(0, y + h_node - 1, w, 1);
-      [[NSColor colorWithDeviceRed:0.9 green:0.9 blue:0.9 alpha:1] set];
+      is_dark_mode ? [[NSColor darkGrayColor] set] : [[NSColor lightGrayColor] set];
       NSRectFill(lineRect);
     }
 

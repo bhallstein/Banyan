@@ -47,38 +47,47 @@ treeDef:
   nodes:
     n0:
       type: "Repeater"
+      state_contexts:
       N: 1
-      ignoreFailure: false
+      break_on_failure: false
       posX: 43.77734375
       posY: 28.7265625
     n1:
       type: "Inverter"
-      posX: 61.05859375
-      posY: 123.72265625
+      state_contexts:
+      posX: 49.2265625
+      posY: 116.99609375
     n2:
       type: "Succeeder"
-      posX: 71.1875
-      posY: 217.6953125
+      state_contexts:
+        n0: "StateContext_A"
+      posX: 67.4140625
+      posY: 205.953125
     n3:
       type: "Sequence"
-      ignoreFailure: false
-      posX: 86.375
-      posY: 309.6953125
+      state_contexts:
+        n0: "StateContext_B"
+        n1: "StateContext_C"
+      break_on_failure: false
+      posX: 83.9140625
+      posY: 299.60546875
     n4:
       type: "Selector"
+      state_contexts:
       stopAfterFirstSuccess: true
       randomizeOrder: false
-      posX: 102.75390625
-      posY: 401.03125
+      posX: 97.5625
+      posY: 393.59375
     n5:
       type: "While"
+      state_contexts:
       breakOnFailuresIn2ndChild: false
-      posX: 122.9196014404296875
-      posY: 490.09375
+      posX: 129.5289764404296875
+      posY: 491.45703125
     n6:
       type: "MySucceeder"
       muffins: 0
       lemons_and_such: 12
       description: "Another succeeder"
-      posX: 334.15625
-      posY: 294.43359375
+      posX: 316.49609375
+      posY: 349.06640625

@@ -38,6 +38,8 @@
 		B5F08596255AFB4400413C9E /* StateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StateObject.h; sourceTree = "<group>"; };
 		B5F08597255AFB4400413C9E /* Node_Repeater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node_Repeater.h; sourceTree = "<group>"; };
 		B5F08598255AFB4400413C9E /* Banyan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Banyan.h; sourceTree = "<group>"; };
+		B5F085AB255B0CB400413C9E /* temp-2.syncarp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "temp-2.syncarp"; sourceTree = "<group>"; };
+		B5F085AC255B0CB400413C9E /* temp-1.syncarp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "temp-1.syncarp"; sourceTree = "<group>"; };
 		E152C3AF1B13C62900D58FC0 /* NodeListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeListView.h; sourceTree = "<group>"; };
 		E152C3B01B13C62900D58FC0 /* NodeListView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = NodeListView.mm; sourceTree = "<group>"; };
 		E1CB18591AC057B000E7B579 /* Syncarp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Syncarp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -137,6 +139,15 @@
 			path = src;
 			sourceTree = "<group>";
 		};
+		B5F085AA255B0CB400413C9E /* Files */ = {
+			isa = PBXGroup;
+			children = (
+				B5F085AB255B0CB400413C9E /* temp-2.syncarp */,
+				B5F085AC255B0CB400413C9E /* temp-1.syncarp */,
+			);
+			path = Files;
+			sourceTree = SOURCE_ROOT;
+		};
 		E1CB18501AC057B000E7B579 = {
 			isa = PBXGroup;
 			children = (
@@ -164,8 +175,9 @@
 				B583FAD11BBA756F00EDD446 /* Helpers.h */,
 				E1CB188C1AC057EE00E7B579 /* MainMenu.xib */,
 				E1CB188A1AC057E500E7B579 /* Document.xib */,
-				B5F08564255AFA9D00413C9E /* Banyan */,
 				B5D2A5491BB867900049F357 /* Views */,
+				B5F08564255AFA9D00413C9E /* Banyan */,
+				B5F085AA255B0CB400413C9E /* Files */,
 				E1CB18691AC057B000E7B579 /* Images.xcassets */,
 				E1CB185C1AC057B000E7B579 /* Supporting Files */,
 			);

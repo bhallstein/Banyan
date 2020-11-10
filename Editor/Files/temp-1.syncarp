@@ -75,7 +75,7 @@ treeDef:
       posY: 194.71484375
     n4:
       type: "Sequence"
-      ignoreFailure: true
+      break_on_failure: true
       posX: 192.34375
       posY: 309.46484375
     n5:

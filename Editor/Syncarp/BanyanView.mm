@@ -36,7 +36,7 @@
 // Drawing constants
 // -----------------------------------
 
-const float node_aspect_ratio = 1.6;
+float node_aspect_ratio = 1.6;
 const float node_width = 110;
 
 const float node_circle_size = 5;
@@ -74,6 +74,7 @@ static const NSSize unitSize = {1.0, 1.0};
   if (self = [super initWithFrame:frameRect]) {
     [self.window makeFirstResponder:self];
     [self registerForDraggedTypes:@[NSPasteboardTypeString]];
+    self.wantsLayer = YES;
 
     hoveredNode = NotFound;
     ifc_forbidden = false;
@@ -261,13 +262,13 @@ void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bo
                                      yRadius:3.5];
 
   // Get node-specific colour
-  NSColor *col__node = [NSColor blackColor];
+  NSColor *node_color = [NSColor blackColor];
   auto it = node_colours.find(d["type"].string_value);
   if (it != node_colours.end()) {
-    col__node = it->second;
+    node_color = it->second;
   }
   if (selected) {
-    col__node = [NSColor systemBlueColor];
+    node_color = [NSColor systemBlueColor];
   }
 
   // Parent connector
@@ -284,11 +285,25 @@ void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bo
   [shadow setShadowColor:[NSColor darkGrayColor]];
   [shadow setShadowOffset:CGSizeMake(0, -1.0f)];
 
+  // State contexts
+  NSBezierPath *state_contexts = nil;
+  if (d["state_contexts"].table_entries.size() > 0) {
+    float sc_tri_size = 10.0;
+    float sc_tri_height = sc_tri_size / 1.14;
+    float tri_x = x + node_width - sc_tri_size * 1.6;
+    float tri_y = y + node_height() - sc_tri_size * 0.6;
+    state_contexts = [NSBezierPath bezierPath];
+    [state_contexts moveToPoint:NSMakePoint(tri_x,                 tri_y)];
+    [state_contexts lineToPoint:NSMakePoint(tri_x + sc_tri_size/2, tri_y - sc_tri_height)];
+    [state_contexts lineToPoint:NSMakePoint(tri_x + sc_tri_size,   tri_y)];
+    [state_contexts closePath];
+  }
+
   // Draw
   [[NSColor whiteColor] set];
   [path_main fill];
 
-  [col__node set];
+  [node_color set];
   [path_main setLineWidth:(selected ? 2.5 : 1.5)];
   [path_main stroke];
 
@@ -302,7 +317,13 @@ void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bo
   [[NSColor blackColor] set];
   [path_ac_parent fill];
 
+  if (state_contexts) {
+    [node_color set];
+    [state_contexts fill];
+  }
+
   // Child connectors
+  [[NSColor blackColor] set];
   int n_children_to_draw = n_children(&d) + (extra_child_connector ? 1 : 0);
   for (int i=0; i < n_children_to_draw; ++i) {
     NSPoint p = attachmentCoord_Child_forNode(&d, i);
@@ -409,6 +430,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
 -(void)drawRect:(NSRect)dirtyRect {
   [super drawRect:dirtyRect];
+  self.layer.backgroundColor = view_background_color(dark_mode(self)).CGColor;
 
   if (!laidOut) {
     [self layOutTree];

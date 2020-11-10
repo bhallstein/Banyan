@@ -137,6 +137,7 @@ static std::vector<std::string> node_settable_properties(Diatom d) {
     "description",
     "uid",
     "children",
+    "state_contexts",
   };
 
   std::vector<std::string> settables;
@@ -174,6 +175,25 @@ static int key_string_to_number(std::string k, std::string prefix) {
   return std::stoi(k.substr(prefix.length()));
 }
 
+
+// Drawing helpers
+// -----------------------------------
+
+static BOOL dark_mode(NSView *view) {
+  if (@available(macOS 10.14, *)) {
+    NSAppearanceName basicAppearance = [view.effectiveAppearance bestMatchFromAppearancesWithNames:@[
+      NSAppearanceNameAqua,
+      NSAppearanceNameDarkAqua,
+    ]];
+    return [basicAppearance isEqualToString:NSAppearanceNameDarkAqua];
+  }
+
+  return NO;
+}
+
+static NSColor* view_background_color(BOOL is_dark_mode) {
+  return is_dark_mode ? NSColor.darkGrayColor : NSColor.whiteColor;
+}
 
 #endif
 
