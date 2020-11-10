@@ -35,7 +35,7 @@ namespace Banyan {
       return d;
     }
     void from_diatom(Diatom d) {
-      breakOnFailuresIn2ndChild = d["breakOnFailuresIn2ndChild"].value__bool;
+      breakOnFailuresIn2ndChild = d["breakOnFailuresIn2ndChild"].bool_value;
     }
 
 

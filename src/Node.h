@@ -79,7 +79,7 @@ namespace Banyan {
     }
     void __from_diatom(Diatom d) {
       d["state_contexts"].each([&](std::string key, Diatom item_name) {
-        state_contexts.push_back(item_name.value__string);
+        state_contexts.push_back(item_name.string_value);
       });
       from_diatom(d);
     }
@@ -112,7 +112,7 @@ namespace Banyan {
   // - User node_functions are converted to NodeFunctionals
 
   struct NodeFunctional : Node<NodeFunctional> {
-    ChildLimits childLimits() { return { 0, 0}; }
+    ChildLimits childLimits() { return { 0, 0 }; }
 
     std::string functional_node_type;
     std::string type() {

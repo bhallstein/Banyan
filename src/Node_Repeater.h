@@ -25,9 +25,9 @@ namespace Banyan {
       return d;
     }
     void from_diatom(Diatom d) {
-      i = d["i"].value__number;
-      N = d["N"].value__number;
-      break_on_failure = d["break_on_failure"].value__bool;
+      i = d["i"].number_value;
+      N = d["N"].number_value;
+      break_on_failure = d["break_on_failure"].bool_value;
     }
 
 

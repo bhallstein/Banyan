@@ -27,8 +27,8 @@ namespace Banyan {
       return d;
     }
     void from_diatom(Diatom d) {
-      stopAfterFirstSuccess = d["stopAfterFirstSuccess"].value__bool;
-      randomizeOrder = d["randomizeOrder"].value__bool;
+      stopAfterFirstSuccess = d["stopAfterFirstSuccess"].bool_value;
+      randomizeOrder = d["randomizeOrder"].bool_value;
     }
 
 

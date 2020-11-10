@@ -11,14 +11,14 @@ namespace Banyan {
     Type type;
 
     StateObject()              { type = Null; }
-    StateObject(int x)         { type = Int;    value__int    = x; }
-    StateObject(double x)      { type = Double; value__double = x; }
-    StateObject(std::string s) { type = String; value__string = s; }
+    StateObject(int x)         { type = Int;    int_value    = x; }
+    StateObject(double x)      { type = Double; double_value = x; }
+    StateObject(std::string s) { type = String; string_value = s; }
 
-    bool        value__bool;
-    int         value__int;
-    double      value__double;
-    std::string value__string;
+    bool        bool_value;
+    int         int_value;
+    double      double_value;
+    std::string string_value;
   };
 
 }

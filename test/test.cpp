@@ -32,7 +32,7 @@ public:
     return d;
   }
   void from_diatom(Diatom d) {
-    succeeds = d["succeeds"].value__bool;
+    succeeds = d["succeeds"].bool_value;
   }
 
 
@@ -321,7 +321,7 @@ void test__tree_instance() {
     bt_inst.set_state_object("XYZ", 4);
     Banyan::StateObject obj = bt_inst.get_state_object("XYZ");
     p_assert(obj.type == Banyan::StateObject::Int);
-    p_assert(obj.value__int == 4);
+    p_assert(obj.int_value == 4);
 
     Banyan::StateObject null_obj = bt_inst.get_state_object("ABC");
     p_assert(null_obj.type == Banyan::StateObject::Null);
@@ -349,7 +349,7 @@ void test__tree_instance() {
     bt_inst.end_running_node({ Banyan::NodeReturnStatus::Success });
     p_assert(bt_inst.state.size() == 1);
     Banyan::StateObject state__a = bt_inst.get_state_object("Z");
-    p_assert(state__a.value__int == 3);
+    p_assert(state__a.int_value == 3);
   }
 }
 

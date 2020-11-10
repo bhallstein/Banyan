@@ -123,7 +123,7 @@ namespace Banyan {
     std::vector<NodeSuper*> treedef_nodes;
 
     NodeSuper* nodeFromDiatom(Diatom &d) {
-      std::string node_type = d["type"].value__string;
+      std::string node_type = d["type"].string_value;
 
       NodeSuper *node_definition = NodeRegistry::getNode(node_type);
       if (node_definition == NULL) {
