@@ -58,7 +58,7 @@ static Diatom& get_node(Diatom &tree, UID uid) {
   Diatom *result = NULL;
 
   tree.recurse([&](std::string name, Diatom &d) {
-    if (is_node_diatom(&d) && d["uid"].is_number() && d["uid"].value__number == uid) {
+    if (is_node_diatom(&d) && d["uid"].is_number() && d["uid"].number_value == uid) {
       result = &d;
     }
   }, true);
@@ -76,8 +76,8 @@ static UIDParentSearchResult find_node_parent(Diatom &tree, UID uid) {
     }
 
     parent["children"].each([&](std::string name, Diatom child) {
-      if (child["uid"].value__number == uid) {
-        result = { parent["uid"].value__number, name };
+      if (child["uid"].number_value == uid) {
+        result = { parent["uid"].number_value, name };
       }
     });
   }, true);
@@ -108,7 +108,7 @@ static BOOL is_ancestor(Diatom tree, UID uid__possible_ancestor, UID uid) {
 
   bool result = false;
   possible_ancestor.recurse([&](std::string name, Diatom &n) {
-    if (is_node_diatom(&n) && n["uid"].value__number == d["uid"].value__number) {
+    if (is_node_diatom(&n) && n["uid"].number_value == d["uid"].number_value) {
       result = true;
     }
   }, true);
@@ -151,7 +151,7 @@ static std::vector<std::string> node_settable_properties(Diatom d) {
 
 
 static int n_children(Diatom *node) {
-  return (int) (*node)["children"].descendants.size();
+  return (int) (*node)["children"].table_entries.size();
 }
 
 
@@ -163,7 +163,7 @@ static NSString* nsstr(const std::string &s) {
 }
 
 static NSString* nsstr(Diatom &d) {
-  return nsstr(d.value__string);
+  return nsstr(d.string_value);
 }
 
 static std::string numeric_key_string(std::string prefix, int n) {

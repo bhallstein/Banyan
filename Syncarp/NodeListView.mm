@@ -75,7 +75,7 @@ float h_node = 54.;
     }
 
     // draw name
-    NSString *name = [NSString stringWithFormat:@"%s", nd["type"].value__string.c_str()];
+    NSString *name = [NSString stringWithFormat:@"%s", nd["type"].string_value.c_str()];
     [name drawAtPoint:NSMakePoint(10.5, y + h_node/2 - 12.)
        withAttributes:@{
          NSFontAttributeName: [NSFont systemFontOfSize:13. weight:NSFontWeightBold],
@@ -122,7 +122,7 @@ float h_node = 54.;
 
   // Get string data
   auto nodeDefs = DOCW.allNodeDefs;
-  NSString *str = [NSString stringWithFormat:@"%s", nodeDefs[indexOfSelectedNode]["type"].value__string.c_str()];
+  NSString *str = [NSString stringWithFormat:@"%s", nodeDefs[indexOfSelectedNode]["type"].string_value.c_str()];
   self.dragData = [str dataUsingEncoding:NSUTF8StringEncoding];
 
   // Create pasteboard item

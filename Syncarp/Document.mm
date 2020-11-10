@@ -156,7 +156,7 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
   if (nodeDefs.size() > 0) {
     save["nodeDefs"] = Diatom();
     for (auto def : nodeDefs) {
-      int i = (int) save["nodeDefs"].descendants.size();
+      int i = (int) save["nodeDefs"].table_entries.size();
       save["nodeDefs"][numeric_key_string("f", i)] = def;
     }
   }
@@ -182,7 +182,7 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
     if (is_node_diatom(&n)) {
       n["index"] = (double) node_id++;
 
-      auto parent = find_node_parent(t, n["uid"].value__number);
+      auto parent = find_node_parent(t, n["uid"].number_value);
       if (parent.uid != NotFound) {
         n["parent_index"] = get_node(t, parent.uid)["index"];
       }
@@ -203,8 +203,8 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
       copy.remove_child("children");
       copy.remove_child("uid");
 
-      int i = (int) n["index"].value__number;
-      int i__gt = gt.addNode(n["parent_index"].value__number);
+      int i = (int) n["index"].number_value;
+      int i__gt = gt.addNode(n["parent_index"].number_value);
       assert(i == i__gt);
       assert(i == nodes.size());
 
@@ -285,13 +285,13 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
   try {
     // Load the nodes vector
     d["treeDef"]["nodes"].each([&](std::string &key, Diatom &n) {
-      const std::string &node_type = n["type"].value__string;
+      const std::string &node_type = n["type"].string_value;
 
-      double x = n["posX"].is_number() ? n["posX"].value__number : -1;
-      double y = n["posY"].is_number() ? n["posY"].value__number : -1;
+      double x = n["posX"].is_number() ? n["posX"].number_value : -1;
+      double y = n["posY"].is_number() ? n["posY"].number_value : -1;
 
       Diatom node = [self mkNodeOfType:node_type atPos:NSPoint{x, y}];
-      bool nodedef_found = node.index_of("minChildren") != node.descendants.end();
+      bool nodedef_found = node.index_of("minChildren") != node.table_entries.end();
 
       // Add typed node
       if (nodedef_found) {
@@ -320,7 +320,7 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
       int i__parent = gt.parentIndex(i);
 
       Diatom node = nodes[i];
-      UID uid__parent = i__parent == -1 ? NotFound : nodes[i__parent]["uid"].value__number;
+      UID uid__parent = i__parent == -1 ? NotFound : nodes[i__parent]["uid"].number_value;
 
       [self insert:node withParent:uid__parent withIndex:-1];
     });
@@ -352,10 +352,10 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
 
 void regularise_node_keys(Diatom &node) {
   std::vector<Diatom> children;
-  std::transform(node["children"].descendants.begin(),
-                 node["children"].descendants.end(),
+  std::transform(node["children"].table_entries.begin(),
+                 node["children"].table_entries.end(),
                  std::back_inserter(children),
-                 [](Diatom::DTableEntry entry) { return entry.item; });
+                 [](Diatom::TableEntry entry) { return entry.item; });
 
   node["children"] = Diatom();
   for (int i=0; i < children.size(); ++i) {
@@ -370,7 +370,7 @@ void regularise_node_keys(Diatom &node) {
   // If no parent, remove from top-level vector
   if (result.uid == NotFound) {
     auto it = std::find_if(tree.begin(), tree.end(), [=](Diatom d) {
-      return d["uid"].value__number == uid;
+      return d["uid"].number_value == uid;
     });
     if (it != tree.end()) {
       tree.erase(it);
@@ -399,7 +399,7 @@ void regularise_node_keys(Diatom &node) {
   Diatom node;
 
   for (auto &def : [self allNodeDefs]) {
-    if (def["type"].value__string == type) {
+    if (def["type"].string_value == type) {
       node = def;
     }
   }
@@ -428,9 +428,9 @@ void regularise_node_keys(Diatom &node) {
 
   Diatom &children = parent["children"];
   if (i == -1) {
-    i = (int) children.descendants.size();
+    i = (int) children.table_entries.size();
   }
-  children.descendants.insert(children.descendants.begin() + i, { "TempKey", n });
+  children.table_entries.insert(children.table_entries.begin() + i, { "TempKey", n });
   regularise_node_keys(parent);
 }
 
@@ -439,8 +439,8 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
   tree.recurse([&](std::string k, Diatom &d) {
     if (is_node_diatom(&d)) {
-      float x = d["posX"].value__number;
-      float y = d["posY"].value__number;
+      float x = d["posX"].number_value;
+      float y = d["posY"].number_value;
       bool overlaps = (
         p.x >= x &&
         p.y >= y &&
@@ -448,7 +448,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
         p.y < y + nh
       );
       if (overlaps) {
-        result = d["uid"].value__number;
+        result = d["uid"].number_value;
       }
     }
   }, true);
@@ -488,7 +488,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   for (auto &t : tree) {
     t.recurse([&](std::string name, Diatom &n) {
       if (is_node_diatom(&n)) {
-        if (n["type"].value__string == "Unknown") {
+        if (n["type"].string_value == "Unknown") {
           unknown_nodes = true;
         }
       }
@@ -528,10 +528,10 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   }
 
   Diatom d = [self getNode:self.selectedNode];
-  auto node_type = d["type"].value__string;
+  auto node_type = d["type"].string_value;
   auto node_desc = self.appDelegate.descriptions[node_type];
   if (node_type == "Unknown") {
-    node_desc = std::string("Warning: type '") + d["original_type"].value__string + std::string("' is not loaded");
+    node_desc = std::string("Warning: type '") + d["original_type"].string_value + std::string("' is not loaded");
   }
 
   self.label__nodeType.stringValue = nsstr(node_type);
@@ -574,10 +574,10 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
       [[text_field.topAnchor constraintEqualToAnchor:lbl.topAnchor constant:-2] setActive:YES];
       [[text_field.leftAnchor constraintGreaterThanOrEqualToAnchor:lbl.rightAnchor constant:16] setActive:YES];
       if (prop.is_string()) {
-        text_field.stringValue = nsstr(prop.value__string);
+        text_field.stringValue = nsstr(prop.string_value);
       }
       else {
-        text_field.stringValue = nsstr(_DiatomSerialization::float_format(prop.value__number));
+        text_field.stringValue = nsstr(_DiatomSerialization::float_format(prop.number_value));
       }
 
       control_names[(__bridge void*)text_field] = property_name;
@@ -586,7 +586,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
     else if (prop.is_bool()) {
       NSButton *checkbox = [NSButton checkboxWithTitle:@"" target:self action:@selector(formButtonClicked:)];
-      if (prop.value__bool) {
+      if (prop.bool_value) {
         checkbox.state = NSOnState;
       }
       checkbox.translatesAutoresizingMaskIntoConstraints = NO;
@@ -615,10 +615,10 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   Diatom &prop = n[property_name];
 
   if (prop.is_string()) {
-    prop.value__string = [[notif.object stringValue] UTF8String];
+    prop.string_value = [[notif.object stringValue] UTF8String];
   }
   else if (prop.is_number()) {
-    prop.value__number = [[notif.object stringValue] doubleValue];;
+    prop.number_value = [[notif.object stringValue] doubleValue];;
   }
   else {
     putUpError(@"Incorrect property type",
@@ -634,7 +634,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   Diatom &prop = n[property_name];
 
   if (prop.is_bool()) {
-    prop.value__bool = button.state;
+    prop.bool_value = button.state;
   }
   else {
     putUpError(@"Incorrect property type",
@@ -656,7 +656,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
 -(void)addNodeDef:(Diatom)def {
   auto i = std::find_if(nodeDefs.begin(), nodeDefs.end(), [&](Diatom d) {
-    return d["type"].value__string == def["type"].value__string;
+    return d["type"].string_value == def["type"].string_value;
   });
   if (i != nodeDefs.end()) {
     nodeDefs.erase(i);
@@ -665,7 +665,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   nodeDefs.push_back(def);
 
   if (def["description"].is_string()) {
-    [self.appDelegate descriptions][def["type"].value__string] = def["description"].value__string;
+    [self.appDelegate descriptions][def["type"].string_value] = def["description"].string_value;
   }
 }
 

@@ -125,8 +125,8 @@ static const NSSize unitSize = {1.0, 1.0};
 // ------------------------------------
 
 NSPoint attachmentCoord_Parent_forNode(Diatom *n) {
-  float x = (*n)["posX"].value__number;
-  float y = (*n)["posY"].value__number;
+  float x = (*n)["posX"].number_value;
+  float y = (*n)["posY"].number_value;
 
   return (NSPoint) {
     x + node_parent_circle_offset_x + node_circle_size*0.5,
@@ -135,8 +135,8 @@ NSPoint attachmentCoord_Parent_forNode(Diatom *n) {
 }
 
 NSPoint attachmentCoord_Child_forNode(Diatom *n, int childIndex) {
-  float x = (*n)["posX"].value__number;
-  float y = (*n)["posY"].value__number;
+  float x = (*n)["posX"].number_value;
+  float y = (*n)["posY"].number_value;
 
   return NSPoint{
     x + node_parent_circle_offset_x + childIndex*node_cnxn_circle_xoffset + node_circle_size*0.5,
@@ -159,14 +159,14 @@ bool shouldDrawExtraChildConnector(Diatom *n, UID uid__hovered_node, InFlightCon
   Diatom max_children = (*n)["maxChildren"];
   bool capacity_full = (
     max_children.is_number() &&
-    max_children.value__number != -1 &&
-    n_children(n) >= max_children.value__number
+    max_children.number_value != -1 &&
+    n_children(n) >= max_children.number_value
   );
   if (capacity_full) {
     return false;
   }
 
-  UID uid = (*n)["uid"].value__number;
+  UID uid = (*n)["uid"].number_value;
 
   bool is_hovered                       = uid == uid__hovered_node;
   bool just_hovering                    = is_hovered && ifc.type == InFlightConnection::None;
@@ -186,8 +186,8 @@ int childConnector(Diatom *n, NSPoint p, UID uid__hovered_node, InFlightConnecti
     n_children(n) +
     (shouldDrawExtraChildConnector(n, uid__hovered_node, cnxn) ? 1 : 0);
 
-  float nodeX = (*n)["posX"].value__number;
-  float nodeY = (*n)["posY"].value__number;
+  float nodeX = (*n)["posX"].number_value;
+  float nodeY = (*n)["posY"].number_value;
 
   float box_l = nodeX + node_parent_circle_offset_x;
   float box_r = box_l + n_points*node_cnxn_circle_xoffset;
@@ -219,7 +219,7 @@ int childConnector(Diatom *n, NSPoint p, UID uid__hovered_node, InFlightConnecti
         return;
       }
 
-      UID uid = n["uid"].value__number;
+      UID uid = n["uid"].number_value;
       UIDParentSearchResult uid__parent = find_node_parent(t, uid);
 
       if (uid__parent.uid == NotFound) {
@@ -229,10 +229,10 @@ int childConnector(Diatom *n, NSPoint p, UID uid__hovered_node, InFlightConnecti
 
       else {
         Diatom parent = get_node(t, uid__parent.uid);
-        int i__child = (int) (parent.index_of(name) - parent.descendants.begin());
+        int i__child = (int) (parent.index_of(name) - parent.table_entries.begin());
 
-        float x__parent = parent["posX"].value__number;
-        float y__parent = parent["posY"].value__number;
+        float x__parent = parent["posX"].number_value;
+        float y__parent = parent["posY"].number_value;
 
         double x = x__parent - 40 + i__child * nodeHSpacing;
         double y = y__parent + nodeVSpacing + i__child * 4;
@@ -251,8 +251,8 @@ int childConnector(Diatom *n, NSPoint p, UID uid__hovered_node, InFlightConnecti
 // ---------------------------
 
 void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bool extra_child_connector) {
-  float x = d["posX"].value__number + scroll.x;
-  float y = d["posY"].value__number + scroll.y;
+  float x = d["posX"].number_value + scroll.x;
+  float y = d["posY"].number_value + scroll.y;
 
   // Make main shape
   NSBezierPath *path_main = [NSBezierPath bezierPath];
@@ -262,7 +262,7 @@ void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bo
 
   // Get node-specific colour
   NSColor *col__node = [NSColor blackColor];
-  auto it = node_colours.find(d["type"].value__string);
+  auto it = node_colours.find(d["type"].string_value);
   if (it != node_colours.end()) {
     col__node = it->second;
   }
@@ -278,7 +278,7 @@ void drawNode(Diatom d, NSPoint scroll, bool selected, bool hover, bool leaf, bo
                                                                                    node_circle_size, node_circle_size)];
 
   // Name
-  NSString *name = [NSString stringWithFormat:@"%s", d["type"].value__string.c_str()];
+  NSString *name = [NSString stringWithFormat:@"%s", d["type"].string_value.c_str()];
   NSShadow *shadow = [[NSShadow alloc] init];
   [shadow setShadowBlurRadius:1.0f];
   [shadow setShadowColor:[NSColor darkGrayColor]];
@@ -347,7 +347,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
       return;
     }
 
-    UID uid = n["uid"].value__number;
+    UID uid = n["uid"].number_value;
     UID uid__selected_node = DOCW.selectedNode;
 
     bool is_selected = uid == uid__selected_node;
@@ -357,9 +357,9 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
     drawNode(n, scroll, is_selected, is_hovered, false, extra_child_connector);
 
     // Save child connections to connections vector
-    for (int i=0; i < n["children"].descendants.size(); ++i) {
-      Diatom &child = n["children"].descendants[i].item;
-      UID uid__child = child["uid"].value__number;
+    for (int i=0; i < n["children"].table_entries.size(); ++i) {
+      Diatom &child = n["children"].table_entries[i].item;
+      UID uid__child = child["uid"].number_value;
 
       bool skip_connection_because_inflight = (
         (ifc.type == InFlightConnection::FromParent &&
@@ -557,7 +557,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
     // Edit existing FromChild connection
     else {
-      UID uid__child = d["children"][numeric_key_string("n", i__child)]["uid"].value__number;
+      UID uid__child = d["children"][numeric_key_string("n", i__child)]["uid"].number_value;
       ifc = {
         InFlightConnection::FromChild,
         uid__child,
@@ -599,7 +599,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
     [DOCW detach:DOCW.selectedNode];
     DOCW.selectedNode = NotFound;
 
-    for (auto child : d["children"].descendants) {
+    for (auto child : d["children"].table_entries) {
       [DOCW insert:child.item withParent:NotFound withIndex:-1];
     }
   }
@@ -645,8 +645,8 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   dragInitial = p;
 
   Diatom &n = [DOCW getNode:DOCW.selectedNode];
-  n["posX"] = n["posX"].value__number + delta.x;
-  n["posY"] = n["posY"].value__number + delta.y;
+  n["posX"] = n["posX"].number_value + delta.x;
+  n["posY"] = n["posY"].number_value + delta.y;
 
   DISP;
 }
@@ -675,7 +675,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
     UIDParentSearchResult parent = find_node_parent([DOCW getTree], ifc.fromNode);
     bool is_existing_parent = parent.uid != NotFound && parent.uid == hoveredNode;
 
-    int max_children = d__hovered["maxChildren"].value__number;
+    int max_children = d__hovered["maxChildren"].number_value;
     bool forbidden_because_at_capacity = !is_existing_parent && max_children != -1 && n_children(&d__hovered) >= max_children;
     bool forbidden_because_circular    = !is_existing_parent && is_ancestor([DOCW getTree], ifc.fromNode, hoveredNode);
 
@@ -736,7 +736,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
   Diatom &d__hovered = [DOCW getNode:hoveredNode];
   int i__child = childConnector(&d__hovered, p, hoveredNode, ifc);
-  int max_children = d__hovered["maxChildren"].value__number;
+  int max_children = d__hovered["maxChildren"].number_value;
 
   if (i__child == -1) {
     return;
