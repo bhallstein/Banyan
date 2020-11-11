@@ -1,6 +1,6 @@
 //
-//  SyncarpTests.m
-//  SyncarpTests
+//  BanyanEditorTests.m
+//  BanyanEditorTests
 //
 //  Created by Ben on 23/03/2015.
 //  Copyright (c) 2015 Ben. All rights reserved.
@@ -9,11 +9,11 @@
 #import <Cocoa/Cocoa.h>
 #import <XCTest/XCTest.h>
 
-@interface SyncarpTests : XCTestCase
+@interface BanyanEditorTests : XCTestCase
 
 @end
 
-@implementation SyncarpTests
+@implementation BanyanEditorTests
 
 - (void)setUp {
     [super setUp];
