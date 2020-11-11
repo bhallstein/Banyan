@@ -13,12 +13,15 @@ Diatom EmptyDiatom{Diatom::Type::Empty};
 
 
 float initial_panel_width = 240.;
+float vspace = 12;
+float vspace_large = 32;
 
 
 @interface Document () {
   std::vector<Diatom> tree;
-  std::map<void*, std::string> control_names;
   std::vector<Diatom> nodeDefs;
+  std::map<void*, std::string> node_property_map;
+  std::map<void*, std::string> node_state_context_map;
 }
 
 @property IBOutlet NSSplitView *view__splitContainer;
@@ -30,8 +33,13 @@ float initial_panel_width = 240.;
 @property NSTextField *label__nodeType;
 @property NSTextField *label__nodeDescr;
 @property NSTextField *label__optionsHeader;
+@property NSTextField *label__stateContextsHeader;
+@property NSButton *button__addStateContext;
+@property NSLayoutConstraint *label__stateContextsHeader__topConstraint;
+@property NSLayoutConstraint *button__addStateContext__topConstraint;
 
 @property NSArray *form_elements;
+@property NSArray *state_context_elements;
 
 @end
 
@@ -46,24 +54,28 @@ float initial_panel_width = 240.;
   return self;
 }
 
-NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_offset) {
-  lbl.translatesAutoresizingMaskIntoConstraints = false;
-  lbl.editable = false;
-  lbl.selectable = true;
-  lbl.bezeled = false;
+void set_up_subview(NSView *view, NSView *subview, float l_offset, float r_offset) {
+  subview.translatesAutoresizingMaskIntoConstraints = NO;
+  [subview setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
+  [view addSubview:subview];
 
-  [parent addSubview:lbl];
-
-  [lbl setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
   if (l_offset != -1.) {
-    [[lbl.leftAnchor constraintEqualToAnchor:parent.leftAnchor constant:l_offset] setActive:YES];
+    [[subview.leftAnchor constraintEqualToAnchor:view.leftAnchor constant:l_offset] setActive:YES];
   }
   if (r_offset != -1.) {
-    [[lbl.rightAnchor constraintEqualToAnchor:parent.rightAnchor constant:r_offset] setActive:YES];
+    [[subview.rightAnchor constraintEqualToAnchor:view.rightAnchor constant:-r_offset] setActive:YES];
   }
-
-  return lbl;
 }
+
+NSTextField* mk_label(NSTextField *label, NSView *parent, float l_offset, float r_offset) {
+  label.editable = NO;
+  label.selectable = NO;
+  label.bezeled = NO;
+  set_up_subview(parent, label, l_offset, r_offset);
+
+  return label;
+}
+
 
 -(void)awakeFromNib {
   self.selectedNode = NotFound;
@@ -98,27 +110,32 @@ NSTextField* mk_label(NSTextField *lbl, NSView *parent, float l_offset, float r_
 
   // Set up Node Options view
   self.view__nodeOptions.translatesAutoresizingMaskIntoConstraints = false;
-  // [self.view__nodeOptions setValue:[NSColor whiteColor] forKey:@"backgroundColor"];
   [[self.view__nodeOptions.topAnchor    constraintEqualToAnchor:self.view__nodeOptions.topAnchor]    setActive:YES];
   [[self.view__nodeOptions.leftAnchor   constraintEqualToAnchor:self.view__nodeOptions.leftAnchor]   setActive:YES];
   [[self.view__nodeOptions.rightAnchor  constraintEqualToAnchor:self.view__nodeOptions.rightAnchor]  setActive:YES];
   [[self.view__nodeOptions.bottomAnchor constraintEqualToAnchor:self.view__nodeOptions.bottomAnchor] setActive:YES];
 
-  self.label__nodeType      = mk_label([NSTextField textFieldWithString:@"Node type"],            self.view__nodeOptions, 12, -12);
-  self.label__nodeDescr     = mk_label([NSTextField wrappingLabelWithString:@"Node description"], self.view__nodeOptions, 14, -14);
-  self.label__optionsHeader = mk_label([NSTextField textFieldWithString:@"Properties"],           self.view__nodeOptions, 12, -12);
+  self.label__nodeType      = mk_label([NSTextField textFieldWithString:@"Node type"],            self.view__nodeOptions, 12, 12);
+  self.label__nodeDescr     = mk_label([NSTextField wrappingLabelWithString:@"Node description"], self.view__nodeOptions, 14, 14);
+  self.label__optionsHeader = mk_label([NSTextField textFieldWithString:@"Properties"],           self.view__nodeOptions, 12, 12);
+  self.label__stateContextsHeader = mk_label([NSTextField textFieldWithString:@"State contexts"],       self.view__nodeOptions, 12, 12);
+  self.button__addStateContext = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameAddTemplate] target:self action:@selector(btn__addStateContext:)];
+  self.button__addStateContext.bezelStyle = NSBezelStyleRoundRect;
+  set_up_subview(self.view__nodeOptions, self.button__addStateContext, 12, -1);
 
   [[self.label__nodeType.topAnchor      constraintEqualToAnchor:self.view__nodeOptions.topAnchor   constant:18] setActive:YES];
   [[self.label__nodeDescr.topAnchor     constraintEqualToAnchor:self.label__nodeType.bottomAnchor  constant:9]  setActive:YES];
-  [[self.label__optionsHeader.topAnchor constraintEqualToAnchor:self.label__nodeDescr.bottomAnchor constant:24] setActive:YES];
+  [[self.label__optionsHeader.topAnchor constraintEqualToAnchor:self.label__nodeDescr.bottomAnchor constant:vspace_large] setActive:YES];
 
   self.label__nodeType.font      = [NSFont boldSystemFontOfSize:16];
   self.label__nodeDescr.font     = [NSFont systemFontOfSize:13];
   self.label__optionsHeader.font = [NSFont boldSystemFontOfSize:14];
+  self.label__stateContextsHeader.font = [NSFont boldSystemFontOfSize:14];
 
   self.label__nodeType.textColor      = [NSColor labelColor];
   self.label__nodeDescr.textColor     = [NSColor systemGrayColor];
   self.label__optionsHeader.textColor = [NSColor labelColor];
+  self.label__stateContextsHeader.textColor = [NSColor labelColor];
 
   [self setNodeOptionsViewToEmpty];
 }
@@ -512,13 +529,21 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   self.label__nodeType.stringValue = @"";
   self.label__nodeDescr.stringValue = @"";
   self.label__optionsHeader.hidden = YES;
+  self.label__stateContextsHeader.hidden = YES;
+  self.button__addStateContext.hidden = YES;
 
-  for (id control in self.form_elements) {
-    [control removeFromSuperview];
-  }
+  self.label__stateContextsHeader__topConstraint.active = NO;
+  self.button__addStateContext__topConstraint.active = NO;
+  [self.label__stateContextsHeader removeConstraint:self.label__stateContextsHeader__topConstraint];
+  [self.button__addStateContext removeConstraint:self.button__addStateContext__topConstraint];
+
+  for (id control in self.form_elements)          { [control removeFromSuperview]; }
+  for (id control in self.state_context_elements) { [control removeFromSuperview]; }
   self.form_elements = nil;
+  self.state_context_elements = nil;
 
-  control_names.clear();
+  node_property_map.clear();
+  node_state_context_map.clear();
 }
 
 -(void)setNodeOptionsViewToFilledOut {
@@ -538,9 +563,10 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
   NSColor *bg_color = view_background_color(is_dark_mode);
   [self.view__nodeOptions setWantsLayer:YES];
-  self.view__nodeOptions.layer.backgroundColor = bg_color.CGColor;
-  self.label__nodeType.backgroundColor         = bg_color;
-  self.label__optionsHeader.backgroundColor    = bg_color;
+  self.view__nodeOptions.layer.backgroundColor    = bg_color.CGColor;
+  self.label__nodeType.backgroundColor            = bg_color;
+  self.label__optionsHeader.backgroundColor       = bg_color;
+  self.label__stateContextsHeader.backgroundColor = bg_color;
 
   self.label__nodeType.stringValue = nsstr(node_type);
   self.label__nodeDescr.stringValue = nsstr(node_desc);
@@ -549,28 +575,24 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   auto settables = node_settable_properties(d);
   if (settables.size() > 0) {
     self.label__optionsHeader.hidden = NO;
-
     NSMutableArray *temp_elements = [[NSMutableArray alloc] init];
-    NSView *last_label = nil;
 
     for (auto &property_name : settables) {
       Diatom prop = d[property_name];
-      NSView *prev = last_label == nil ? self.label__optionsHeader : last_label;
+      NSTextField *prev = temp_elements.count > 0 ? temp_elements.lastObject : self.label__optionsHeader;
 
       // Create label
-      NSTextField *lbl = [NSTextField textFieldWithString:nsstr(property_name)];
-      mk_label(lbl, self.view__nodeOptions, 12, -1);
-      lbl.textColor = [NSColor systemGrayColor];
-      lbl.backgroundColor = bg_color;
-      [[lbl.topAnchor constraintEqualToAnchor:prev.bottomAnchor constant:12] setActive:YES];
-
-      last_label = lbl;
-      [temp_elements addObject:lbl];
+      NSTextField *label = [NSTextField textFieldWithString:nsstr(property_name)];
+      mk_label(label, self.view__nodeOptions, 12, -1);
+      label.textColor = [NSColor systemGrayColor];
+      label.backgroundColor = bg_color;
+      [[label.topAnchor constraintEqualToAnchor:prev.bottomAnchor constant:vspace] setActive:YES];
+      [temp_elements addObject:label];
 
       // Create text input
       if (prop.is_string() || prop.is_number()) {
         NSTextField *text_field = [NSTextField textFieldWithString:@""];
-        mk_label(text_field, self.view__nodeOptions, -1, -12);
+        mk_label(text_field, self.view__nodeOptions, -1, 12);
         text_field.delegate = self;
         text_field.editable = YES;
         text_field.bezeled = YES;
@@ -578,8 +600,8 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
         text_field.textColor = NSColor.blackColor;
         text_field.drawsBackground = YES;
         text_field.backgroundColor = NSColor.whiteColor;
-        [[text_field.topAnchor constraintEqualToAnchor:lbl.topAnchor constant:-2] setActive:YES];
-        [[text_field.leftAnchor constraintGreaterThanOrEqualToAnchor:lbl.rightAnchor constant:16] setActive:YES];
+        [[text_field.topAnchor constraintEqualToAnchor:label.topAnchor constant:-2] setActive:YES];
+        [[text_field.leftAnchor constraintGreaterThanOrEqualToAnchor:label.rightAnchor constant:16] setActive:YES];
         if (prop.is_string()) {
           text_field.stringValue = nsstr(prop.string_value);
         }
@@ -587,7 +609,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
           text_field.stringValue = nsstr(_DiatomSerialization::float_format(prop.number_value));
         }
 
-        control_names[(__bridge void*)text_field] = property_name;
+        node_property_map[(__bridge void*)text_field] = property_name;
         [temp_elements addObject:text_field];
       }
 
@@ -596,13 +618,10 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
         if (prop.bool_value) {
           checkbox.state = NSOnState;
         }
-        checkbox.translatesAutoresizingMaskIntoConstraints = NO;
-        [checkbox setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
-        [self.view__nodeOptions addSubview:checkbox];
-        [[checkbox.topAnchor constraintEqualToAnchor:lbl.topAnchor constant:0] setActive:YES];
-        [[checkbox.rightAnchor constraintGreaterThanOrEqualToAnchor:self.view__nodeOptions.rightAnchor constant:-12] setActive:YES];
+        set_up_subview(self.view__nodeOptions, checkbox, -1, 12);
+        [[checkbox.topAnchor constraintEqualToAnchor:label.topAnchor constant:0] setActive:YES];
 
-        control_names[(__bridge void*) checkbox] = property_name;
+        node_property_map[(__bridge void*) checkbox] = property_name;
         [temp_elements addObject:checkbox];
       }
     }
@@ -611,6 +630,48 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   }
 
   // State contexts
+  BOOL have_form_elements = self.form_elements.count > 0;
+  BOOL have_options_header = !self.label__optionsHeader.hidden;
+  NSTextField *v_prev = have_form_elements ? self.form_elements.lastObject :
+    (have_options_header ? self.label__optionsHeader : self.label__nodeDescr);
+
+  self.label__stateContextsHeader__topConstraint = [self.label__stateContextsHeader.topAnchor constraintEqualToAnchor:v_prev.bottomAnchor
+                                                                                                             constant:vspace_large];
+  self.label__stateContextsHeader__topConstraint.active = YES;
+  self.label__stateContextsHeader.hidden = NO;
+
+  NSMutableArray *temp_sc_elements = [[NSMutableArray alloc] init];
+  d["state_contexts"].each([&](std::string k, Diatom sc) {
+    assert(sc.is_string());
+    std::string context_name = sc.string_value;
+    NSTextField *prev = temp_sc_elements.count > 0 ? temp_sc_elements.lastObject : self.label__stateContextsHeader;
+
+    // Create label
+    NSTextField *label = [NSTextField textFieldWithString:nsstr(context_name)];
+    mk_label(label, self.view__nodeOptions, 12, 20);
+    label.textColor = [NSColor systemGrayColor];
+    label.backgroundColor = bg_color;
+    [[label.topAnchor constraintEqualToAnchor:prev.bottomAnchor constant: vspace] setActive:YES];
+    [temp_sc_elements addObject:label];
+
+    // Create delete button
+    NSButton *delete_btn = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameRemoveTemplate]
+                                              target:self
+                                              action:@selector(btn__deleteStateContext:)];
+    set_up_subview(self.view__nodeOptions, delete_btn, -1, 12);
+    [[delete_btn.topAnchor constraintEqualToAnchor:label.topAnchor constant: 0] setActive:YES];
+    delete_btn.bezelStyle = NSBezelStyleRoundRect;
+    node_state_context_map[(__bridge void*) delete_btn] = context_name;
+    [temp_sc_elements addObject:delete_btn];
+  });
+  self.state_context_elements = [NSArray arrayWithArray:temp_sc_elements];
+
+  // State context add btn
+  self.button__addStateContext.hidden = NO;
+  NSTextField *vprev__addbtn = self.state_context_elements.count > 0 ? self.state_context_elements.lastObject : self.label__stateContextsHeader;
+  self.button__addStateContext__topConstraint = [self.button__addStateContext.topAnchor constraintEqualToAnchor:vprev__addbtn.bottomAnchor
+                                                                                                       constant:vspace];
+  self.button__addStateContext__topConstraint.active = YES;
 }
 
 
@@ -619,7 +680,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
 -(void)controlTextDidChange:(NSNotification *)notif {
   void* p = (__bridge void*) notif.object;
-  std::string property_name = control_names[p];
+  std::string property_name = node_property_map[p];
 
   Diatom &n = [self getNode:self.selectedNode];
   Diatom &prop = n[property_name];
@@ -638,7 +699,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
 -(void)formButtonClicked:(NSButton*)button {
   void* p = (__bridge void*) button;
-  std::string property_name = control_names[p];
+  std::string property_name = node_property_map[p];
 
   Diatom &n = [self getNode:self.selectedNode];
   Diatom &prop = n[property_name];

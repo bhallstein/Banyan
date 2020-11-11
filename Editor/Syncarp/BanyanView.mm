@@ -520,6 +520,7 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   hoveredNode = [DOCW nodeAtPoint:pos nodeWidth:node_width nodeHeight:node_height()];
 
   if (hoveredNode == NotFound) {
+    [DOCW setSelectedNode:NotFound];
     [self endMouseDrag];
     DISP;
     return;
