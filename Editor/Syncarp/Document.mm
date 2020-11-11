@@ -367,19 +367,6 @@ NSTextField* mk_label(NSTextField *label, NSView *parent, float l_offset, float 
 // Tree manipulation
 // --------------------------------------
 
-void regularise_node_keys(Diatom &node) {
-  std::vector<Diatom> children;
-  std::transform(node["children"].table_entries.begin(),
-                 node["children"].table_entries.end(),
-                 std::back_inserter(children),
-                 [](Diatom::TableEntry entry) { return entry.item; });
-
-  node["children"] = Diatom();
-  for (int i=0; i < children.size(); ++i) {
-    node["children"][numeric_key_string("n", i)] = children[i];
-  }
-}
-
 -(void)detach:(UID)uid {
   // Removes & destroys -- caller may want to copy the Diatom beforehand
   UIDParentSearchResult result = find_node_parent(tree, uid);
@@ -398,7 +385,7 @@ void regularise_node_keys(Diatom &node) {
   else {
     Diatom &parent = [self getNode:result.uid];
     parent["children"].remove_child(result.child_name);
-    regularise_node_keys(parent);
+    regularise_node_keys(parent["children"]);
   }
 }
 
@@ -448,7 +435,7 @@ void regularise_node_keys(Diatom &node) {
     i = (int) children.table_entries.size();
   }
   children.table_entries.insert(children.table_entries.begin() + i, { "TempKey", n });
-  regularise_node_keys(parent);
+  regularise_node_keys(children);
 }
 
 UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
@@ -614,7 +601,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
       }
 
       else if (prop.is_bool()) {
-        NSButton *checkbox = [NSButton checkboxWithTitle:@"" target:self action:@selector(formButtonClicked:)];
+        NSButton *checkbox = [NSButton checkboxWithTitle:@"" target:self action:@selector(btn__formElement:)];
         if (prop.bool_value) {
           checkbox.state = NSOnState;
         }
@@ -648,11 +635,15 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 
     // Create label
     NSTextField *label = [NSTextField textFieldWithString:nsstr(context_name)];
-    mk_label(label, self.view__nodeOptions, 12, 20);
+    mk_label(label, self.view__nodeOptions, 12, 40);
+    label.editable = YES;
+    label.delegate = self;
+    label.focusRingType = NSFocusRingTypeNone;
     label.textColor = [NSColor systemGrayColor];
     label.backgroundColor = bg_color;
     [[label.topAnchor constraintEqualToAnchor:prev.bottomAnchor constant: vspace] setActive:YES];
     [temp_sc_elements addObject:label];
+    node_state_context_map[(__bridge void*) label] = k;
 
     // Create delete button
     NSButton *delete_btn = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameRemoveTemplate]
@@ -661,7 +652,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
     set_up_subview(self.view__nodeOptions, delete_btn, -1, 12);
     [[delete_btn.topAnchor constraintEqualToAnchor:label.topAnchor constant: 0] setActive:YES];
     delete_btn.bezelStyle = NSBezelStyleRoundRect;
-    node_state_context_map[(__bridge void*) delete_btn] = context_name;
+    node_state_context_map[(__bridge void*) delete_btn] = k;
     [temp_sc_elements addObject:delete_btn];
   });
   self.state_context_elements = [NSArray arrayWithArray:temp_sc_elements];
@@ -679,25 +670,55 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 // --------------------------------------
 
 -(void)controlTextDidChange:(NSNotification *)notif {
+  if (self.selectedNode == NotFound) {
+    return;
+  }
+
   void* p = (__bridge void*) notif.object;
-  std::string property_name = node_property_map[p];
 
-  Diatom &n = [self getNode:self.selectedNode];
-  Diatom &prop = n[property_name];
+  auto it__node_prop = node_property_map.find(p);
+  auto it__sc = node_state_context_map.find(p);
 
-  if (prop.is_string()) {
-    prop.string_value = [[notif.object stringValue] UTF8String];
+  if (it__node_prop != node_property_map.end()) {
+    [self updateNodeProperty:notif.object];
   }
-  else if (prop.is_number()) {
-    prop.number_value = [[notif.object stringValue] doubleValue];;
-  }
-  else {
-    putUpError(@"Incorrect property type",
-               @"The target property of the selected node did not have the expected type. This is unexpected and serious.");
+  else if (it__sc != node_state_context_map.end()) {
+    [self updateNodeStateContext:notif.object];
   }
 }
 
--(void)formButtonClicked:(NSButton*)button {
+-(void)updateNodeProperty:(NSTextField*)control {
+  std::string property_name = node_property_map[(__bridge void*) control];
+  NSString *value = [control stringValue];
+
+  NSError *error = nil;
+  NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^-?[0-9]+(.{1}[0-9]+)?$"
+                                                                         options:NSRegularExpressionCaseInsensitive
+                                                                           error:&error];
+  size_t float_matches = [regex numberOfMatchesInString:value options:0 range:NSMakeRange(0, value.length)];
+
+  Diatom &n = [self getNode:self.selectedNode];
+  bool is_numeric = float_matches > 0;
+
+  if (is_numeric) {
+    double double_value;
+    [[NSScanner scannerWithString:value] scanDouble:&double_value];
+    n[property_name] = double_value;
+  }
+  else {
+    n[property_name] = stdstring(value);
+  }
+}
+
+-(void)updateNodeStateContext:(NSTextField*)control {
+  NSString *value = [control stringValue];
+  Diatom &n = [self getNode:self.selectedNode];
+  std::string sc_key = node_state_context_map[(__bridge void*) control];
+
+  n["state_contexts"][sc_key] = stdstring(value);
+}
+
+-(void)btn__formElement:(NSButton*)button {
   void* p = (__bridge void*) button;
   std::string property_name = node_property_map[p];
 
@@ -711,6 +732,37 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
     putUpError(@"Incorrect property type",
                @"The target property of the selected node was not a boolean. This is unexpected and serious.");
   }
+}
+
+-(void)btn__addStateContext:(NSButton*)add_btn {
+  if (self.selectedNode == NotFound) {
+    return;
+  }
+
+  Diatom &d = [self getNode:self.selectedNode];
+  if (!d.has("state_contexts")) {
+    d["state_contexts"] = Diatom();
+  }
+  d["state_contexts"]["temp_key"] = std::string("MyStateContext");
+  regularise_node_keys(d["state_contexts"]);
+
+  [self setSelectedNode:self.selectedNode];
+  [self.view__banyanLayout setNeedsDisplay:YES];
+}
+
+-(void)btn__deleteStateContext:(NSButton*)delete_btn {
+  if (self.selectedNode == NotFound) {
+    return;
+  }
+
+  std::string sc_key = node_state_context_map[(__bridge void*) delete_btn];
+  Diatom &d = [self getNode:self.selectedNode];
+
+  d["state_contexts"].remove_child(sc_key);
+  regularise_node_keys(d["state_contexts"]);
+
+  [self setSelectedNode:self.selectedNode];
+  [self.view__banyanLayout setNeedsDisplay:YES];
 }
 
 

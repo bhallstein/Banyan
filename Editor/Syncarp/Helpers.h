@@ -29,6 +29,30 @@ static void putUpError(NSString *title, NSString *detail) {
 }
 
 
+// String helpers
+// -----------------------------------
+
+static NSString* nsstr(const std::string &s) {
+  return [NSString stringWithFormat:@"%s", s.c_str()];
+}
+
+static std::string stdstring(NSString *s) {
+  return [s UTF8String];
+}
+
+static NSString* nsstr(Diatom &d) {
+  return nsstr(d.string_value);
+}
+
+static std::string numeric_key_string(std::string prefix, int n) {
+  return prefix + std::to_string(n);
+}
+
+static int key_string_to_number(std::string k, std::string prefix) {
+  return std::stoi(k.substr(prefix.length()));
+}
+
+
 // Node helpers
 // -----------------------------------
 
@@ -156,23 +180,20 @@ static int n_children(Diatom *node) {
 }
 
 
-// String helpers
-// -----------------------------------
+static void regularise_node_keys(Diatom &node) {
+  if (!node.is_table()) {
+    return;
+  }
+  std::vector<Diatom> entries;
+  std::transform(node.table_entries.begin(),
+                 node.table_entries.end(),
+                 std::back_inserter(entries),
+                 [](Diatom::TableEntry entry) { return entry.item; });
 
-static NSString* nsstr(const std::string &s) {
-  return [NSString stringWithFormat:@"%s", s.c_str()];
-}
-
-static NSString* nsstr(Diatom &d) {
-  return nsstr(d.string_value);
-}
-
-static std::string numeric_key_string(std::string prefix, int n) {
-  return prefix + std::to_string(n);
-}
-
-static int key_string_to_number(std::string k, std::string prefix) {
-  return std::stoi(k.substr(prefix.length()));
+  node.table_entries.clear();
+  for (int i=0; i < entries.size(); ++i) {
+    node[numeric_key_string("n", i)] = entries[i];
+  }
 }
 
 
