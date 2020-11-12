@@ -19,5 +19,9 @@
 // Node definitions
 -(std::vector<Diatom>)allNodeDefs;
 
+// Zoom
+-(void)zoomIn;
+-(void)zoomOut;
+
 @end
 

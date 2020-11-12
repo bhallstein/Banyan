@@ -50,5 +50,12 @@
   return nodeDescriptions;
 }
 
+-(IBAction)menu__zoomIn:(id)sender {
+  [[NSDocumentController.sharedDocumentController currentDocument] zoomIn];
+}
+-(IBAction)menu__zoomOut:(id)sender {
+  [[NSDocumentController.sharedDocumentController currentDocument] zoomOut];
+}
+
 @end
 

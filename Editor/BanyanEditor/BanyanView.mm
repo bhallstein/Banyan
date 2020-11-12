@@ -106,24 +106,6 @@ static const NSSize unitSize = {1.0, 1.0};
 }
 
 
-// Scale
-// ------------------------------------
-
--(NSSize)scale {
-  return [self convertSize:unitSize toView:nil];
-}
-
--(void)setScale:(NSSize)newScale {
-  [self resetScaling];
-  [self scaleUnitSquareToSize:newScale];
-  DISP;
-}
-
--(void)resetScaling {
-  [self scaleUnitSquareToSize:[self convertSize:unitSize fromView:nil]];
-}
-
-
 // Draw helpers
 // ------------------------------------
 
@@ -469,30 +451,59 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 // Scroll
 // ---------------------------
 
--(void)magnifyWithEvent:(NSEvent *)event {
-  float scaleFactor = (1.0 + event.magnification);
-  float prevScale = self.scale.width;
-  float newScale = scaleFactor * prevScale;
-
-  float w = self.bounds.size.width;
-  float h = self.bounds.size.height;
-
-  scroll.x -= (w - w/scaleFactor) * 0.5;
-  scroll.y -= (h - h/scaleFactor) * 0.5;
-
-  NSSize sc = NSMakeSize(newScale, newScale);
-  [self setScale:sc];
-}
-
 -(void)adjustScrollX:(float)x Y:(float)y {
   scroll.x += x;
   scroll.y += y;
   DISP;
 }
 
--(void)scrollWheel:(NSEvent *)event {
+-(void)scrollWheel:(NSEvent*)ev {
   float coeff = 4.0;
-  [self adjustScrollX:(event.deltaX * coeff) Y:(event.deltaY * coeff)];
+  [self adjustScrollX:(ev.deltaX * coeff) Y:(ev.deltaY * coeff)];
+}
+
+
+// Zoom
+// ---------------------------
+
+-(NSSize)scale {
+  return [self convertSize:unitSize toView:nil];
+}
+
+-(void)setScale:(NSSize)newScale {
+  [self resetScaling];
+  [self scaleUnitSquareToSize:newScale];
+  DISP;
+}
+
+-(void)resetScaling {
+  [self scaleUnitSquareToSize:[self convertSize:unitSize fromView:nil]];
+}
+
+-(void)magnifyWithFactor:(float)scale_factor {
+  float prev_scale = self.scale.width;
+  float new_scale = scale_factor * prev_scale;
+
+  float w = self.bounds.size.width;
+  float h = self.bounds.size.height;
+
+  scroll.x -= (w - w/scale_factor) * 0.5;
+  scroll.y -= (h - h/scale_factor) * 0.5;
+
+  NSSize sc = { new_scale, new_scale };
+  [self setScale:sc];
+}
+
+-(void)zoomIn {
+  [self magnifyWithFactor:1.2];
+}
+
+-(void)zoomOut {
+  [self magnifyWithFactor:1./1.2];
+}
+
+-(void)magnifyWithEvent:(NSEvent*)ev {
+  [self magnifyWithFactor:(1.0 + ev.magnification)];
 }
 
 

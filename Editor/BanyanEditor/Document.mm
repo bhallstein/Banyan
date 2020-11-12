@@ -865,5 +865,17 @@ std::string read_file(std::string filename) {
   };
 }
 
+
+// Zoom
+// ------------------------------------
+
+-(void)zoomIn {
+  [self.view__banyanLayout zoomIn];
+}
+
+-(void)zoomOut {
+  [self.view__banyanLayout zoomOut];
+}
+
 @end
 
