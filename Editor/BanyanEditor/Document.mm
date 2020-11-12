@@ -116,6 +116,7 @@ NSTextField* mk_label(NSTextField *label, NSView *parent, float l_offset, float 
   [[self.view__nodeOptions.bottomAnchor constraintEqualToAnchor:self.view__nodeOptions.bottomAnchor] setActive:YES];
 
   self.label__nodeType      = mk_label([NSTextField textFieldWithString:@"Node type"],            self.view__nodeOptions, 12, 12);
+  self.label__nodeType.hidden = YES;
   self.label__nodeDescr     = mk_label([NSTextField wrappingLabelWithString:@"Node description"], self.view__nodeOptions, 14, 14);
   self.label__optionsHeader = mk_label([NSTextField textFieldWithString:@"Properties"],           self.view__nodeOptions, 12, 12);
   self.label__stateContextsHeader = mk_label([NSTextField textFieldWithString:@"State contexts"],       self.view__nodeOptions, 12, 12);
@@ -513,6 +514,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
 }
 
 -(void)setNodeOptionsViewToEmpty {
+  self.label__nodeType.hidden = YES;
   self.label__nodeType.stringValue = @"";
   self.label__nodeDescr.stringValue = @"";
   self.label__optionsHeader.hidden = YES;
@@ -555,6 +557,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   self.label__optionsHeader.backgroundColor       = bg_color;
   self.label__stateContextsHeader.backgroundColor = bg_color;
 
+  self.label__nodeType.hidden = NO;
   self.label__nodeType.stringValue = nsstr(node_type);
   self.label__nodeDescr.stringValue = nsstr(node_desc);
 
@@ -723,15 +726,7 @@ UID node_at_point(Diatom tree, NSPoint p, float nw, float nh) {
   std::string property_name = node_property_map[p];
 
   Diatom &n = [self getNode:self.selectedNode];
-  Diatom &prop = n[property_name];
-
-  if (prop.is_bool()) {
-    prop.bool_value = button.state;
-  }
-  else {
-    putUpError(@"Incorrect property type",
-               @"The target property of the selected node was not a boolean. This is unexpected and serious.");
-  }
+  n[property_name] = (bool) button.state;
 }
 
 -(void)btn__addStateContext:(NSButton*)add_btn {

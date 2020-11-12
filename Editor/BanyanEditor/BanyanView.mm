@@ -9,6 +9,8 @@
 @interface BanyanView () {
   NSSize  scale;
   NSPoint scroll;
+  NSPoint scroll_start;
+  NSPoint scroll_mouse_start;
 
   bool laidOut;
   UID  hoveredNode;
@@ -611,6 +613,25 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   NSPoint p = [self convertedPointForEvent:ev];
   hoveredNode = [DOCW nodeAtPoint:p nodeWidth:node_width nodeHeight:node_height()];
   DISP;
+}
+
+-(void)rightMouseDown:(NSEvent*)ev {
+  scroll_start = scroll;
+  scroll_mouse_start = [self convertPoint:ev.locationInWindow fromView: nil];
+  [NSCursor.openHandCursor set];
+}
+
+-(void)rightMouseDragged:(NSEvent*)ev {
+  NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
+  NSLog(@"%.0f,%.0f", p.x, p.y);
+  scroll = {
+    scroll_start.x + p.x - scroll_mouse_start.x,
+    scroll_start.y + p.y - scroll_mouse_start.y,
+  };
+  DISP;
+}
+-(void)rightMouseUp:(NSEvent*)ev {
+  [NSCursor.arrowCursor set];
 }
 
 -(void)keyDown:(NSEvent *)ev {
