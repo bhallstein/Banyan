@@ -56,45 +56,53 @@ treeDef:
   nodes:
     n0:
       type: "While"
+      state_contexts:
       breakOnFailuresIn2ndChild: false
-      posX: 122.421875
-      posY: 74.42578125
+      posX: 147.7734375
+      posY: 40
     n1:
       type: "Inverter"
-      posX: 14.6484375
-      posY: 210.953125
+      state_contexts:
+      posX: 40
+      posY: 176.52734375
     n2:
       type: "MySucceeder"
       muffins: 0
       description: "Another succeeder"
-      posX: 25.94921875
-      posY: 302.78125
+      posX: 51.30078125
+      posY: 268.35546875
     n3:
       type: "Succeeder"
-      posX: 156.78515625
-      posY: 194.71484375
+      state_contexts:
+      posX: 182.13671875
+      posY: 160.2890625
     n4:
       type: "Sequence"
+      state_contexts:
       break_on_failure: true
-      posX: 192.34375
-      posY: 309.46484375
+      posX: 217.6953125
+      posY: 275.0390625
     n5:
       type: "While"
+      state_contexts:
       breakOnFailuresIn2ndChild: false
-      posX: 65.59375
-      posY: 418.96484375
+      posX: 90.9453125
+      posY: 384.5390625
     n6:
       type: "While"
+      state_contexts:
       breakOnFailuresIn2ndChild: true
-      posX: 193.5546875
-      posY: 433.28125
+      posX: 218.90625
+      posY: 398.85546875
     n7:
       type: "While"
+      state_contexts:
       breakOnFailuresIn2ndChild: true
-      posX: 308.71875
-      posY: 456.4296875
+      posX: 334.0703125
+      posY: 422.00390625
     n8:
       type: "While"
+      state_contexts:
       breakOnFailuresIn2ndChild: false
-      posX: 368.12109375
-      posY: 377.75
+      posX: 393.47265625
+      posY: 343.32421875

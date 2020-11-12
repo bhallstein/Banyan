@@ -189,6 +189,25 @@ NSTextField* mk_label(NSTextField *label, NSView *parent, float l_offset, float 
     return [NSData dataWithBytes:str.c_str() length:str.size()];
   }
 
+  // Tweak positions so left-most and top-most +40
+  float leftmost = 1000000.;
+  float topmost  = 1000000.;
+  tree[0].recurse([&](std::string k, Diatom &n) {
+    if (is_node_diatom(&n)) {
+      if (n["posX"].number_value < leftmost) { leftmost = n["posX"].number_value; }
+      if (n["posY"].number_value < topmost)  { topmost  = n["posY"].number_value; }
+    }
+  }, true);
+  float x_diff = leftmost - 40.;
+  float y_diff = topmost - 40.;
+  tree[0].recurse([=](std::string k, Diatom &n) {
+    if (is_node_diatom(&n)) {
+      n["posX"].number_value -= x_diff;
+      n["posY"].number_value -= y_diff;
+    }
+  }, true);
+  [self.view__banyanLayout adjustScrollX:x_diff Y:y_diff];
+
   // Build a GenericTree
   Diatom t = tree[0];
   std::vector<Diatom> nodes;

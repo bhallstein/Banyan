@@ -484,13 +484,15 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
   [self setScale:sc];
 }
 
+-(void)adjustScrollX:(float)x Y:(float)y {
+  scroll.x += x;
+  scroll.y += y;
+  DISP;
+}
+
 -(void)scrollWheel:(NSEvent *)event {
   float coeff = 4.0;
-
-  scroll.x += event.deltaX * coeff;
-  scroll.y += event.deltaY * coeff;
-
-  DISP;
+  [self adjustScrollX:(event.deltaX * coeff) Y:(event.deltaY * coeff)];
 }
 
 
@@ -623,13 +625,13 @@ void drawConnection(NSPoint child_cnxn_pos, NSPoint parent_cnxn_pos, NSPoint scr
 
 -(void)rightMouseDragged:(NSEvent*)ev {
   NSPoint p = [self convertPoint:ev.locationInWindow fromView:nil];
-  NSLog(@"%.0f,%.0f", p.x, p.y);
   scroll = {
     scroll_start.x + p.x - scroll_mouse_start.x,
     scroll_start.y + p.y - scroll_mouse_start.y,
   };
   DISP;
 }
+
 -(void)rightMouseUp:(NSEvent*)ev {
   [NSCursor.arrowCursor set];
 }
