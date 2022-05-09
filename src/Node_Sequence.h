@@ -9,12 +9,11 @@ namespace Banyan {
     std::string type() { return "Sequence"; }
     ChildLimits childLimits()  { return { 1, -1 }; }
 
-
     bool break_on_failure;
-
     int i;
     int n_children;
 
+    Sequence() : i(0), n_children(-1), break_on_failure(false) {  }
 
     Diatom to_diatom() {
       Diatom d;
@@ -25,15 +24,11 @@ namespace Banyan {
       break_on_failure = d["break_on_failure"].bool_value;
     }
 
-
-    Sequence() : i(0), n_children(-1), break_on_failure(false) {  }
-    ~Sequence() {  }
-
-
     NodeReturnStatus activate(int identifier, int _n_children) {
       n_children = _n_children;
       return { NodeReturnStatus::PushChild, 0 };
     }
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
       if (s.status == NodeReturnStatus::Failure && break_on_failure) {
         return s;
@@ -50,4 +45,3 @@ namespace Banyan {
 }
 
 #endif
-

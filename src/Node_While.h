@@ -23,11 +23,11 @@ namespace Banyan {
     std::string type() { return "While"; }
     ChildLimits childLimits()  { return { 2, 2 }; }
 
-
     bool breakOnFailuresIn2ndChild;  // Should failures in the action child
                                      // cease the sequence?
-
     int i;
+
+    While() : i(0), breakOnFailuresIn2ndChild(false) {  }
 
     Diatom to_diatom() {
       Diatom d;
@@ -37,11 +37,6 @@ namespace Banyan {
     void from_diatom(Diatom d) {
       breakOnFailuresIn2ndChild = d["breakOnFailuresIn2ndChild"].bool_value;
     }
-
-
-    While() : i(0), breakOnFailuresIn2ndChild(false) {  }
-    ~While() {  }
-
 
     NodeReturnStatus activate(int identifier, int _n_children) {
       return { NodeReturnStatus::PushChild, 0 };

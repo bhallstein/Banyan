@@ -11,12 +11,11 @@ namespace Banyan {
       return { 1, 1 };
     }
 
-
     int N;                  // If N is 0, will repeat infinitely
     bool break_on_failure;  // Should failures cease the repeater?
-
     int i;                  // Number of times repeated
 
+    Repeater() : i(0), N(1), break_on_failure(false) {  }
 
     Diatom to_diatom() {
       Diatom d;
@@ -29,11 +28,6 @@ namespace Banyan {
       N = d["N"].number_value;
       break_on_failure = d["break_on_failure"].bool_value;
     }
-
-
-    Repeater() : i(0), N(1), break_on_failure(false) {  }
-    ~Repeater() {  }
-
 
     NodeReturnStatus activate(int identifier, int nChildren) {
       return { NodeReturnStatus::PushChild, 0 };

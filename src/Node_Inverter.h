@@ -7,14 +7,13 @@ namespace Banyan {
 
   struct Inverter : Node<Inverter> {
     std::string type() { return "Inverter"; }
-    ChildLimits childLimits() { return { 1, 1 }; }
 
-    Inverter() {  }
-    ~Inverter() {  }
+    ChildLimits childLimits() { return { 1, 1 }; }
 
     NodeReturnStatus activate(int identifier, int nChildren) {
       return { NodeReturnStatus::PushChild, 0 };
     }
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
       return NodeReturnStatus::invert(s);
     }

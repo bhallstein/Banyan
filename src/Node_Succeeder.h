@@ -9,12 +9,10 @@ namespace Banyan {
     std::string type() { return "Succeeder"; }
     ChildLimits childLimits()  { return { 1, 1 }; }
 
-    Succeeder() {  }
-    ~Succeeder() {  }
-
     NodeReturnStatus activate(int identifier, int nChildren) {
       return { NodeReturnStatus::PushChild, 0 };
     }
+
     NodeReturnStatus resume(int identifier, NodeReturnStatus &s) {
       return { NodeReturnStatus::Success };
     }
