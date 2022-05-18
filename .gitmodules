@@ -1,6 +1,0 @@
-[submodule "GenericTree"]
-	path = GenericTree
-	url = git@github.com:bhallstein/GenericTree.git
-[submodule "StackAllocators"]
-	path = StackAllocators
-	url = git@github.com:bhallstein/StackAllocators.git
