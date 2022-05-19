@@ -18,13 +18,13 @@ Banyan::Node MockLeaf{
   .props = {
     {"succeeds", {.bool_value = false}},
   },
-  .activate = [](auto &n) {
+  .activate = [](size_t e, auto &n) {
     MockLeaf__activated += 1;
     return Ret{
       n.props["succeeds"].bool_value ? Succeeded : Failed,
     };
   },
-  .resume = [](auto &n, auto status) {
+  .resume = [](size_t e, auto &n, auto status) {
     MockLeaf__resumed += 1;
     return Ret{Succeeded};
   },
@@ -37,7 +37,7 @@ Node MockFailOnThirdCall{
   .props = {
     {"i", {.int_value = 0}},
   },
-  .activate = [](auto &n) {
+  .activate = [](size_t e, auto &n) {
     if (++MockFailOnThirdCall__activated == 3) {
       return Ret{Failed};
     }

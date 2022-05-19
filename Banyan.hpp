@@ -1,3 +1,6 @@
+#ifndef Banyan_h
+#define Banyan_h
+
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -49,16 +52,27 @@ struct Node {
     Map<Prop> props;
     RunNode(Node *n) : node(n), props(n->props) { }
 
-    Ret activate() { return node->activate(*this); }
-    Ret resume(ReturnStatus status)  { return node->resume(*this, status); }
+    Ret activate(size_t identifier) {
+      return node->activate(identifier, *this);
+    }
+    Ret resume(size_t identifier, ReturnStatus status) {
+      return node->resume(identifier, *this, status);
+    }
   };
 
   int min_children = 0;
   int max_children = 0;   // If -1, no maximum
   Map<Prop> props;
 
-  std::function<Ret(RunNode&)> activate = [](RunNode&) -> Ret { return {Succeeded}; };
-  std::function<Ret(RunNode&, ReturnStatus)> resume = [](RunNode&, ReturnStatus) -> Ret { return {Succeeded}; };
+  typedef std::function<Ret(size_t, RunNode&)> activate_func;
+  typedef std::function<Ret(size_t, RunNode&, ReturnStatus)> resume_func;
+
+  activate_func activate = [](size_t identifier, RunNode&) {
+    return Ret{Succeeded};
+  };
+  resume_func resume = [](size_t identifier, RunNode&, ReturnStatus) {
+    return Ret{Succeeded};
+  };
 
   std::vector<Node> children;
 };
@@ -77,7 +91,7 @@ struct NodeInitializer {
 // construct() - function to initialize a tree
 // ------------------------------------
 
-Node construct(NodeInitializer init) {
+inline Node construct(NodeInitializer init) {
   Node node = init.node;
   auto n_children = init.children.size();
 
@@ -105,10 +119,10 @@ Node construct(NodeInitializer init) {
 
 struct Instance {
   Node *tree;
-  int identifier;  // TODO: use
+  size_t identifier;
   std::vector<Node::RunNode> stack;
 
-  Instance(Node *_tree, int _identifier) : tree(_tree), identifier(_identifier) { }
+  Instance(Node *_tree, size_t _identifier) : tree(_tree), identifier(_identifier) { }
 
   bool finished() {
     return stack.size() == 0;
@@ -116,7 +130,7 @@ struct Instance {
 
   void begin() {
     stack.push_back(tree);
-    Ret ret = stack.back().activate();
+    Ret ret = stack.back().activate(identifier);
     update(ret);
   }
 
@@ -128,13 +142,12 @@ struct Instance {
           break;
         }
         Node::RunNode &rn = stack.back();
-        ret = rn.resume(ret.status);
+        ret = rn.resume(identifier, ret.status);
       }
 
       else if (ret.status == PushChild) {
         stack.push_back(Node::RunNode(&stack.back().node->children[ret.child]));
-        auto &rn = stack.back();
-        ret = stack.back().activate();
+        ret = stack.back().activate(identifier);
       }
     }
   }
@@ -148,10 +161,10 @@ inline Node Inverter() {
   return {
     .min_children = 1,
     .max_children = 1,
-    .activate = [](auto &n) {
+    .activate = [](size_t, auto &n) {
       return Ret{PushChild, 0};
     },
-    .resume = [](auto &n, ReturnStatus s) {
+    .resume = [](size_t, auto &n, ReturnStatus s) {
       return Ret{.status = s == Failed ? Succeeded : Failed};
     },
   };
@@ -166,10 +179,10 @@ inline Node Repeater() {
       {"N", {.int_value = 1}},  // If 0, repeat infinitely
       {"break_on_failure", {.bool_value = false}},
     },
-    .activate = [](auto &n) {
+    .activate = [](size_t, auto &n) {
       return Ret{PushChild, 0};
     },
-    .resume = [](auto &n, ReturnStatus s) {
+    .resume = [](size_t, auto &n, ReturnStatus s) {
       if (s == Failed && n.props["break_on_failure"].bool_value) {
         return Ret{Failed};
       }
@@ -200,14 +213,14 @@ inline Node Selector() {
       {"stop_after_first_success", {.bool_value = false}},
       {"random_order", {.bool_value = 0}},
     },
-    .activate = [](auto &n) {
+    .activate = [](size_t, auto &n) {
       if (n.props["random_order"].bool_value) {
         scramble(n.node->children);   // TODO: fix
       }
 
       return Ret{PushChild, 0};
     },
-    .resume = [](auto &n, ReturnStatus s) -> Ret {
+    .resume = [](size_t, auto &n, ReturnStatus s) -> Ret {
       if (s == Succeeded && n.props["stop_after_first_success"].bool_value) {
         return {Succeeded};
       }
@@ -231,10 +244,10 @@ inline Node Sequence() {
       {"break_on_failure", {.bool_value = false}},
       {"i", {.int_value = 0}},
     },
-    .activate = [](auto &n) {
+    .activate = [](size_t, auto &n) {
       return Ret{PushChild, 0};
     },
-    .resume = [](auto &n, ReturnStatus s) {
+    .resume = [](size_t, auto &n, ReturnStatus s) {
       if (s == Failed && n.props["break_on_failure"].bool_value) {
         return Ret{Failed};
       }
@@ -254,10 +267,10 @@ inline Node Succeeder() {
   return {
     .min_children = 1,
     .max_children = 1,
-    .activate = [](auto &n) {
+    .activate = [](size_t, auto &n) {
       return Ret{PushChild, 0};
     },
-    .resume = [](auto &n, ReturnStatus s) {
+    .resume = [](size_t, auto &n, ReturnStatus s) {
       return Ret{Succeeded};
     },
   };
@@ -270,10 +283,10 @@ inline Node While() {
     .props{
       {"i", {.int_value = 0}},
     },
-    .activate = [](auto &n) {
+    .activate = [](size_t, auto &n) {
       return Ret{PushChild, 0};
     },
-    .resume = [](auto &n, ReturnStatus s) {
+    .resume = [](size_t, auto &n, ReturnStatus s) {
       int &i = n.props["i"].int_value;
 
       // Resume after first child
@@ -296,3 +309,6 @@ inline Node While() {
 }
 
 }
+
+#endif
+
