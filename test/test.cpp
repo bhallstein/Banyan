@@ -2,7 +2,7 @@
 #include <fstream>
 #include <streambuf>
 #include <iostream>
-#include "_test.h"
+#include "_test.hpp"
 #include "../Banyan.hpp"
 
 using namespace Banyan;

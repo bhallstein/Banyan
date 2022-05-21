@@ -1,10 +1,5 @@
-#ifdef __cplusplus
 #include <cstdio>
 #include <cassert>
-#else
-#include <stdio.h>
-#include <assert.h>
-#endif
 
 #define p_assert(x) do {    \
   printf("%60s", #x);       \
