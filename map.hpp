@@ -14,13 +14,13 @@ struct Map {
   Map(std::initializer_list<Entry> e) : entries(e) { }
 
   T& operator[](std::string name) {
-    for (auto it = entries.begin(); it < entries.end(); ++it) {
-      if (it->name == name) {
-        return it->item;
+    for (auto &entry : entries) {
+      if (entry.name == name) {
+        return entry.item;
       }
     }
 
-    entries.push_back({.name = name});
+    entries.push_back({name});
     return entries.back().item;
   }
 };
