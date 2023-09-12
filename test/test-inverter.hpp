@@ -1,6 +1,3 @@
-Node Tree_Inverter = construct({
-  .node = Inverter(),
-  .children = {
-    {.node = MockLeaf},
-  },
+Node Tree_Inverter = Inverter({
+  {.node = MockLeaf},
 });

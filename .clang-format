@@ -1,0 +1,16 @@
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: None
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+BasedOnStyle: Google
+BraceWrapping:
+  BeforeCatch: true
+  BeforeElse: true
+BreakBeforeBraces: Custom
+ColumnLimit: 0
+ContinuationIndentWidth: 2
+DerivePointerAlignment: false
+IndentWidth: 2
+InsertNewlineAtEOF: true
+MaxEmptyLinesToKeep: 2
+SpaceAfterCStyleCast: true

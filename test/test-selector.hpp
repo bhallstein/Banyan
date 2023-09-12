@@ -1,36 +1,36 @@
 Node Tree_Selector = construct({
-  .node = Selector(),
+  .node  = Selector(),
   .props = {
     {"random_order", {.bool_value = false}},
     {"stop_after_first_success", {.bool_value = true}},
   },
   .children = {
     {
-      .node = MockLeaf,
+      .node  = MockLeaf,
       .props = {
         {"succeeds", {.bool_value = false}},
       },
     },
     {
-      .node = MockLeaf,
+      .node  = MockLeaf,
       .props = {
         {"succeeds", {.bool_value = false}},
       },
     },
     {
-      .node = MockLeaf,
+      .node  = MockLeaf,
       .props = {
         {"succeeds", {.bool_value = false}},
       },
     },
     {
-      .node = MockLeaf,
+      .node  = MockLeaf,
       .props = {
         {"succeeds", {.bool_value = true}},
       },
     },
     {
-      .node = MockLeaf,
+      .node  = MockLeaf,
       .props = {
         {"succeeds", {.bool_value = false}},
       },

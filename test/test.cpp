@@ -1,57 +1,12 @@
 #include <cstdio>
 #include <fstream>
-#include <streambuf>
 #include <iostream>
-#include "_test.hpp"
+#include <streambuf>
+
 #include "../Banyan.hpp"
+#include "_test.hpp"
 
 using namespace Banyan;
-
-
-// Mocks
-// ------------------------------
-
-int MockLeaf__activated;
-int MockLeaf__resumed;
-
-Banyan::Node MockLeaf{
-  .props = {
-    {"succeeds", {.bool_value = false}},
-  },
-  .activate = [](size_t e, auto &n) {
-    MockLeaf__activated += 1;
-    return Ret{
-      n.props["succeeds"].bool_value ? Succeeded : Failed,
-    };
-  },
-  .resume = [](size_t e, auto &n, auto status) {
-    MockLeaf__resumed += 1;
-    return Ret{Succeeded};
-  },
-};
-
-int MockFailOnThirdCall__activated;
-int MockFailOnThirdCall__resumed;
-
-Node MockFailOnThirdCall{
-  .props = {
-    {"i", {.int_value = 0}},
-  },
-  .activate = [](size_t e, auto &n) {
-    if (++MockFailOnThirdCall__activated == 3) {
-      return Ret{Failed};
-    }
-    return Ret{Succeeded};
-  },
-};
-
-void reset() {
-  MockLeaf__activated = 0;
-  MockLeaf__resumed = 0;
-  MockFailOnThirdCall__activated = 0;
-  MockFailOnThirdCall__resumed = 0;
-}
-
 
 // Data
 // ------------------------------
@@ -76,7 +31,7 @@ int main() {
 
     p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 1);
-    p_assert(MockLeaf__resumed   == 0);
+    p_assert(MockLeaf__resumed == 0);
   }
 
 
@@ -86,9 +41,9 @@ int main() {
     Instance bt(&Tree_Repeater, 7459);
     bt.begin();
 
-    p_assert(bt.stack.size()     == 0);
+    p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 6);
-    p_assert(MockLeaf__resumed   == 0);
+    p_assert(MockLeaf__resumed == 0);
   }
 
 
@@ -98,9 +53,9 @@ int main() {
     Instance bt(&Tree_Selector, 7459);
     bt.begin();
 
-    p_assert(bt.stack.size()     == 0);
+    p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 4);
-    p_assert(MockLeaf__resumed   == 0);
+    p_assert(MockLeaf__resumed == 0);
   }
 
 
@@ -110,9 +65,9 @@ int main() {
     Instance bt(&Tree_Sequence, 7459);
     bt.begin();
 
-    p_assert(bt.stack.size()     == 0);
+    p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 5);
-    p_assert(MockLeaf__resumed   == 0);
+    p_assert(MockLeaf__resumed == 0);
   }
 
 
@@ -122,9 +77,9 @@ int main() {
     Instance bt(&Tree_Succeeder, 7459);
     bt.begin();
 
-    p_assert(bt.stack.size()     == 0);
+    p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 2);
-    p_assert(MockLeaf__resumed   == 0);
+    p_assert(MockLeaf__resumed == 0);
   }
 
 
@@ -134,12 +89,11 @@ int main() {
     Instance bt(&Tree_While, 7459);
     bt.begin();
 
-    p_assert(bt.stack.size()                == 0);
-    p_assert(MockLeaf__activated            == 2);
+    p_assert(bt.stack.size() == 0);
+    p_assert(MockLeaf__activated == 2);
     p_assert(MockFailOnThirdCall__activated == 3);
   }
 
 
   return 0;
 }
-
