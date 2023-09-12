@@ -160,13 +160,11 @@ inline Node Inverter(NodeChildren children) {
 // Repeater
 // ------------------------------------
 
-typedef int             TRepeaterN;
-typedef bool            TRepeaterBreakOnFailure;
-TRepeaterN              RepeaterN(int N) { return N; }
-TRepeaterN              RepeaterForever() { return 0; }
-TRepeaterBreakOnFailure RepeaterBreakOnFailure(bool break_on_failure) { return break_on_failure; }
+typedef int  RepeaterN;
+typedef bool RepeaterBreakOnFailure;
+RepeaterN    RepeaterForever() { return 0; }
 
-inline Node Repeater(TRepeaterN N, TRepeaterBreakOnFailure break_on_failure, NodeChildren children) {
+inline Node Repeater(RepeaterN N, RepeaterBreakOnFailure break_on_failure, NodeChildren children) {
   Node repeater = {
     .min_children = 1,
     .max_children = 1,
@@ -202,12 +200,10 @@ inline Node Repeater(TRepeaterN N, TRepeaterBreakOnFailure break_on_failure, Nod
 // Selector
 // ------------------------------------
 
-typedef bool               TSelectorBreakOn1stSuccess;
-typedef bool               TSelectorRandomizeOrder;
-TSelectorBreakOn1stSuccess SelectorBreakOn1stSuccess(bool break_on_1st_success) { return break_on_1st_success; }
-TSelectorRandomizeOrder    SelectorRandomizeOrder(bool randomize_order) { return randomize_order; }
+typedef bool SelectorBreakOn1stSuccess;
+typedef bool SelectorRandomizeOrder;
 
-inline Node Selector(TSelectorBreakOn1stSuccess break_on_1st_success, TSelectorBreakOn1stSuccess randomize_order, NodeChildren children) {
+inline Node Selector(SelectorBreakOn1stSuccess break_on_1st_success, SelectorRandomizeOrder randomize_order, NodeChildren children) {
   Node selector = {
     .min_children = 1,
     .max_children = -1,
@@ -243,10 +239,9 @@ inline Node Selector(TSelectorBreakOn1stSuccess break_on_1st_success, TSelectorB
 // Sequence
 // ------------------------------------
 
-typedef bool            TSequenceBreakOnFailure;
-TSequenceBreakOnFailure SequenceBreakOnFailure(bool break_on_failure) { return break_on_failure; }
+typedef bool SequenceBreakOnFailure;
 
-inline Node Sequence(TSequenceBreakOnFailure break_on_failure, NodeChildren children) {
+inline Node Sequence(SequenceBreakOnFailure break_on_failure, NodeChildren children) {
   Node sequence = {
     .min_children = 1,
     .max_children = -1,
