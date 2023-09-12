@@ -1,39 +1,16 @@
-Node Tree_Selector = construct({
-  .node  = Selector(),
-  .props = {
-    {"random_order", {.bool_value = false}},
-    {"stop_after_first_success", {.bool_value = true}},
-  },
-  .children = {
+#include "Banyan.hpp"
+#include "mocks.hpp"
+
+Node TestSelector() {
+  return Selector(
+    SelectorBreakOn1stSuccess(true),
+    SelectorRandomizeOrder(false),
     {
-      .node  = MockLeaf,
-      .props = {
-        {"succeeds", {.bool_value = false}},
-      },
-    },
-    {
-      .node  = MockLeaf,
-      .props = {
-        {"succeeds", {.bool_value = false}},
-      },
-    },
-    {
-      .node  = MockLeaf,
-      .props = {
-        {"succeeds", {.bool_value = false}},
-      },
-    },
-    {
-      .node  = MockLeaf,
-      .props = {
-        {"succeeds", {.bool_value = true}},
-      },
-    },
-    {
-      .node  = MockLeaf,
-      .props = {
-        {"succeeds", {.bool_value = false}},
-      },
-    },
-  },
-});
+      MockLeaf(false),
+      MockLeaf(false),
+      MockLeaf(false),
+      MockLeaf(true),
+      MockLeaf(false),
+    }
+  );
+}

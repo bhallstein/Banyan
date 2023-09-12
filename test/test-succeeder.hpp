@@ -1,14 +1,14 @@
-Node Tree_Succeeder = construct({
-  .node = Repeater(),
-  .props = {
-    {"N", {.int_value = 2}},
-  },
-  .children = {
+#include "Banyan.hpp"
+#include "mocks.hpp"
+
+Node TestSucceeder() {
+  return Repeater(
+    RepeaterN(2),
+    RepeaterBreakOnFailure(true),
     {
-      .node = Succeeder(),
-      .children = {
-        {.node = MockLeaf},
-      },
-    },
-  },
-});
+      Succeeder(
+        {MockLeaf(MockLeafSucceeds(false))}
+      ),
+    }
+  );
+}

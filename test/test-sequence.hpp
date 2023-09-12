@@ -1,10 +1,15 @@
-Node Tree_Sequence = construct({
-  .node = Sequence(),
-  .children = {
-    {.node = MockLeaf},
-    {.node = MockLeaf},
-    {.node = MockLeaf},
-    {.node = MockLeaf},
-    {.node = MockLeaf},
-  },
-});
+#include "Banyan.hpp"
+#include "mocks.hpp"
+
+Node TestSequence() {
+  return Sequence(
+    SequenceBreakOnFailure(false),
+    {
+      MockLeaf(false),
+      MockLeaf(false),
+      MockLeaf(false),
+      MockLeaf(false),
+      MockLeaf(false),
+    }
+  );
+}

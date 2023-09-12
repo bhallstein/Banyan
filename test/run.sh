@@ -1,1 +1,1 @@
-clang++ -std=c++14 test.cpp && ./a.out
+clang++ -std=c++14 test.cpp -I .. && ./a.out

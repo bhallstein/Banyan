@@ -141,16 +141,7 @@ struct Instance {
 };
 
 
-// Prop helpers - make specifying certain props more semantic
-// ------------------------------------
-
-inline int  Forever() { return 0; }
-inline bool BreakOnFailure() { return true; }
-inline bool BreakOnFirstSuccess() { return true; }
-inline bool RandomizeOrder() { return true; }
-
-
-// Built-in node definitions
+// Inverter
 // ------------------------------------
 
 inline Node Inverter(NodeChildren children) {
@@ -166,7 +157,16 @@ inline Node Inverter(NodeChildren children) {
 }
 
 
-inline Node Repeater(int N, bool break_on_failure, NodeChildren children) {
+// Repeater
+// ------------------------------------
+
+typedef int             TRepeaterN;
+typedef bool            TRepeaterBreakOnFailure;
+TRepeaterN              RepeaterN(int N) { return N; }
+TRepeaterN              RepeaterForever() { return 0; }
+TRepeaterBreakOnFailure RepeaterBreakOnFailure(bool break_on_failure) { return break_on_failure; }
+
+inline Node Repeater(TRepeaterN N, TRepeaterBreakOnFailure break_on_failure, NodeChildren children) {
   Node repeater = {
     .min_children = 1,
     .max_children = 1,
@@ -189,7 +189,7 @@ inline Node Repeater(int N, bool break_on_failure, NodeChildren children) {
         int& i = n.props["i"].int_value;
         i += 1;
 
-        if (N == Forever() || i < N) {
+        if (N == RepeaterForever() || i < N) {
           return Ret{PushChild, 0};
         }
 
@@ -199,7 +199,15 @@ inline Node Repeater(int N, bool break_on_failure, NodeChildren children) {
 }
 
 
-inline Node Selector(bool break_on_1st_success, bool randomize_order, NodeChildren children) {
+// Selector
+// ------------------------------------
+
+typedef bool               TSelectorBreakOn1stSuccess;
+typedef bool               TSelectorRandomizeOrder;
+TSelectorBreakOn1stSuccess SelectorBreakOn1stSuccess(bool break_on_1st_success) { return break_on_1st_success; }
+TSelectorRandomizeOrder    SelectorRandomizeOrder(bool randomize_order) { return randomize_order; }
+
+inline Node Selector(TSelectorBreakOn1stSuccess break_on_1st_success, TSelectorBreakOn1stSuccess randomize_order, NodeChildren children) {
   Node selector = {
     .min_children = 1,
     .max_children = -1,
@@ -232,7 +240,13 @@ inline Node Selector(bool break_on_1st_success, bool randomize_order, NodeChildr
 }
 
 
-inline Node Sequence(bool break_on_failure, NodeChildren children) {
+// Sequence
+// ------------------------------------
+
+typedef bool            TSequenceBreakOnFailure;
+TSequenceBreakOnFailure SequenceBreakOnFailure(bool break_on_failure) { return break_on_failure; }
+
+inline Node Sequence(TSequenceBreakOnFailure break_on_failure, NodeChildren children) {
   Node sequence = {
     .min_children = 1,
     .max_children = -1,
@@ -258,6 +272,9 @@ inline Node Sequence(bool break_on_failure, NodeChildren children) {
 }
 
 
+// Succeeder
+// ------------------------------------
+
 inline Node Succeeder(NodeChildren children) {
   Node succeeder = {
     .min_children = 1,
@@ -268,6 +285,9 @@ inline Node Succeeder(NodeChildren children) {
   return initialize_node(succeeder, children);
 }
 
+
+// While
+// ------------------------------------
 
 inline Node While(NodeChildren children) {
   Node n_while = {

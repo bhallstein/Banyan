@@ -1,7 +1,11 @@
-Node Tree_While = construct({
-  .node = While(),
-  .children = {
-    {.node = MockFailOnThirdCall},
-    {.node = MockLeaf},
-  },
-});
+#include "Banyan.hpp"
+#include "mocks.hpp"
+
+Node TestWhile() {
+  return While(
+    {
+      MockFailOnThirdCall(),
+      MockLeaf(MockLeafSucceeds(false)),
+    }
+  );
+}

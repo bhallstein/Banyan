@@ -6,11 +6,11 @@
 #include "../Banyan.hpp"
 #include "_test.hpp"
 
-using namespace Banyan;
 
 // Data
 // ------------------------------
 
+#include "mocks.hpp"
 #include "test-inverter.hpp"
 #include "test-repeater.hpp"
 #include "test-selector.hpp"
@@ -19,6 +19,17 @@ using namespace Banyan;
 #include "test-while.hpp"
 
 
+// externs
+// ------------------------------
+
+int MockLeaf__activated = 0;
+int MockLeaf__resumed   = 0;
+int MockFailOnThirdCall__activated;
+int MockFailOnThirdCall__resumed;
+
+
+using namespace Banyan;
+
 // Tests
 // ------------------------------
 
@@ -26,7 +37,8 @@ int main() {
   p_header("Inverter");
   {
     reset();
-    Instance bt(&Tree_Inverter, 7459);
+    Node     Inv = TestInverter();
+    Instance bt(&Inv, 7459);
     bt.begin();
 
     p_assert(bt.stack.size() == 0);
@@ -38,7 +50,8 @@ int main() {
   p_header("Repeater");
   {
     reset();
-    Instance bt(&Tree_Repeater, 7459);
+    Node     Rep = TestRepeater();
+    Instance bt(&Rep, 7459);
     bt.begin();
 
     p_assert(bt.stack.size() == 0);
@@ -50,7 +63,8 @@ int main() {
   p_header("Selector");
   {
     reset();
-    Instance bt(&Tree_Selector, 7459);
+    Node     Sel = TestSelector();
+    Instance bt(&Sel, 7459);
     bt.begin();
 
     p_assert(bt.stack.size() == 0);
@@ -62,7 +76,8 @@ int main() {
   p_header("Sequence");
   {
     reset();
-    Instance bt(&Tree_Sequence, 7459);
+    Node     Seq = TestSequence();
+    Instance bt(&Seq, 7459);
     bt.begin();
 
     p_assert(bt.stack.size() == 0);
@@ -74,7 +89,8 @@ int main() {
   p_header("Succeeder");
   {
     reset();
-    Instance bt(&Tree_Succeeder, 7459);
+    Node     Succ = TestSucceeder();
+    Instance bt(&Succ, 7459);
     bt.begin();
 
     p_assert(bt.stack.size() == 0);
@@ -86,7 +102,8 @@ int main() {
   p_header("While");
   {
     reset();
-    Instance bt(&Tree_While, 7459);
+    Node     While = TestWhile();
+    Instance bt(&While, 7459);
     bt.begin();
 
     p_assert(bt.stack.size() == 0);
