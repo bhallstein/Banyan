@@ -82,25 +82,6 @@ typedef Map<Prop>         NodeProps;
 typedef std::vector<Node> NodeChildren;
 
 
-// initialize_node() - called by node constructors to assign children
-// ------------------------------------
-
-void check_children_valid(Node& node, const NodeChildren& children) {
-  auto n_children    = children.size();
-  bool n_children_ok = n_children >= node.min_children &&
-                       (node.max_children == -1 || n_children <= node.max_children);
-  if (!n_children_ok) {
-    throw std::runtime_error("Error: node has invalid number of children");
-  }
-}
-
-inline Node& initialize_node(Node& node, const NodeChildren& children) {
-  check_children_valid(node, children);
-  node.children = children;
-  return node;
-}
-
-
 // Instance -- a running behaviour tree instance
 // ------------------------------------
 
@@ -139,6 +120,25 @@ struct Instance {
     }
   }
 };
+
+
+// initialize_node() - called by node constructors to assign children
+// ------------------------------------
+
+void check_children_valid(Node& node, const NodeChildren& children) {
+  auto n_children    = children.size();
+  bool n_children_ok = n_children >= node.min_children &&
+                       (node.max_children == -1 || n_children <= node.max_children);
+  if (!n_children_ok) {
+    throw std::runtime_error("Error: node has invalid number of children");
+  }
+}
+
+inline Node& initialize_node(Node& node, const NodeChildren& children) {
+  check_children_valid(node, children);
+  node.children = children;
+  return node;
+}
 
 
 // Inverter
@@ -272,9 +272,11 @@ inline Node Sequence(SequenceBreakOnFailure break_on_failure, NodeChildren child
 
 inline Node Succeeder(NodeChildren children) {
   Node succeeder = {
-    .min_children = 1,
+    .min_children = 0,
     .max_children = 1,
-    .activate     = [](size_t, auto& n) { return Ret{PushChild, 0}; },
+    .activate     = [](size_t, auto& n) { return n.node->children.size() == 0
+                                                   ? Ret{Succeeded}
+                                                   : Ret{PushChild, 0}; },
     .resume       = [](size_t, auto& n, ReturnStatus s) { return Ret{Succeeded}; },
   };
   return initialize_node(succeeder, children);
