@@ -125,7 +125,7 @@ struct Instance {
 // initialize_node() - called by node constructors to assign children
 // ------------------------------------
 
-void check_children_valid(Node& node, const NodeChildren& children) {
+inline void check_children_valid(Node& node, const NodeChildren& children) {
   auto n_children    = children.size();
   bool n_children_ok = n_children >= node.min_children &&
                        (node.max_children == -1 || n_children <= node.max_children);
@@ -160,9 +160,9 @@ inline Node Inverter(NodeChildren children) {
 // Repeater
 // ------------------------------------
 
-typedef int  RepeaterN;
-typedef bool RepeaterBreakOnFailure;
-RepeaterN    RepeaterForever() { return 0; }
+typedef int      RepeaterN;
+typedef bool     RepeaterBreakOnFailure;
+inline RepeaterN RepeaterForever() { return 0; }
 
 inline Node Repeater(RepeaterN N, RepeaterBreakOnFailure break_on_failure, NodeChildren children) {
   Node repeater = {
