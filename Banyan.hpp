@@ -61,9 +61,10 @@ struct Node {
     }
   };
 
-  int       min_children = 0;
-  int       max_children = 0;  // If -1, no maximum
-  Map<Prop> props;
+  std::string node_type;
+  int         min_children = 0;
+  int         max_children = 0;  // If -1, no maximum
+  Map<Prop>   props;
 
   typedef std::function<Ret(size_t, RunNode&)>               activate_func;
   typedef std::function<Ret(size_t, RunNode&, ReturnStatus)> resume_func;
@@ -146,6 +147,7 @@ inline Node& initialize_node(Node& node, const NodeChildren& children) {
 
 inline Node Inverter(NodeChildren children) {
   Node inverter = {
+    .node_type    = "Inverter",
     .min_children = 1,
     .max_children = 1,
     .activate     = [](size_t, auto& n) { return Ret{PushChild, 0}; },
@@ -166,6 +168,7 @@ inline RepeaterN RepeaterForever() { return 0; }
 
 inline Node Repeater(RepeaterN N, RepeaterBreakOnFailure break_on_failure, NodeChildren children) {
   Node repeater = {
+    .node_type    = "Repeater",
     .min_children = 1,
     .max_children = 1,
     .props        = {
@@ -205,6 +208,7 @@ typedef bool SelectorRandomizeOrder;
 
 inline Node Selector(SelectorBreakOn1stSuccess break_on_1st_success, SelectorRandomizeOrder randomize_order, NodeChildren children) {
   Node selector = {
+    .node_type    = "Selector",
     .min_children = 1,
     .max_children = -1,
     .props        = {
@@ -243,6 +247,7 @@ typedef bool SequenceBreakOnFailure;
 
 inline Node Sequence(SequenceBreakOnFailure break_on_failure, NodeChildren children) {
   Node sequence = {
+    .node_type    = "Sequence",
     .min_children = 1,
     .max_children = -1,
     .props        = {
@@ -272,6 +277,7 @@ inline Node Sequence(SequenceBreakOnFailure break_on_failure, NodeChildren child
 
 inline Node Succeeder(NodeChildren children) {
   Node succeeder = {
+    .node_type    = "Succeeder",
     .min_children = 0,
     .max_children = 1,
     .activate     = [](size_t, auto& n) { return n.node->children.size() == 0
@@ -288,6 +294,7 @@ inline Node Succeeder(NodeChildren children) {
 
 inline Node While(NodeChildren children) {
   Node n_while = {
+    .node_type    = "While",
     .min_children = 2,
     .max_children = 2,
     .props{
