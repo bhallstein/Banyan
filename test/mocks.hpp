@@ -4,44 +4,64 @@
 
 using namespace Banyan;
 
+
+// MockLeaf
+// ------------------------------------
+
 extern int MockLeaf__activated;
 extern int MockLeaf__resumed;
 
-typedef bool      TMockLeafSucceeds;
-TMockLeafSucceeds MockLeafSucceeds(bool succeeds) { return succeeds; }
-
-inline Node MockLeaf(TMockLeafSucceeds succeeds) {
-  return {
-    .props = {
-      {"succeeds", {.bool_value = succeeds}},
-    },
-    .activate = [](size_t e, auto& n) {
-      MockLeaf__activated += 1;
-      return Ret{
-        n.props["succeeds"].bool_value ? Succeeded : Failed,
-      }; },
-    .resume   = [](size_t e, auto& n, auto status) {
-      MockLeaf__resumed += 1;
-      return Ret{Succeeded}; },
+inline Ret mockleaf_activate(RunNode& rn, size_t e) {
+  MockLeaf__activated += 1;
+  return Ret{
+    rn.props["succeeds"].bool_value ? Succeeded : Failed,
   };
 }
+inline Ret mockleaf_resume(RunNode& node, size_t identifier, ReturnStatus status) {
+  MockLeaf__resumed += 1;
+  return Ret{Succeeded};
+}
 
+inline Node MockLeaf(bool succeeds) {
+  static NodeType MockLeafType{
+    "MockLeaf",
+    mockleaf_activate,
+    mockleaf_resume,
+    0,
+    0,
+    {
+      {"succeeds", {.bool_value = succeeds}},
+    }
+  };
+  return mk_node(MockLeafType);
+}
+
+
+// MockFailOnThirdCall
+// ------------------------------------
 
 extern int MockFailOnThirdCall__activated;
 extern int MockFailOnThirdCall__resumed;
 
+inline Ret mlfotc_activate(RunNode& rn, size_t e) {
+  if (++MockFailOnThirdCall__activated == 3) {
+    return Ret{Failed};
+  }
+  return Ret{Succeeded};
+}
+
 inline Node MockFailOnThirdCall() {
-  return {
-    .props = {
+  static NodeType Type{
+    "MockFailOnThirdCall",
+    mlfotc_activate,
+    default_resume_func,
+    0,
+    0,
+    {
       {"i", {.int_value = 0}},
-    },
-    .activate = [](size_t e, auto& n) {
-      if (++MockFailOnThirdCall__activated == 3) {
-        return Ret{Failed};
-      }
-      return Ret{Succeeded};
-    },
+    }
   };
+  return mk_node(Type);
 }
 
 

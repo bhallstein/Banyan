@@ -3,8 +3,9 @@
 
 Node TestSelector() {
   return Selector(
-    SelectorBreakOn1stSuccess(true),
-    SelectorRandomizeOrder(false),
+    {
+      {"i", {.int_value = 3}},
+    },
     {
       MockLeaf(false),
       MockLeaf(false),

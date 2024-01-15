@@ -2,5 +2,5 @@
 #include "mocks.hpp"
 
 inline Node TestInverter() {
-  return Banyan::Inverter({MockLeaf(false)});
+  return Inverter({MockLeaf(false)});
 }

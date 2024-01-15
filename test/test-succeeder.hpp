@@ -3,11 +3,13 @@
 
 Node TestSucceeder() {
   return Repeater(
-    RepeaterN(2),
-    RepeaterBreakOnFailure(true),
+    {
+      {"n", {.int_value = 2}},
+      {"break_on_failure", {.bool_value = true}},
+    },
     {
       Succeeder(
-        {MockLeaf(MockLeafSucceeds(false))}
+        {MockLeaf(false)}
       ),
     }
   );

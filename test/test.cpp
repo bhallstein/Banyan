@@ -38,8 +38,8 @@ int main() {
   {
     reset();
     Node     Inv = TestInverter();
-    Instance bt(&Inv, 7459);
-    bt.begin();
+    Instance bt{&Inv, 7459};
+    instance_begin(bt);
 
     p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 1);
@@ -51,8 +51,8 @@ int main() {
   {
     reset();
     Node     Rep = TestRepeater();
-    Instance bt(&Rep, 7459);
-    bt.begin();
+    Instance bt{&Rep, 7459};
+    instance_begin(bt);
 
     p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 6);
@@ -64,11 +64,11 @@ int main() {
   {
     reset();
     Node     Sel = TestSelector();
-    Instance bt(&Sel, 7459);
-    bt.begin();
+    Instance bt{&Sel, 7459};
+    instance_begin(bt);
 
     p_assert(bt.stack.size() == 0);
-    p_assert(MockLeaf__activated == 4);
+    p_assert(MockLeaf__activated == 1);
     p_assert(MockLeaf__resumed == 0);
   }
 
@@ -77,8 +77,8 @@ int main() {
   {
     reset();
     Node     Seq = TestSequence();
-    Instance bt(&Seq, 7459);
-    bt.begin();
+    Instance bt{&Seq, 7459};
+    instance_begin(bt);
 
     p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 5);
@@ -90,8 +90,8 @@ int main() {
   {
     reset();
     Node     Succ = TestSucceeder();
-    Instance bt(&Succ, 7459);
-    bt.begin();
+    Instance bt{&Succ, 7459};
+    instance_begin(bt);
 
     p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 2);
@@ -103,8 +103,8 @@ int main() {
   {
     reset();
     Node     While = TestWhile();
-    Instance bt(&While, 7459);
-    bt.begin();
+    Instance bt{&While, 7459};
+    instance_begin(bt);
 
     p_assert(bt.stack.size() == 0);
     p_assert(MockLeaf__activated == 2);

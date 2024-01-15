@@ -5,7 +5,7 @@ Node TestWhile() {
   return While(
     {
       MockFailOnThirdCall(),
-      MockLeaf(MockLeafSucceeds(false)),
+      MockLeaf(false),
     }
   );
 }

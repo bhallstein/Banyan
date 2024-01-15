@@ -1,6 +1,5 @@
-#ifndef Banyan_h
-#define Banyan_h
-
+#pragma once
+#include <iostream>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -36,293 +35,327 @@ struct Prop {
   std::string string_value;
 };
 
+
+// Random number helpers
+// ------------------------------------
+
+inline std::mt19937* get_mersenne_twister() {
+  static std::mt19937* mt = 0;
+
+  if (!mt) {
+    std::random_device rd;
+    mt = new std::mt19937(rd());
+  }
+
+  return mt;
+}
+
+inline int random_int_up_to(int max) {
+  std::uniform_int_distribution<> distrib(0, max);
+  return distrib(*get_mersenne_twister());
+}
+
 template <class T>
-void scramble(std::vector<T>& v) {
-  std::random_device rd;
-  std::mt19937       g(rd());
+inline void scramble(T& v) {
+  std::mt19937* g = get_mersenne_twister();
   std::shuffle(v.begin(), v.end(), g);
 }
 
 
-// RunNode
+// Node, RunNode, NodeType
 // ------------------------------------
 
+class NodeType;
+
 struct Node {
-  struct RunNode {  // Copy of node without children used when running tree
-    Node*     node;
-    Map<Prop> props;
-    RunNode(Node* n) : node(n), props(n->props) {}
-
-    Ret activate(size_t identifier) {
-      return node->activate(identifier, *this);
-    }
-    Ret resume(size_t identifier, ReturnStatus status) {
-      return node->resume(identifier, *this, status);
-    }
-  };
-
-  std::string node_type;
-  int         min_children = 0;
-  int         max_children = 0;  // If -1, no maximum
-  Map<Prop>   props;
-
-  typedef std::function<Ret(size_t, RunNode&)>               activate_func;
-  typedef std::function<Ret(size_t, RunNode&, ReturnStatus)> resume_func;
-
-  activate_func activate = [](size_t identifier, RunNode&) {
-    return Ret{Succeeded};
-  };
-  resume_func resume = [](size_t identifier, RunNode&, ReturnStatus) {
-    return Ret{Succeeded};
-  };
-
+  const NodeType*   node_type;
+  Map<Prop>         props;
   std::vector<Node> children;
 };
 
-typedef Map<Prop>         NodeProps;
+struct RunNode {
+  Node*     tree_node;
+  Map<Prop> props;  // Copy of props to operate on
+};
+
 typedef std::vector<Node> NodeChildren;
+
+typedef Ret activate_func(RunNode& node, size_t identifier);
+typedef Ret resume_func(RunNode& node, size_t identifier, ReturnStatus status);
+
+inline Ret default_resume_func(RunNode&, size_t, ReturnStatus) {
+  return Ret{Succeeded};
+}
+
+struct NodeType {
+  std::string    name;
+  activate_func* activate;
+  resume_func*   resume        = default_resume_func;
+  int            min_children  = 0;
+  int            max_children  = 0;
+  Map<Prop>      default_props = {};
+};
+
+inline Node mk_node(const NodeType& node_type, const Map<Prop>& with_props = {}, const NodeChildren& children = {}) {
+  // #ifdef BanyanCheckChildren
+  // TODO: check children valid
+  //       check props valid
+  //   auto n_children    = children.size();
+  //   bool n_children_ok = n_children >= node.min_children &&
+  //                        (node.max_children == -1 || n_children <= node.max_children);
+  //   if (!n_children_ok) {
+  //     throw std::runtime_error("Error: node has invalid number of children");
+  //   }
+  Map<Prop> props = node_type.default_props;      // Copy default props
+  for (const auto& entry : with_props.entries) {  // Copy props as spcfd for this node in tree
+    props[entry.name] = entry.item;
+  }
+  return Node{
+    &node_type,
+    props,
+    children,
+  };
+}
+
+inline RunNode mk_run_node(Node& node) {
+  return RunNode{&node, node.props};
+}
+
+inline Ret activate_node(RunNode& rn, size_t identifier) {
+  return rn.tree_node->node_type->activate(rn, identifier);
+}
+inline Ret resume_node(RunNode& rn, size_t identifier, ReturnStatus status) {
+  return rn.tree_node->node_type->resume(rn, identifier, status);
+}
 
 
 // Instance -- a running behaviour tree instance
 // ------------------------------------
 
 struct Instance {
-  Node*                      tree;
-  size_t                     identifier;
-  std::vector<Node::RunNode> stack;
-
-  Instance(Node* _tree, size_t _identifier) : tree(_tree), identifier(_identifier) {}
-
-  bool finished() {
-    return stack.size() == 0;
-  }
-
-  void begin() {
-    stack.push_back(tree);
-    Ret ret = stack.back().activate(identifier);
-    update(ret);
-  }
-
-  void update(Ret ret) {
-    while (!finished() && ret.status != Running) {
-      if (ret.status == Succeeded || ret.status == Failed) {
-        stack.pop_back();
-        if (finished()) {
-          break;
-        }
-        Node::RunNode& rn = stack.back();
-        ret               = rn.resume(identifier, ret.status);
-      }
-
-      else if (ret.status == PushChild) {
-        stack.push_back(Node::RunNode(&stack.back().node->children[ret.child]));
-        ret = stack.back().activate(identifier);
-      }
-    }
-  }
+  Node*                tree;
+  size_t               identifier;
+  std::vector<RunNode> stack;
 };
 
+inline bool instance_finished(Instance& inst) {
+  return inst.stack.size() == 0;
+}
 
-// initialize_node() - called by node constructors to assign children
-// ------------------------------------
+void instance_update(Instance& inst, Ret ret) {
+  while (!instance_finished(inst) && ret.status != Running) {
+    if (ret.status == Succeeded || ret.status == Failed) {
+      inst.stack.pop_back();
+      if (instance_finished(inst)) {
+        break;
+      }
+      ret = resume_node(inst.stack.back(), inst.identifier, ret.status);
+    }
 
-inline void check_children_valid(Node& node, const NodeChildren& children) {
-  auto n_children    = children.size();
-  bool n_children_ok = n_children >= node.min_children &&
-                       (node.max_children == -1 || n_children <= node.max_children);
-  if (!n_children_ok) {
-    throw std::runtime_error("Error: node has invalid number of children");
+    else if (ret.status == PushChild) {
+      RunNode& rn = inst.stack.back();
+      inst.stack.push_back(mk_run_node(rn.tree_node->children[ret.child]));
+      ret = activate_node(inst.stack.back(), inst.identifier);
+    }
   }
 }
 
-inline Node& initialize_node(Node& node, const NodeChildren& children) {
-  check_children_valid(node, children);
-  node.children = children;
-  return node;
+inline void instance_begin(Instance& inst) {
+  inst.stack.push_back(mk_run_node(*inst.tree));
+  Ret ret = activate_node(inst.stack.back(), inst.identifier);
+  instance_update(inst, ret);
 }
 
 
 // Inverter
 // ------------------------------------
 
-inline Node Inverter(NodeChildren children) {
-  Node inverter = {
-    .node_type    = "Inverter",
-    .min_children = 1,
-    .max_children = 1,
-    .activate     = [](size_t, auto& n) { return Ret{PushChild, 0}; },
-    .resume       = [](size_t, auto& n, ReturnStatus s) {
-        ReturnStatus status = s == Failed ? Succeeded : Failed;
-        return Ret{.status = status}; },
+inline Ret activate_push_first(RunNode& rn, size_t identifier) {
+  return Ret{PushChild, 0};
+}
+
+inline Ret inverter_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
+  return Ret{status == Failed ? Succeeded : Failed};
+}
+
+inline Node Inverter(const NodeChildren& children) {
+  static NodeType InverterType{
+    "Inverter",
+    activate_push_first,
+    inverter_resume,
+    1,
+    1,
   };
-  return initialize_node(inverter, children);
+  return mk_node(InverterType, {}, children);
 }
 
 
 // Repeater
 // ------------------------------------
 
-typedef int      RepeaterN;
-typedef bool     RepeaterBreakOnFailure;
-inline RepeaterN RepeaterForever() { return 0; }
+#define RepeatForever 0
 
-inline Node Repeater(RepeaterN N, RepeaterBreakOnFailure break_on_failure, NodeChildren children) {
-  Node repeater = {
-    .node_type    = "Repeater",
-    .min_children = 1,
-    .max_children = 1,
-    .props        = {
-      {"i", {.int_value = 0}},
-      {"N", {.int_value = N}},
-      {"break_on_failure", {.bool_value = break_on_failure}},
-    },
-    .activate = [](size_t, auto& n) { return Ret{PushChild, 0}; },
-    .resume   = [](size_t, auto& n, ReturnStatus s) {
-        if (s == Failed && n.props["break_on_failure"].bool_value) {
-          return Ret{Failed};
-        }
+inline Ret repeater_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
+  if (status == Failed && rn.props["break_on_failure"].bool_value) {
+    return Ret{Failed};
+  }
 
-        if (n.props["N"].int_value == 0) {
-          return Ret{PushChild, 0};
-        }
+  Prop& n = rn.props["n"];
+  if (n.int_value == 0) {
+    return Ret{PushChild, 0};
+  }
 
-        int& N = n.props["N"].int_value;
-        int& i = n.props["i"].int_value;
-        i += 1;
+  Prop& i = rn.props["i"];
+  i.int_value += 1;
 
-        if (N == RepeaterForever() || i < N) {
-          return Ret{PushChild, 0};
-        }
+  if (n.int_value == RepeatForever || i.int_value < n.int_value) {
+    return Ret{PushChild, 0};
+  }
 
-        return Ret{Succeeded}; },
-  };
-  return initialize_node(repeater, children);
+  return Ret{Succeeded};
 }
+
+inline Node Repeater(const Map<Prop>& props, const NodeChildren& children) {
+  static NodeType RepeaterType{
+    "Repeater",
+    activate_push_first,
+    repeater_resume,
+    1,
+    1,
+    {
+      {"i", {.int_value = 0}},
+      {"n", {.int_value = 1}},
+      {"break_on_failure", {.bool_value = false}},
+    },
+  };
+  return mk_node(RepeaterType, props, children);
+};
 
 
 // Selector
 // ------------------------------------
 
-typedef bool SelectorBreakOn1stSuccess;
-typedef bool SelectorRandomizeOrder;
+#define SelectRandom -1
 
-inline Node Selector(SelectorBreakOn1stSuccess break_on_1st_success, SelectorRandomizeOrder randomize_order, NodeChildren children) {
-  Node selector = {
-    .node_type    = "Selector",
-    .min_children = 1,
-    .max_children = -1,
-    .props        = {
-      {"i", {.int_value = 0}},
-      {"break_on_1st_success", {.bool_value = break_on_1st_success}},
-      {"randomize_order", {.bool_value = randomize_order}},
-    },
-    .activate = [](size_t, auto& n) {
-        if (n.props["randomize_order"].bool_value) {
-          scramble(n.node->children);  // TODO: fix
-        }
+inline Ret selector_activate(RunNode& rn, size_t identifier) {
+  Prop& i = rn.props["i"];
+  if (i.int_value == SelectRandom) {
+    i.int_value = random_int_up_to(rn.tree_node->children.size() - 1);
+  }
+  return Ret{PushChild, i.int_value};
+}
 
-        return Ret{PushChild, 0}; },
-    .resume   = [](size_t, auto& n, ReturnStatus s) -> Ret {
-      if (s == Succeeded && n.props["break_on_1st_success"].bool_value) {
-        return {Succeeded};
-      }
+inline Ret selector_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
+  return Ret{status};
+}
 
-      int& i = n.props["i"].int_value;
-      if (i < n.node->children.size() - 1) {
-        i += 1;
-        return Ret{PushChild, i};
-      }
-
-      return Ret{s};
+inline Node Selector(const Map<Prop>& props, const NodeChildren& children) {
+  static NodeType SelectorType{
+    "Selector",
+    selector_activate,
+    selector_resume,
+    1,
+    -1,
+    {
+      {"i", {.int_value = SelectRandom}},
     },
   };
-  return initialize_node(selector, children);
+  return mk_node(SelectorType, props, children);
 }
 
 
 // Sequence
 // ------------------------------------
 
-typedef bool SequenceBreakOnFailure;
+inline Ret sequence_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
+  if (status == Failed && rn.props["break_on_failure"].bool_value) {
+    return Ret{Failed};
+  }
 
-inline Node Sequence(SequenceBreakOnFailure break_on_failure, NodeChildren children) {
-  Node sequence = {
-    .node_type    = "Sequence",
-    .min_children = 1,
-    .max_children = -1,
-    .props        = {
+  Prop& i = rn.props["i"];
+  if (i.int_value < rn.tree_node->children.size() - 1) {
+    i.int_value += 1;
+    return Ret{PushChild, i.int_value};
+  }
+
+  return Ret{Succeeded};
+}
+
+inline Node Sequence(const Map<Prop>& props, const NodeChildren& children) {
+  static NodeType SequenceType{
+    "Sequence",
+    activate_push_first,
+    sequence_resume,
+    1,
+    -1,
+    {
       {"i", {.int_value = 0}},
-      {"break_on_failure", {.bool_value = break_on_failure}},
+      {"break_on_failure", {.bool_value = false}},
     },
-    .activate = [](size_t, auto& n) { return Ret{PushChild, 0}; },
-    .resume   = [](size_t, auto& n, ReturnStatus s) {
-        if (s == Failed && n.props["break_on_failure"].bool_value) {
-          return Ret{Failed};
-        }
-
-        int& i = n.props["i"].int_value;
-        if (i < n.node->children.size() - 1) {
-          i += 1;
-          return Ret{PushChild, i};
-        }
-
-        return Ret{Succeeded}; },
   };
-  return initialize_node(sequence, children);
+  return mk_node(SequenceType, props, children);
 }
 
 
 // Succeeder
 // ------------------------------------
 
-inline Node Succeeder(NodeChildren children) {
-  Node succeeder = {
-    .node_type    = "Succeeder",
-    .min_children = 0,
-    .max_children = 1,
-    .activate     = [](size_t, auto& n) { return n.node->children.size() == 0
-                                                   ? Ret{Succeeded}
-                                                   : Ret{PushChild, 0}; },
-    .resume       = [](size_t, auto& n, ReturnStatus s) { return Ret{Succeeded}; },
+inline Ret succeeder_activate(RunNode& rn, size_t identifier) {
+  return rn.tree_node->children.size() == 0
+           ? Ret{Succeeded}
+           : Ret{PushChild, 0};
+}
+
+inline Ret succeeder_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
+  return Ret{Succeeded};
+}
+
+const Node Succeeder(const NodeChildren& children = {}) {
+  static NodeType SucceederType{
+    "Succeeder",
+    succeeder_activate,
+    succeeder_resume,
+    0,
+    1,
   };
-  return initialize_node(succeeder, children);
+  return mk_node(SucceederType, {}, children);
 }
 
 
 // While
 // ------------------------------------
 
-inline Node While(NodeChildren children) {
-  Node n_while = {
-    .node_type    = "While",
-    .min_children = 2,
-    .max_children = 2,
-    .props{
-      {"i", {.int_value = 0}},
-    },
-    .activate = [](size_t, auto& n) { return Ret{PushChild, 0}; },
-    .resume   = [](size_t, auto& n, ReturnStatus s) {
-        int& i = n.props["i"].int_value;
+inline Ret while_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
+  Prop& i = rn.props["i"];
 
-        // Resume after first child
-        if (i == 0) {
-          if (s == Succeeded) {
-            i += 1;
-            return Ret{PushChild, 1};
-          }
-          else {
-            return Ret{Succeeded};
-          }
-        }
-        // After second child
-        else {
-          i = 0;
-          return Ret{PushChild, 0};
-        } },
-  };
-  return initialize_node(n_while, children);
+  // Resume after first child
+  if (i.int_value == 0) {
+    if (status == Succeeded) {
+      i.int_value += 1;
+      return Ret{PushChild, 1};
+    }
+    else {
+      return Ret{Succeeded};
+    }
+  }
+  // After second child
+  else {
+    i.int_value = 0;
+    return Ret{PushChild, 0};
+  }
 }
 
-}  // namespace Banyan
+inline Node While(const NodeChildren& children) {
+  static NodeType WhileType{
+    "While",
+    activate_push_first,
+    while_resume,
+    2,
+    2,
+    {{"i", {.int_value = 0}}},
+  };
+  return mk_node(WhileType, {}, children);
+}
 
-#endif
+
+}  // namespace Banyan

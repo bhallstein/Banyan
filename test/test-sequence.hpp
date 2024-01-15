@@ -3,7 +3,9 @@
 
 Node TestSequence() {
   return Sequence(
-    SequenceBreakOnFailure(false),
+    {
+      {"break_on_failure", {.bool_value = false}},
+    },
     {
       MockLeaf(false),
       MockLeaf(false),

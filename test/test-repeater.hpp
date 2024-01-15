@@ -3,15 +3,16 @@
 
 Node TestRepeater() {
   return Repeater(
-    RepeaterN(3),
-    RepeaterBreakOnFailure(true),
+    {
+      {"n", {.int_value = 3}},
+      {"break_on_failure", {.bool_value = true}},
+    },
     {
       Repeater(
-        RepeaterN(2),
-        RepeaterBreakOnFailure(false),
         {
-          MockLeaf(MockLeafSucceeds(false)),
-        }
+          {"n", {.int_value = 2}},
+        },
+        {MockLeaf(true)}
       ),
     }
   );
