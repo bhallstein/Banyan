@@ -57,7 +57,6 @@ inline Node MockFailOnThirdCall() {
     default_resume_func,
     0,
     0,
-    {{"i", {.int_value = 0}}},
   };
   return mk_node(Type);
 }

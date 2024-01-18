@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -108,11 +107,13 @@ struct Node {
   const NodeType*   node_type;
   Map<Prop>         props;  // Props for this node in the tree (default + overridden)
   std::vector<Node> children;
+  int               i = 0;
 };
 
 struct RunNode {
   Node*     tree_node;
   Map<Prop> props;  // Copy of props to operate on
+  int       i = 0;
 };
 
 using NodeChildren  = std::vector<Node>;
@@ -150,15 +151,22 @@ inline Node mk_node(const NodeType& node_type, const Map<Prop>& with_props = {},
     default_props,
     children,
   };
+  const Prop* default_i = default_props.get("i");
+  default_i && (node.i = default_i->int_value);
 
   for (const auto& entry : with_props.entries) {  // Copy props as spcfd for this node in tree
-    node.props[entry.name] = entry.item;
+    if (entry.name == "i") {
+      node.i = entry.item.int_value;
+    }
+    else {
+      node.props[entry.name] = entry.item;
+    }
   }
   return node;
 }
 
 inline RunNode mk_run_node(Node& node) {
-  return RunNode{&node, node.props};
+  return RunNode{&node, node.props, node.i};
 }
 
 inline Ret activate_node(RunNode& rn, size_t identifier) {
@@ -245,13 +253,12 @@ inline Ret repeater_resume(RunNode& rn, size_t identifier, ReturnStatus status) 
   }
 
   Prop& n = rn.props["n"];
-  Prop& i = rn.props["i"];
   if (n.int_value == 0) {
     return Ret{PushChild, 0};
   }
 
-  i.int_value += 1;
-  if (n.int_value == RepeatForever || i.int_value < n.int_value) {
+  rn.i += 1;
+  if (n.int_value == RepeatForever || rn.i < n.int_value) {
     return Ret{PushChild, 0};
   }
 
@@ -280,13 +287,10 @@ inline Node Repeater(const Map<Prop>& props, const NodeChildren& children) {
 #define SelectRandom -1
 
 inline Ret selector_activate(RunNode& rn, size_t identifier) {
-  std::cout << "selector_activate\n";
-  int i = rn.props["i"].int_value;
-  if (i == SelectRandom) {
-    i = random_int_up_to(rn.tree_node->children.size() - 1);
+  if (rn.i == SelectRandom) {
+    rn.i = random_int_up_to(rn.tree_node->children.size() - 1);
   }
-  std::cout << "Selected " << i << " (i prop: " << rn.props["i"].int_value << ")\n";
-  return Ret{PushChild, i};
+  return Ret{PushChild, rn.i};
 }
 
 inline Ret selector_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
@@ -316,10 +320,9 @@ inline Ret sequence_resume(RunNode& rn, size_t identifier, ReturnStatus status) 
     return Ret{Failed};
   }
 
-  Prop& i = rn.props["i"];
-  if (i.int_value < rn.tree_node->children.size() - 1) {
-    i.int_value += 1;
-    return Ret{PushChild, i.int_value};
+  if (rn.i < rn.tree_node->children.size() - 1) {
+    rn.i += 1;
+    return Ret{PushChild, rn.i};
   }
 
   return Ret{Succeeded};
@@ -333,7 +336,6 @@ inline Node Sequence(const Map<Prop>& props, const NodeChildren& children) {
     1,
     -1,
     {
-      {"i", {.int_value = 0}},
       {"break_on_failure", {.bool_value = false}},
     },
   };
@@ -370,11 +372,10 @@ const Node Succeeder(const NodeChildren& children = {}) {
 // ------------------------------------
 
 inline Ret while_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
-  Prop& i = rn.props["i"];
   // Resume after first child
-  if (i.int_value == 0) {
+  if (rn.i == 0) {
     if (status == Succeeded) {
-      i.int_value += 1;
+      rn.i += 1;
       return Ret{PushChild, 1};
     }
     else {
@@ -383,7 +384,7 @@ inline Ret while_resume(RunNode& rn, size_t identifier, ReturnStatus status) {
   }
   // After second child
   else {
-    i.int_value = 0;
+    rn.i = 0;
     return Ret{PushChild, 0};
   }
 }
@@ -395,7 +396,6 @@ inline Node While(const NodeChildren& children) {
     while_resume,
     2,
     2,
-    {{"i", {.int_value = 0}}},
   };
   return mk_node(WhileType, {}, children);
 }
